@@ -1,6 +1,9 @@
 // This file is generated automatically by infrastructure scripts. Please don't edit by hand.
 
-use super::{parser_result::ParserResult, stream::Stream};
+use super::{
+    parser_result::{IncompleteMatch, Match, NoMatch, ParserResult},
+    stream::Stream,
+};
 
 pub struct RepetitionHelper<const MIN_COUNT: usize>;
 
@@ -10,98 +13,81 @@ pub type OneOrMoreHelper = RepetitionHelper<1>;
 impl<const MIN_COUNT: usize> RepetitionHelper<MIN_COUNT> {
     pub fn run<F: Fn(&mut Stream) -> ParserResult>(stream: &mut Stream, parser: F) -> ParserResult {
         if MIN_COUNT > 1 {
-            unimplemented!("RepetionHelper only supports min_count of 0 or 1")
+            unimplemented!("RepetitionHelper only supports min_count of 0 or 1")
         }
 
         let save = stream.position();
         let mut result = parser(stream);
 
-        match &mut result {
+        match result {
+            // First item parsed correctly
             ParserResult::Match(_) => {}
-
             ParserResult::PrattOperatorMatch(_) => {}
 
-            ParserResult::IncompleteMatch(incomplete_match) => {
-                if MIN_COUNT == 0 {
-                    stream.set_position(save);
-                    return ParserResult::r#match(
-                        vec![],
-                        std::mem::take(
-                            &mut incomplete_match.tokens_that_would_have_allowed_more_progress,
-                        ),
-                    );
-                } else {
-                    return result;
-                }
+            // Couldn't get a full match but we allow 0 items - return an empty match
+            // so the parse is considered valid but note the expected tokens
+            ParserResult::IncompleteMatch(IncompleteMatch {
+                tokens_that_would_have_allowed_more_progress,
+                ..
+            })
+            | ParserResult::NoMatch(NoMatch {
+                tokens_that_would_have_allowed_more_progress,
+                ..
+            }) if MIN_COUNT == 0 => {
+                stream.set_position(save);
+                return ParserResult::r#match(vec![], tokens_that_would_have_allowed_more_progress);
             }
-
-            ParserResult::NoMatch(no_match) => {
-                if MIN_COUNT == 0 {
-                    stream.set_position(save);
-                    return ParserResult::r#match(
-                        vec![],
-                        std::mem::take(&mut no_match.tokens_that_would_have_allowed_more_progress),
-                    );
-                } else {
-                    return result;
-                }
-            }
+            // Don't try repeating if we don't have a full match and we require at least one
+            // TODO(recovery): We should allow for incomplete matches in recovery
+            ParserResult::IncompleteMatch(..) | ParserResult::NoMatch(..) => return result,
         }
 
         loop {
             let save = stream.position();
-            let mut next_result = parser(stream);
+            let next_result = parser(stream);
 
             match result {
-                ParserResult::Match(ref mut current_match) => match &mut next_result {
-                    ParserResult::Match(r#match) => {
-                        current_match
-                            .nodes
-                            .extend(std::mem::take(&mut r#match.nodes));
-                        current_match.tokens_that_would_have_allowed_more_progress = std::mem::take(
-                            &mut r#match.tokens_that_would_have_allowed_more_progress,
-                        );
+                ParserResult::Match(ref mut current_match) => match next_result {
+                    ParserResult::Match(Match {
+                        nodes,
+                        tokens_that_would_have_allowed_more_progress,
+                    }) => {
+                        current_match.nodes.extend(nodes);
+                        current_match.tokens_that_would_have_allowed_more_progress =
+                            tokens_that_would_have_allowed_more_progress;
                     }
 
                     ParserResult::PrattOperatorMatch(_) => unreachable!(
-                        "PrattOperatorMatch seen while repeating Matches in RepetionHelper"
+                        "PrattOperatorMatch seen while repeating Matches in RepetitionHelper"
                     ),
-
-                    ParserResult::IncompleteMatch(incomplete_match) => {
+                    // Can't proceed further with a complete parse, so back up, return
+                    // the accumulated result and note the expected tokens
+                    // TODO(recovery): We should allow for incomplete matches
+                    ParserResult::IncompleteMatch(IncompleteMatch {
+                        tokens_that_would_have_allowed_more_progress,
+                        ..
+                    })
+                    | ParserResult::NoMatch(NoMatch {
+                        tokens_that_would_have_allowed_more_progress,
+                    }) => {
                         stream.set_position(save);
-                        current_match.tokens_that_would_have_allowed_more_progress = std::mem::take(
-                            &mut incomplete_match.tokens_that_would_have_allowed_more_progress,
-                        );
-                        return result;
-                    }
-
-                    ParserResult::NoMatch(no_match) => {
-                        stream.set_position(save);
-                        current_match.tokens_that_would_have_allowed_more_progress = std::mem::take(
-                            &mut no_match.tokens_that_would_have_allowed_more_progress,
-                        );
+                        current_match.tokens_that_would_have_allowed_more_progress =
+                            tokens_that_would_have_allowed_more_progress;
                         return result;
                     }
                 },
 
                 ParserResult::PrattOperatorMatch(ref mut current_match) => {
-                    match &mut next_result {
+                    match next_result {
                         ParserResult::Match(_) => unreachable!(
-                            "Match seen while repeating PrattOperatorMatches in RepetionHelper"
+                            "Match seen while repeating PrattOperatorMatches in RepetitionHelper"
                         ),
 
                         ParserResult::PrattOperatorMatch(r#match) => {
-                            current_match
-                                .nodes
-                                .extend(std::mem::take(&mut r#match.nodes));
+                            current_match.nodes.extend(r#match.nodes);
                         }
 
-                        ParserResult::IncompleteMatch(_) => {
-                            stream.set_position(save);
-                            return result;
-                        }
-
-                        ParserResult::NoMatch(_) => {
+                        ParserResult::IncompleteMatch(_) | ParserResult::NoMatch(_) => {
                             stream.set_position(save);
                             return result;
                         }

@@ -2577,7 +2577,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::CatchClause)
     }
@@ -2601,7 +2601,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::CatchClauseError)
     }
@@ -2611,7 +2611,7 @@ impl Language {
         if self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(stream, |stream| self.catch_clause(stream))
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::CatchClausesList)
     }
@@ -2690,7 +2690,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ConstantDefinition)
     }
@@ -2725,7 +2725,7 @@ impl Language {
                 helper.result(stream)
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
     }
 
@@ -2734,7 +2734,7 @@ impl Language {
         if self.version_is_at_least_0_4_22 {
             OneOrMoreHelper::run(stream, |stream| self.constructor_attribute(stream))
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ConstructorAttributesList)
     }
@@ -2766,7 +2766,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ConstructorDefinition)
     }
@@ -3341,7 +3341,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::EmitStatement)
     }
@@ -3507,7 +3507,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ErrorDefinition)
     }
@@ -3531,7 +3531,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ErrorParameter)
     }
@@ -3567,7 +3567,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ErrorParametersList)
     }
@@ -4386,7 +4386,7 @@ impl Language {
                 helper.result(stream)
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
     }
 
@@ -4395,7 +4395,7 @@ impl Language {
         if self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(stream, |stream| self.fallback_function_attribute(stream))
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::FallbackFunctionAttributesList)
     }
@@ -4447,7 +4447,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::FallbackFunctionDefinition)
     }
@@ -6203,7 +6203,7 @@ impl Language {
                 helper.result(stream)
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
     }
 
@@ -6212,7 +6212,7 @@ impl Language {
         if self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(stream, |stream| self.receive_function_attribute(stream))
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ReceiveFunctionAttributesList)
     }
@@ -6259,7 +6259,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ReceiveFunctionDefinition)
     }
@@ -7278,7 +7278,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::ThrowStatement)
     }
@@ -7339,7 +7339,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::TryStatement)
     }
@@ -7592,7 +7592,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::TypeExpression)
     }
@@ -7753,7 +7753,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::UncheckedBlock)
     }
@@ -7765,7 +7765,7 @@ impl Language {
                 self.default_parse_token_with_trivia(stream, TokenKind::UnicodeStringLiteral)
             })
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::UnicodeStringLiteralsList)
     }
@@ -7809,7 +7809,7 @@ impl Language {
                 helper.result(stream)
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
     }
 
@@ -7818,7 +7818,7 @@ impl Language {
         if !self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(stream, |stream| self.unnamed_function_attribute(stream))
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::UnnamedFunctionAttributesList)
     }
@@ -7865,7 +7865,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::UnnamedFunctionDefinition)
     }
@@ -7916,7 +7916,7 @@ impl Language {
                 helper.result()
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::UserDefinedValueTypeDefinition)
     }
@@ -8097,7 +8097,7 @@ impl Language {
                 helper.result(stream)
             }
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
     }
 
@@ -9072,7 +9072,7 @@ impl Language {
         if self.version_is_at_least_0_6_0 {
             self.yul_block_parse_token_with_trivia(stream, TokenKind::LeaveKeyword)
         } else {
-            ParserResult::no_match(vec![])
+            ParserResult::disabled()
         }
         .with_kind(RuleKind::YulLeaveStatement)
     }

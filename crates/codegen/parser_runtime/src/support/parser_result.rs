@@ -36,6 +36,11 @@ impl ParserResult {
         ))
     }
 
+    /// Whenever a parser didn't run because it's disabled due to versioning. Shorthand for `no_match(vec![])`.
+    pub fn disabled() -> Self {
+        Self::no_match(vec![])
+    }
+
     pub fn no_match(tokens_that_would_have_allowed_more_progress: Vec<TokenKind>) -> Self {
         ParserResult::NoMatch(NoMatch::new(tokens_that_would_have_allowed_more_progress))
     }
@@ -124,16 +129,8 @@ impl IncompleteMatch {
         }
     }
 
-    pub fn is_better_match_than(&self, other: &IncompleteMatch) -> bool {
-        let first_size = self
-            .nodes
-            .iter()
-            .fold(0, |acc, node| acc + node.text_len().utf8);
-        let second_size = other
-            .nodes
-            .iter()
-            .fold(0, |acc, node| acc + node.text_len().utf8);
-        first_size > second_size
+    pub fn byte_len(&self) -> usize {
+        self.nodes.iter().map(|node| node.text_len().utf8).sum()
     }
 }
 

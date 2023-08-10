@@ -15,7 +15,7 @@ impl ParserDefinitionExtensions for ParserDefinitionRef {
     fn to_parser_code(&self) -> TokenStream {
         self.node().applicable_version_quality_ranges().wrap_code(
             self.node().to_parser_code(self.context(), false),
-            Some(quote! { ParserResult::no_match(vec![]) }),
+            Some(quote! { ParserResult::disabled() }),
         )
     }
 }
