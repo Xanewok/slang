@@ -189,9 +189,40 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
             )
             .to_parser_code(context_name, is_trivia),
 
-            Self::TerminatedBy(body, terminator, loc) => {
-                Self::Sequence(vec![*body.clone(), *terminator.clone()], *loc)
-                    .to_parser_code(context_name, is_trivia)
+            Self::TerminatedBy(body, terminator, _) => {
+                let terminator_scanner = match terminator.as_ref() {
+                    ParserDefinitionNode::ScannerDefinition(scanner, ..) => scanner,
+                    _ => unreachable!("Only tokens are permitted as terminators"),
+                };
+
+                let parser = body.to_parser_code(context_name, is_trivia);
+                let body_parser = body.applicable_version_quality_ranges().wrap_code(
+                    quote! {
+                        if helper.handle_next_result(#parser) {
+                            break;
+                        }
+                    },
+                    None,
+                );
+                let terminator_token_kind =
+                    format_ident!("{name}", name = terminator_scanner.name());
+                let greedy_parse = format_ident!(
+                    "{context_name}_greedy_parse_token_with_trivia",
+                    context_name = context_name.to_snake_case()
+                );
+                quote! {
+                    {
+                        let mut helper = SequenceHelper::new();
+                        loop {
+                            #body_parser
+                            if helper.handle_next_result(self.#greedy_parse(stream, TokenKind::#terminator_token_kind)) {
+                                break;
+                            }
+                            break;
+                        }
+                        helper.result()
+                    }
+                }
             }
         }
     }

@@ -141,6 +141,63 @@ impl Language {
     }
 
     #[allow(dead_code)]
+    fn default_greedy_parse_token_with_trivia(
+        &self,
+        stream: &mut Stream,
+        terminator: TokenKind,
+    ) -> ParserResult {
+        let mut children = vec![];
+
+        let restore = stream.position();
+        if let ParserResult::Match(r#match) = self.leading_trivia(stream) {
+            children.extend(r#match.nodes);
+        } else {
+            stream.set_position(restore);
+        }
+
+        let start = stream.position();
+        let mut end_scan = stream.position();
+        let found = loop {
+            match self.default_next_token(stream) {
+                // Greedily scan until we find the terminator, while updating the latest position
+                Some(kind) if kind != terminator => end_scan = stream.position(),
+                // Terminator found, optionally include the skipped tokens
+                Some(terminator) => {
+                    if end_scan > start {
+                        children.push(cst::Node::token(
+                            TokenKind::SKIPPED,
+                            stream.content(start.utf8..end_scan.utf8),
+                        ));
+                    }
+
+                    children.push(cst::Node::token(
+                        terminator,
+                        stream.content(end_scan.utf8..stream.position().utf8),
+                    ));
+                    break true;
+                }
+
+                None => break false,
+            }
+        };
+
+        if !found {
+            stream.set_position(restore);
+
+            ParserResult::no_match(vec![terminator])
+        } else {
+            let restore = stream.position();
+            if let ParserResult::Match(r#match) = self.trailing_trivia(stream) {
+                children.extend(r#match.nodes);
+            } else {
+                stream.set_position(restore);
+            }
+
+            ParserResult::r#match(children, vec![])
+        }
+    }
+
+    #[allow(dead_code)]
     fn default_parse_token(&self, stream: &mut Stream, kind: TokenKind) -> ParserResult {
         let start = stream.position();
         if self.default_next_token(stream) != Some(kind) {
@@ -1564,6 +1621,63 @@ impl Language {
     }
 
     #[allow(dead_code)]
+    fn version_pragma_greedy_parse_token_with_trivia(
+        &self,
+        stream: &mut Stream,
+        terminator: TokenKind,
+    ) -> ParserResult {
+        let mut children = vec![];
+
+        let restore = stream.position();
+        if let ParserResult::Match(r#match) = self.leading_trivia(stream) {
+            children.extend(r#match.nodes);
+        } else {
+            stream.set_position(restore);
+        }
+
+        let start = stream.position();
+        let mut end_scan = stream.position();
+        let found = loop {
+            match self.version_pragma_next_token(stream) {
+                // Greedily scan until we find the terminator, while updating the latest position
+                Some(kind) if kind != terminator => end_scan = stream.position(),
+                // Terminator found, optionally include the skipped tokens
+                Some(terminator) => {
+                    if end_scan > start {
+                        children.push(cst::Node::token(
+                            TokenKind::SKIPPED,
+                            stream.content(start.utf8..end_scan.utf8),
+                        ));
+                    }
+
+                    children.push(cst::Node::token(
+                        terminator,
+                        stream.content(end_scan.utf8..stream.position().utf8),
+                    ));
+                    break true;
+                }
+
+                None => break false,
+            }
+        };
+
+        if !found {
+            stream.set_position(restore);
+
+            ParserResult::no_match(vec![terminator])
+        } else {
+            let restore = stream.position();
+            if let ParserResult::Match(r#match) = self.trailing_trivia(stream) {
+                children.extend(r#match.nodes);
+            } else {
+                stream.set_position(restore);
+            }
+
+            ParserResult::r#match(children, vec![])
+        }
+    }
+
+    #[allow(dead_code)]
     fn version_pragma_parse_token(&self, stream: &mut Stream, kind: TokenKind) -> ParserResult {
         let start = stream.position();
         if self.version_pragma_next_token(stream) != Some(kind) {
@@ -1691,6 +1805,63 @@ impl Language {
         }
 
         return ParserResult::r#match(children, vec![]);
+    }
+
+    #[allow(dead_code)]
+    fn yul_block_greedy_parse_token_with_trivia(
+        &self,
+        stream: &mut Stream,
+        terminator: TokenKind,
+    ) -> ParserResult {
+        let mut children = vec![];
+
+        let restore = stream.position();
+        if let ParserResult::Match(r#match) = self.leading_trivia(stream) {
+            children.extend(r#match.nodes);
+        } else {
+            stream.set_position(restore);
+        }
+
+        let start = stream.position();
+        let mut end_scan = stream.position();
+        let found = loop {
+            match self.yul_block_next_token(stream) {
+                // Greedily scan until we find the terminator, while updating the latest position
+                Some(kind) if kind != terminator => end_scan = stream.position(),
+                // Terminator found, optionally include the skipped tokens
+                Some(terminator) => {
+                    if end_scan > start {
+                        children.push(cst::Node::token(
+                            TokenKind::SKIPPED,
+                            stream.content(start.utf8..end_scan.utf8),
+                        ));
+                    }
+
+                    children.push(cst::Node::token(
+                        terminator,
+                        stream.content(end_scan.utf8..stream.position().utf8),
+                    ));
+                    break true;
+                }
+
+                None => break false,
+            }
+        };
+
+        if !found {
+            stream.set_position(restore);
+
+            ParserResult::no_match(vec![terminator])
+        } else {
+            let restore = stream.position();
+            if let ParserResult::Match(r#match) = self.trailing_trivia(stream) {
+                children.extend(r#match.nodes);
+            } else {
+                stream.set_position(restore);
+            }
+
+            ParserResult::r#match(children, vec![])
+        }
     }
 
     #[allow(dead_code)]
@@ -2344,7 +2515,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -2483,7 +2654,7 @@ impl Language {
                         break;
                     }
                     if helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                        self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     ) {
                         break;
                     }
@@ -2584,7 +2755,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -2971,7 +3142,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -3038,7 +3209,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -3134,7 +3305,7 @@ impl Language {
                         break;
                     }
                     if helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                        self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     ) {
                         break;
                     }
@@ -3300,7 +3471,7 @@ impl Language {
                         break;
                     }
                     if helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                        self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     ) {
                         break;
                     }
@@ -3437,7 +3608,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -4133,7 +4304,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -4828,7 +4999,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -5911,7 +6082,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -6091,7 +6262,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -6150,7 +6321,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -6897,7 +7068,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -7042,7 +7213,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -7071,7 +7242,7 @@ impl Language {
                         break;
                     }
                     if helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                        self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     ) {
                         break;
                     }
@@ -7199,7 +7370,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -7709,7 +7880,7 @@ impl Language {
                         break;
                     }
                     if helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                        self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     ) {
                         break;
                     }
@@ -7788,7 +7959,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }
@@ -8051,7 +8222,7 @@ impl Language {
                     break;
                 }
                 if helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Semicolon),
+                    self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 ) {
                     break;
                 }

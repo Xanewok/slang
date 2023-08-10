@@ -5,17 +5,7 @@ Source: >
   2  │                                                                                  │ 35..35
   3  │ ;                                                                                │ 36..37
 
-Errors: # 1 total
-  - >
-    Error: Expected Semicolon.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ReturnStatement/invalid_terminator/input.sol:1:20]
-       │
-     1 │ ╭─▶ return a + 2 * some invalid tokens
-       ┆ ┆   
-     3 │ ├─▶ ;
-       │ │       
-       │ ╰─────── Error occurred here.
-    ───╯
+Errors: []
 
 Tree:
   - ReturnStatement (Rule): # 0..38 "return a + 2 * some invalid tokens\n\n;\n"
@@ -33,4 +23,5 @@ Tree:
                       - Asterisk (Token): "*" # 13..14
                       - Expression (Rule): # 14..19 " some"
                           - Identifier (Token): "some" # 15..19
-      - SKIPPED (Token): " invalid tokens\n\n;\n" # 19..38
+      - SKIPPED (Token): "invalid tokens\n\n" # 20..36
+      - Semicolon (Token): ";" # 36..37
