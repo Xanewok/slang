@@ -2,7 +2,7 @@
 mod tests;
 
 use slang_solidity::{
-    cst::{Node, RuleNode, TokenNode},
+    cst::{ErrorNode, Node, RuleNode, TokenNode},
     kinds::RuleKind,
 };
 
@@ -16,6 +16,7 @@ impl NodeExtensions for Node {
         return match self {
             Node::Token(token) => token.is_trivia(),
             Node::Rule(rule) => rule.is_trivia(),
+            Node::Error(error) => error.is_trivia(),
         };
     }
 
@@ -23,6 +24,7 @@ impl NodeExtensions for Node {
         return match self {
             Node::Token(token) => token.extract_non_trivia(),
             Node::Rule(rule) => rule.extract_non_trivia(),
+            Node::Error(error) => error.extract_non_trivia(),
         };
     }
 }
@@ -43,6 +45,16 @@ impl NodeExtensions for RuleNode {
 }
 
 impl NodeExtensions for TokenNode {
+    fn is_trivia(&self) -> bool {
+        return false;
+    }
+
+    fn extract_non_trivia(&self) -> String {
+        return self.text.clone();
+    }
+}
+
+impl NodeExtensions for ErrorNode {
     fn is_trivia(&self) -> bool {
         return false;
     }

@@ -22,6 +22,14 @@ pub struct TokenNode {
 pub enum Node {
     Rule(Rc<RuleNode>),
     Token(Rc<TokenNode>),
+    Error(Rc<ErrorNode>),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct ErrorNode {
+    pub text: String,
+    // TODO: text location?
+    pub expected: Vec<TokenKind>,
 }
 
 #[allow(dead_code)]
@@ -42,10 +50,15 @@ impl Node {
         Self::Token(Rc::new(TokenNode { kind, text }))
     }
 
+    pub fn error(text: String, expected: Vec<TokenKind>) -> Self {
+        Self::Error(Rc::new(ErrorNode { text, expected }))
+    }
+
     pub fn text_len(&self) -> TextIndex {
         match self {
             Self::Rule(node) => node.text_len,
             Self::Token(node) => (&node.text).into(),
+            Self::Error(node) => (&node.text).into(),
         }
     }
 

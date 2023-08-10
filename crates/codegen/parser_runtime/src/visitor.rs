@@ -23,6 +23,10 @@ pub trait Visitor<E> {
     fn token(&mut self, node: &Rc<TokenNode>, cursor: &Cursor) -> Result<VisitorExitResponse, E> {
         Ok(VisitorExitResponse::Continue)
     }
+
+    fn error(&mut self, node: &Rc<ErrorNode>, cursor: &Cursor) -> Result<VisitorExitResponse, E> {
+        Ok(VisitorExitResponse::Continue)
+    }
 }
 
 #[allow(dead_code)]
@@ -70,6 +74,11 @@ impl Cursor {
 
                 Node::Token(token_node) => {
                     if visitor.token(&token_node, self)? == VisitorExitResponse::Quit {
+                        return Ok(VisitorExitResponse::Quit);
+                    }
+                }
+                Node::Error(error_node) => {
+                    if visitor.error(&error_node, self)? == VisitorExitResponse::Quit {
                         return Ok(VisitorExitResponse::Quit);
                     }
                 }

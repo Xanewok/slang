@@ -600,6 +600,7 @@ export namespace cst {
     get textLength(): TextIndex;
     get text(): string;
   }
+  export class ErrorNode {}
 }
 export namespace cursor {
   export class Cursor {

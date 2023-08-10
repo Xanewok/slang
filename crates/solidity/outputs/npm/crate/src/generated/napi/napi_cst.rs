@@ -24,6 +24,9 @@ pub struct RuleNode(Rc<RustRuleNode>);
 pub struct TokenNode(Rc<RustTokenNode>);
 
 #[napi(namespace = "cst")]
+pub struct ErrorNode(Rc<RustErrorNode>);
+
+#[napi(namespace = "cst")]
 impl RuleNode {
     #[napi(getter, js_name = "type", ts_return_type = "NodeType.Rule")]
     pub fn tipe(&self) -> NodeType {
@@ -102,11 +105,21 @@ impl ToJS for Rc<RustTokenNode> {
     }
 }
 
+impl ToJS for Rc<RustErrorNode> {
+    fn to_js(&self, env: &Env) -> JsObject {
+        let obj = unsafe {
+            <ErrorNode as ToNapiValue>::to_napi_value(env.raw(), ErrorNode(self.clone()))
+        };
+        return unsafe { JsObject::from_raw_unchecked(env.raw(), obj.unwrap()) };
+    }
+}
+
 impl ToJS for RustNode {
     fn to_js(&self, env: &Env) -> JsObject {
         match self {
             RustNode::Rule(rust_rule_node) => rust_rule_node.to_js(env),
             RustNode::Token(rust_token_node) => rust_token_node.to_js(env),
+            RustNode::Error(rust_error_node) => rust_error_node.to_js(env),
         }
     }
 }

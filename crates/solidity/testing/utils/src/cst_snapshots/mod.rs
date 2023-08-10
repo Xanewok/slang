@@ -109,7 +109,7 @@ fn write_node<W: Write>(
     let (node_value, node_comment) = if node.range.is_empty() {
         let preview = match node.kind {
             TestNodeKind::Rule(_) => " []",
-            TestNodeKind::Token(_) | TestNodeKind::Trivia(_) => " \"\"",
+            TestNodeKind::Token(_) | TestNodeKind::Trivia(_) | TestNodeKind::Error => " \"\"",
         };
         (preview.to_owned(), range_string)
     } else {

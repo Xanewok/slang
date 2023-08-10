@@ -2,8 +2,15 @@ use std::rc::Rc;
 
 use anyhow::Result;
 use slang_solidity::{
-    cst::Node, cst::RuleNode, cst::TokenNode, cursor::Cursor, kinds::RuleKind, kinds::TokenKind,
-    text_index::TextRange, visitor::Visitor, visitor::VisitorEntryResponse,
+    cst::Node,
+    cst::RuleNode,
+    cst::{ErrorNode, TokenNode},
+    cursor::Cursor,
+    kinds::RuleKind,
+    kinds::TokenKind,
+    text_index::TextRange,
+    visitor::Visitor,
+    visitor::VisitorEntryResponse,
     visitor::VisitorExitResponse,
 };
 
@@ -12,6 +19,7 @@ pub enum TestNodeKind {
     Rule(RuleKind),
     Token(TokenKind),
     Trivia(TokenKind),
+    Error,
 }
 
 pub struct TestNode {
@@ -76,6 +84,21 @@ impl Visitor<()> for TestNodeBuilder {
             };
             self.stack.last_mut().unwrap().push(new_node);
         }
+
+        Ok(VisitorExitResponse::Continue)
+    }
+
+    fn error(
+        &mut self,
+        _node: &Rc<ErrorNode>,
+        cursor: &Cursor,
+    ) -> std::result::Result<VisitorExitResponse, ()> {
+        let new_node = TestNode {
+            kind: TestNodeKind::Error,
+            range: cursor.text_range(),
+            children: vec![],
+        };
+        self.stack.last_mut().unwrap().push(new_node);
 
         Ok(VisitorExitResponse::Continue)
     }
@@ -145,6 +168,7 @@ impl std::fmt::Display for TestNodeKind {
             TestNodeKind::Rule(kind) => write!(f, "{kind:?} (Rule)"),
             TestNodeKind::Token(kind) => write!(f, "{kind:?} (Token)"),
             TestNodeKind::Trivia(kind) => write!(f, "{kind:?} (Trivia)"),
+            TestNodeKind::Error => write!(f, "Error"),
         };
     }
 }

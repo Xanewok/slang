@@ -12,6 +12,7 @@ pub type RustParseOutput = super::parse_output::ParseOutput;
 pub type RustParseError = super::parse_error::ParseError;
 pub type RustRuleNode = super::cst::RuleNode;
 pub type RustTokenNode = super::cst::TokenNode;
+pub type RustErrorNode = super::cst::ErrorNode;
 pub type RustTextIndex = super::text_index::TextIndex;
 pub type RustTextRange = super::text_index::TextRange;
 
