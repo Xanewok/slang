@@ -164,9 +164,9 @@ impl Language {
                 // Terminator found, optionally include the skipped tokens
                 Some(terminator) => {
                     if end_scan > start {
-                        children.push(cst::Node::token(
-                            TokenKind::SKIPPED,
+                        children.push(cst::Node::error(
                             stream.content(start.utf8..end_scan.utf8),
+                            vec![],
                         ));
                     }
 
@@ -1653,9 +1653,9 @@ impl Language {
                 // Terminator found, optionally include the skipped tokens
                 Some(terminator) => {
                     if end_scan > start {
-                        children.push(cst::Node::token(
-                            TokenKind::SKIPPED,
+                        children.push(cst::Node::error(
                             stream.content(start.utf8..end_scan.utf8),
+                            vec![],
                         ));
                     }
 
@@ -1849,9 +1849,9 @@ impl Language {
                 // Terminator found, optionally include the skipped tokens
                 Some(terminator) => {
                     if end_scan > start {
-                        children.push(cst::Node::token(
-                            TokenKind::SKIPPED,
+                        children.push(cst::Node::error(
                             stream.content(start.utf8..end_scan.utf8),
+                            vec![],
                         ));
                     }
 

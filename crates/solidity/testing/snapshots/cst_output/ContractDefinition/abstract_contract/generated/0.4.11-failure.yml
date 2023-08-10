@@ -14,4 +14,4 @@ Errors: # 1 total
     ───╯
 
 Tree:
-  - SKIPPED (Token): "abstract contract Sample {}\n" # 0..28
+  - Error: "abstract contract Sample {}\n" # 0..28

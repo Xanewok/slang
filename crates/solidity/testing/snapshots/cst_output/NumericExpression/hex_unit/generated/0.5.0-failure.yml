@@ -16,4 +16,4 @@ Errors: # 1 total
 Tree:
   - NumericExpression (Rule): # 0..7 "0x1 wei"
       - HexLiteral (Token): "0x1" # 0..3
-      - SKIPPED (Token): " wei" # 3..7
+      - Error: " wei" # 3..7

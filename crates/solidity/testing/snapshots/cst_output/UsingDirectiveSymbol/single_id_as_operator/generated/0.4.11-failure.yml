@@ -17,4 +17,4 @@ Tree:
   - UsingDirectiveSymbol (Rule): # 0..8 "foo as /"
       - IdentifierPath (Rule): # 0..3 "foo"
           - Identifier (Token): "foo" # 0..3
-      - SKIPPED (Token): " as /" # 3..8
+      - Error: " as /" # 3..8

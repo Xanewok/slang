@@ -5,17 +5,7 @@ Source: >
   2  │ /**/                                                                             │ 20..24
   3  │ { throw;                                                                         │ 25..34
 
-Errors: # 1 total
-  - >
-    Error: Expected Semicolon.
-       ╭─[crates/solidity/testing/snapshots/cst_output/TupleDeconstructionStatement/invalid_termination/input.sol:1:1]
-       │
-     1 │ ╭─▶ (a, b) = (123, 135)
-       ┆ ┆   
-     3 │ ├─▶ { throw;
-       │ │               
-       │ ╰─────────────── Error occurred here.
-    ───╯
+Errors: []
 
 Tree:
   - TupleDeconstructionStatement (Rule): # 0..35 "(a, b) = (123, 135)\n/**/\n{ throw; \n"
@@ -42,5 +32,5 @@ Tree:
               - CloseParen (Token): ")" # 18..19
       - LeadingTrivia (Rule): # 20..25 "/**/\n"
           - MultilineComment (Trivia): "/**/" # 20..24
-      - SKIPPED (Token): "{ throw" # 25..32
+      - Error: "{ throw" # 25..32
       - Semicolon (Token): ";" # 32..33

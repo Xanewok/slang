@@ -21,7 +21,7 @@ Tree:
               - ExpressionStatement (Rule): # 1..20 " unchecked { x = 1;"
                   - Expression (Rule): # 1..11 " unchecked"
                       - Identifier (Token): "unchecked" # 2..11
-                  - SKIPPED (Token): "{ x = 1" # 12..19
+                  - Error: "{ x = 1" # 12..19
                   - Semicolon (Token): ";" # 19..20
       - CloseBrace (Token): "}" # 21..22
-      - SKIPPED (Token): " }" # 22..24
+      - Error: " }" # 22..24

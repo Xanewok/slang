@@ -12,7 +12,7 @@ Tree:
       - Statement (Rule): # 0..17 "\nthrow invalid ;\n"
           - ThrowStatement (Rule): # 0..17 "\nthrow invalid ;\n"
               - ThrowKeyword (Token): "throw" # 1..6
-              - SKIPPED (Token): "invalid " # 7..15
+              - Error: "invalid " # 7..15
               - Semicolon (Token): ";" # 15..16
       - Statement (Rule): # 17..43 "{ 1 * 2; 3 * b invalid; }\n"
           - Block (Rule): # 17..43 "{ 1 * 2; 3 * b invalid; }\n"
@@ -40,6 +40,6 @@ Tree:
                                   - Asterisk (Token): "*" # 28..29
                                   - Expression (Rule): # 29..31 " b"
                                       - Identifier (Token): "b" # 30..31
-                          - SKIPPED (Token): "invalid" # 32..39
+                          - Error: "invalid" # 32..39
                           - Semicolon (Token): ";" # 39..40
               - CloseBrace (Token): "}" # 41..42

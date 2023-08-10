@@ -14,4 +14,4 @@ Errors: # 1 total
     ───╯
 
 Tree:
-  - SKIPPED (Token): "receive () {}" # 0..13
+  - Error: "receive () {}" # 0..13

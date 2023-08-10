@@ -1,0 +1,12 @@
+# This file is generated automatically by infrastructure scripts. Please don't edit by hand.
+
+Source: >
+  1  │ break invalid ;                                                                  │ 0..15
+
+Errors: []
+
+Tree:
+  - BreakStatement (Rule): # 0..16 "break invalid ;\n"
+      - BreakKeyword (Token): "break" # 0..5
+      - Error: "invalid " # 6..14
+      - Semicolon (Token): ";" # 14..15

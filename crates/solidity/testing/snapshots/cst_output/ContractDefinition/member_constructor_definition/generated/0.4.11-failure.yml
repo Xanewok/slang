@@ -28,4 +28,4 @@ Tree:
               - TypeName (Rule): # 18..31 "  constructor"
                   - IdentifierPath (Rule): # 18..31 "  constructor"
                       - Identifier (Token): "constructor" # 20..31
-      - SKIPPED (Token): "() public {\n  }\n}" # 31..48
+      - Error: "() public {\n  }\n}" # 31..48

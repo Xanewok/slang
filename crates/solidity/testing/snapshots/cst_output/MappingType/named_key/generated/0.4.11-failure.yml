@@ -19,4 +19,4 @@ Tree:
       - OpenParen (Token): "(" # 7..8
       - MappingKeyType (Rule): # 8..14 "string"
           - StringKeyword (Token): "string" # 8..14
-      - SKIPPED (Token): " Foo => bytes32)" # 14..30
+      - Error: " Foo => bytes32)" # 14..30

@@ -19,4 +19,4 @@ Tree:
           - Identifier (Token): "foo" # 0..3
           - Period (Token): "." # 3..4
           - Identifier (Token): "bar" # 4..7
-      - SKIPPED (Token): " as /" # 7..12
+      - Error: " as /" # 7..12

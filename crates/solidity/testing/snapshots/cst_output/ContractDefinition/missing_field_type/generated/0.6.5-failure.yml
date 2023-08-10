@@ -26,4 +26,4 @@ Tree:
               - TypeName (Rule): # 16..23 "  field"
                   - IdentifierPath (Rule): # 16..23 "  field"
                       - Identifier (Token): "field" # 18..23
-      - SKIPPED (Token): ";\n}\n" # 23..27
+      - Error: ";\n}\n" # 23..27

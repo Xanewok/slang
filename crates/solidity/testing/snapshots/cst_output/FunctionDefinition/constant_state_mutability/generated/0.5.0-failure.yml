@@ -20,4 +20,4 @@ Tree:
       - ParametersDeclaration (Rule): # 10..12 "()"
           - OpenParen (Token): "(" # 10..11
           - CloseParen (Token): ")" # 11..12
-      - SKIPPED (Token): " constant {}" # 12..24
+      - Error: " constant {}" # 12..24

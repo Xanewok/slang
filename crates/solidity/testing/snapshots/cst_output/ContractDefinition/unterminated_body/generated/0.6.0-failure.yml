@@ -18,4 +18,4 @@ Tree:
       - ContractKeyword (Token): "contract" # 0..8
       - Identifier (Token): "Sample" # 9..15
       - OpenBrace (Token): "{" # 16..17
-      - SKIPPED (Token): "" # 17..17
+      - Error: "" # 17..17

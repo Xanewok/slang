@@ -1,7 +1,7 @@
 // This file is generated automatically by infrastructure scripts. Please don't edit by hand.
 
 use super::{
-    super::{cst, kinds::TokenKind, parse_error::ParseError, parse_output::ParseOutput},
+    super::{cst, parse_error::ParseError, parse_output::ParseOutput},
     parser_result::*,
     stream::Stream,
 };
@@ -23,7 +23,12 @@ where
         let start = stream.position();
         match self(language, &mut stream) {
             ParserResult::NoMatch(no_match) => ParseOutput {
-                parse_tree: cst::Node::token(TokenKind::SKIPPED, input.to_string()),
+                parse_tree: cst::Node::error(
+                    input.to_string(),
+                    no_match
+                        .tokens_that_would_have_allowed_more_progress
+                        .clone(),
+                ),
                 errors: vec![ParseError::new_covering_range(
                     Default::default()..input.into(),
                     no_match.tokens_that_would_have_allowed_more_progress,
@@ -40,10 +45,13 @@ where
                 }
                 if let cst::Node::Rule(rule_node) = nodes.remove(0) {
                     let start = stream.position();
-                    let skipped_node =
-                        cst::Node::token(TokenKind::SKIPPED, input[start.utf8..].to_string());
+                    let unexpected = cst::Node::error(
+                        input[start.utf8..].to_string(),
+                        tokens_that_would_have_allowed_more_progress.clone(),
+                    );
+
                     let mut new_children = rule_node.children.clone();
-                    new_children.push(skipped_node);
+                    new_children.push(unexpected);
                     ParseOutput {
                         parse_tree: cst::Node::rule(rule_node.kind, new_children),
                         errors: vec![ParseError::new_covering_range(
@@ -63,10 +71,13 @@ where
                     // The stream was not entirely consumed, mark the rest as skipped
                     let cur = stream.position();
                     if cur.utf8 < input.len() {
-                        let skipped_node =
-                            cst::Node::token(TokenKind::SKIPPED, input[cur.utf8..].to_string());
+                        let unexpected = cst::Node::error(
+                            input[cur.utf8..].to_string(),
+                            r#match.tokens_that_would_have_allowed_more_progress.clone(),
+                        );
                         let mut new_children = rule_node.children.clone();
-                        new_children.push(skipped_node);
+                        new_children.push(unexpected);
+
                         ParseOutput {
                             parse_tree: cst::Node::rule(rule_node.kind, new_children),
                             errors: vec![ParseError::new_covering_range(

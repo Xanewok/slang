@@ -19,4 +19,4 @@ Tree:
           - TypeName (Rule): # 0..11 "constructor"
               - IdentifierPath (Rule): # 0..11 "constructor"
                   - Identifier (Token): "constructor" # 0..11
-      - SKIPPED (Token): "() public {}\n" # 11..24
+      - Error: "() public {}\n" # 11..24

@@ -18,6 +18,6 @@ Tree:
                   - IdentifierPath (Rule): # 18..25 "  error"
                       - Identifier (Token): "error" # 20..25
               - Identifier (Token): "Error1" # 26..32
-              - SKIPPED (Token): "()" # 32..34
+              - Error: "()" # 32..34
               - Semicolon (Token): ";" # 34..35
       - CloseBrace (Token): "}" # 36..37

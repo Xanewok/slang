@@ -22,4 +22,4 @@ Tree:
               - UsingDirectiveSymbol (Rule): # 7..10 "add"
                   - IdentifierPath (Rule): # 7..10 "add"
                       - Identifier (Token): "add" # 7..10
-      - SKIPPED (Token): " as +, sub, mul, div as /} for Int global;" # 10..52
+      - Error: " as +, sub, mul, div as /} for Int global;" # 10..52

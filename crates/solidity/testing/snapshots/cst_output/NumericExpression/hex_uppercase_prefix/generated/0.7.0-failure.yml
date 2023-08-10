@@ -16,4 +16,4 @@ Errors: # 1 total
 Tree:
   - NumericExpression (Rule): # 0..11 "0X123456789"
       - DecimalLiteral (Token): "0" # 0..1
-      - SKIPPED (Token): "X123456789" # 1..11
+      - Error: "X123456789" # 1..11
