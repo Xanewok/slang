@@ -193,7 +193,16 @@ impl Language {
                 stream.set_position(restore);
             }
 
-            ParserResult::r#match(children, vec![])
+            // Report the terminator as expected earlier if we skipped some tokens trying to recover
+            let skipped_some = end_scan > start;
+            ParserResult::r#match(
+                children,
+                if skipped_some {
+                    vec![terminator]
+                } else {
+                    vec![]
+                },
+            )
         }
     }
 
@@ -1673,7 +1682,16 @@ impl Language {
                 stream.set_position(restore);
             }
 
-            ParserResult::r#match(children, vec![])
+            // Report the terminator as expected earlier if we skipped some tokens trying to recover
+            let skipped_some = end_scan > start;
+            ParserResult::r#match(
+                children,
+                if skipped_some {
+                    vec![terminator]
+                } else {
+                    vec![]
+                },
+            )
         }
     }
 
@@ -1860,7 +1878,16 @@ impl Language {
                 stream.set_position(restore);
             }
 
-            ParserResult::r#match(children, vec![])
+            // Report the terminator as expected earlier if we skipped some tokens trying to recover
+            let skipped_some = end_scan > start;
+            ParserResult::r#match(
+                children,
+                if skipped_some {
+                    vec![terminator]
+                } else {
+                    vec![]
+                },
+            )
         }
     }
 

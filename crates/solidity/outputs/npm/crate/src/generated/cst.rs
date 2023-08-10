@@ -1,6 +1,6 @@
 // This file is generated automatically by infrastructure scripts. Please don't edit by hand.
 
-use std::rc::Rc;
+use std::{ops::Deref, rc::Rc};
 
 use serde::Serialize;
 
@@ -95,5 +95,15 @@ impl Node {
             }
         }
         return None;
+    }
+}
+
+impl RuleNode {
+    /// Whether the rule node contains [`TokenKind::SKIPPED`] children tokens.
+    pub fn skipped_tokens(&self) -> impl Iterator<Item = &TokenNode> + '_ {
+        self.children
+            .iter()
+            .filter_map(|node| node.as_token_with_kind(&[TokenKind::SKIPPED]))
+            .map(Deref::deref)
     }
 }

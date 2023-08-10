@@ -18,6 +18,7 @@ where
 {
     fn parse(&self, language: &L, input: &str) -> ParseOutput {
         let mut stream = Stream::new(input);
+        let start = stream.position();
         match self(language, &mut stream) {
             ParserResult::NoMatch(no_match) => ParseOutput {
                 parse_tree: cst::Node::token(TokenKind::SKIPPED, input.to_string()),
@@ -57,23 +58,36 @@ where
                     unreachable!("Match at the top level of a parser has more than one node")
                 }
                 if let cst::Node::Rule(rule_node) = r#match.nodes.remove(0) {
-                    let start = stream.position();
-                    if start.utf8 < input.len() {
+                    // The stream was not entirely consumed, mark the rest as skipped
+                    let cur = stream.position();
+                    if cur.utf8 < input.len() {
                         let skipped_node =
-                            cst::Node::token(TokenKind::SKIPPED, input[start.utf8..].to_string());
+                            cst::Node::token(TokenKind::SKIPPED, input[cur.utf8..].to_string());
                         let mut new_children = rule_node.children.clone();
                         new_children.push(skipped_node);
                         ParseOutput {
                             parse_tree: cst::Node::rule(rule_node.kind, new_children),
                             errors: vec![ParseError::new_covering_range(
-                                start..input.into(),
+                                cur..input.into(),
                                 r#match.tokens_that_would_have_allowed_more_progress,
                             )],
                         }
                     } else {
+                        // We skip the tokens as part of the error recovery. Make sure to report these as errors
+                        let errors = rule_node
+                            .skipped_tokens()
+                            .map(|_token| {
+                                ParseError::new_covering_range(
+                                    // TODO: Keep track of and use the range of the token
+                                    start..stream.position(),
+                                    r#match.tokens_that_would_have_allowed_more_progress.clone(),
+                                )
+                            })
+                            .collect();
+
                         ParseOutput {
                             parse_tree: cst::Node::Rule(rule_node),
-                            errors: vec![],
+                            errors,
                         }
                     }
                 } else {
