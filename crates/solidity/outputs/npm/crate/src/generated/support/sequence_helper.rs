@@ -1,6 +1,6 @@
 // This file is generated automatically by infrastructure scripts. Please don't edit by hand.
 
-use super::ParserResult;
+use super::{ParserFlow, ParserResult};
 
 // The sequence is finished (can't make more progress) when we have an incomplete or no match.
 macro_rules! finished_state {
@@ -23,9 +23,9 @@ impl SequenceHelper {
     }
 
     /// Accumulates a next result - tries to append it to the existing result until we hit an incomplete/no match.
-    pub fn handle_next_result(&mut self, next_result: ParserResult) -> bool {
+    pub fn handle_next_result(&mut self, next_result: ParserResult) -> ParserFlow {
         match &mut self.result {
-            finished_state!() => return true,
+            finished_state!() => return ParserFlow::Break(()),
             // Base case - if we were just constructed, we just take the next result
             None => self.result = Some(next_result),
 
@@ -109,8 +109,8 @@ impl SequenceHelper {
         // If we can't make any more progress, we have to stop
         // TODO(recovery): Handle partial parses?
         match self.result {
-            finished_state!() => true,
-            _ => false,
+            finished_state!() => ParserFlow::Break(()),
+            _ => ParserFlow::Continue(()),
         }
     }
 

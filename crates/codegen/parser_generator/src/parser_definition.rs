@@ -65,23 +65,18 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                         .iter()
                         .map(|node| {
                             let parser = node.to_parser_code(context_name, is_trivia);
-                            node.applicable_version_quality_ranges().wrap_code(
-                                quote! {
-                                    if helper.handle_next_result(#parser) {
-                                        break;
-                                    }
-                                },
-                                None,
-                            )
+                            node.applicable_version_quality_ranges()
+                                .wrap_code(quote! { helper.handle_next_result(#parser)?; }, None)
                         })
                         .collect::<Vec<_>>();
                     quote! {
                         {
                             let mut helper = SequenceHelper::new();
-                            loop {
+                            // Poor man's try block
+                            std::iter::once(()).try_for_each(|_| {
                                 #(#parsers)*
-                                break;
-                            }
+                                ParserFlow::Break(())
+                            });
                             helper.result()
                         }
                     }
@@ -96,9 +91,7 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                         node.applicable_version_quality_ranges().wrap_code(
                             quote! {
                                 let result = #parser;
-                                if helper.handle_next_result(stream, result) {
-                                    break;
-                                }
+                                helper.handle_next_result(stream, result)?;
                             },
                             None,
                         )
@@ -107,10 +100,10 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 quote! {
                     {
                         let mut helper = ChoiceHelper::new(stream);
-                        loop {
+                        std::iter::once(()).try_for_each(|_| {
                             #(#parsers)*
-                            break;
-                        }
+                            ParserFlow::Break(())
+                        });
                         helper.result(stream)
                     }
                 }
@@ -196,14 +189,9 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 };
 
                 let parser = body.to_parser_code(context_name, is_trivia);
-                let body_parser = body.applicable_version_quality_ranges().wrap_code(
-                    quote! {
-                        if helper.handle_next_result(#parser) {
-                            break;
-                        }
-                    },
-                    None,
-                );
+                let body_parser = body
+                    .applicable_version_quality_ranges()
+                    .wrap_code(quote! { helper.handle_next_result(#parser)?; }, None);
                 let terminator_token_kind =
                     format_ident!("{name}", name = terminator_scanner.name());
                 let greedy_parse = format_ident!(
@@ -213,13 +201,11 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 quote! {
                     {
                         let mut helper = SequenceHelper::new();
-                        loop {
+                        std::iter::once(()).try_for_each(|_| {
                             #body_parser
-                            if helper.handle_next_result(self.#greedy_parse(stream, TokenKind::#terminator_token_kind)) {
-                                break;
-                            }
-                            break;
-                        }
+                            helper.handle_next_result(self.#greedy_parse(stream, TokenKind::#terminator_token_kind))?;
+                            ParserFlow::Break(())
+                        });
                         helper.result()
                     }
                 }

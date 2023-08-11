@@ -18,3 +18,5 @@ pub use precedence_helper::PrecedenceHelper;
 pub use repetition_helper::{OneOrMoreHelper, ZeroOrMoreHelper};
 pub use sequence_helper::SequenceHelper;
 pub use stream::Stream;
+
+pub type ParserFlow = std::ops::ControlFlow<()>;

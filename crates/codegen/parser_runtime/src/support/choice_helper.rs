@@ -1,4 +1,4 @@
-use super::{super::text_index::TextIndex, parser_result::ParserResult, stream::Stream};
+use super::{super::text_index::TextIndex, ParserFlow, ParserResult, Stream};
 
 // The choice is finished when we have a full match.
 macro_rules! finished_state {
@@ -28,9 +28,13 @@ impl ChoiceHelper {
     }
 
     /// Accumulates a new result - if it's a better match, then it's stored, otherwise we retain the existing result.
-    pub fn handle_next_result(&mut self, stream: &mut Stream, next_result: ParserResult) -> bool {
+    pub fn handle_next_result(
+        &mut self,
+        stream: &mut Stream,
+        next_result: ParserResult,
+    ) -> ParserFlow {
         match &mut self.result {
-            finished_state!() => return true,
+            finished_state!() => return ParserFlow::Break(()),
 
             ParserResult::IncompleteMatch(ref mut running_result) => match next_result {
                 ParserResult::Match(_) | ParserResult::PrattOperatorMatch(_) => {
@@ -59,10 +63,10 @@ impl ChoiceHelper {
         }
 
         match self.result {
-            finished_state!() => true,
+            finished_state!() => ParserFlow::Break(()),
             _ => {
                 stream.set_position(self.start_position);
-                false
+                ParserFlow::Continue(())
             }
         }
     }

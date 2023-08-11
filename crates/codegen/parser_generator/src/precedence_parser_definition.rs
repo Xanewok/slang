@@ -136,21 +136,15 @@ impl PrecedenceParserDefinitionNodeExtensions for PrecedenceParserDefinitionNode
         fn make_sequence(parsers: Vec<TokenStream>) -> TokenStream {
             let parsers = parsers
                 .iter()
-                .map(|parser| {
-                    quote! {
-                        if helper.handle_next_result(#parser) {
-                            break;
-                        }
-                    }
-                })
+                .map(|parser| quote! { helper.handle_next_result(#parser)?; })
                 .collect::<Vec<_>>();
             quote! {
                 {
                     let mut helper = SequenceHelper::new();
-                    loop {
+                    std::iter::once(()).try_for_each(|_| {
                         #(#parsers)*
-                        break;
-                    }
+                        ParserFlow::Break(())
+                    });
                     helper.result()
                 }
             }
@@ -163,9 +157,7 @@ impl PrecedenceParserDefinitionNodeExtensions for PrecedenceParserDefinitionNode
                     version_quality_ranges.wrap_code(
                         quote! {
                             let result = #parser;
-                            if helper.handle_next_result(stream, result) {
-                                break;
-                            }
+                            helper.handle_next_result(stream, result)?;
                         },
                         None,
                     )
@@ -174,10 +166,10 @@ impl PrecedenceParserDefinitionNodeExtensions for PrecedenceParserDefinitionNode
             quote! {
                 {
                     let mut helper = ChoiceHelper::new(stream);
-                    loop {
+                    std::iter::once(()).try_for_each(|_| {
                         #(#parsers)*
-                        break;
-                    }
+                        ParserFlow::Break(())
+                    });
                     helper.result(stream)
                 }
             }
