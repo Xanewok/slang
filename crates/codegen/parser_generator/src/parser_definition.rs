@@ -66,18 +66,15 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                         .map(|node| {
                             let parser = node.to_parser_code(context_name, is_trivia);
                             node.applicable_version_quality_ranges()
-                                .wrap_code(quote! { helper.handle_next_result(#parser)?; }, None)
+                                .wrap_code(quote! { seq.elem(#parser)?; }, None)
                         })
                         .collect::<Vec<_>>();
                     quote! {
                         {
-                            let mut helper = SequenceHelper::new();
-                            // Poor man's try block
-                            std::iter::once(()).try_for_each(|_| {
+                            SequenceHelper::run(|mut seq| {
                                 #(#parsers)*
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.finish()
+                            })
                         }
                     }
                 }
@@ -91,7 +88,7 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                         node.applicable_version_quality_ranges().wrap_code(
                             quote! {
                                 let result = #parser;
-                                helper.handle_next_result(stream, result)?;
+                                choice.consider(stream, result)?;
                             },
                             None,
                         )
@@ -99,12 +96,10 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                     .collect::<Vec<_>>();
                 quote! {
                     {
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             #(#parsers)*
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.finish(stream)
+                        })
                     }
                 }
             }
@@ -191,7 +186,7 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 let parser = body.to_parser_code(context_name, is_trivia);
                 let body_parser = body
                     .applicable_version_quality_ranges()
-                    .wrap_code(quote! { helper.handle_next_result(#parser)?; }, None);
+                    .wrap_code(quote! { seq.elem(#parser)?; }, None);
                 let terminator_token_kind =
                     format_ident!("{name}", name = terminator_scanner.name());
                 let greedy_parse = format_ident!(
@@ -200,13 +195,11 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 );
                 quote! {
                     {
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
+                        SequenceHelper::run(|mut seq| {
                             #body_parser
-                            helper.handle_next_result(self.#greedy_parse(stream, TokenKind::#terminator_token_kind))?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.elem(self.#greedy_parse(stream, TokenKind::#terminator_token_kind))?;
+                            seq.finish()
+                        })
                     }
                 }
             }

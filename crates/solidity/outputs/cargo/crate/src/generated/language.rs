@@ -2109,17 +2109,11 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn abi_coder_pragma(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::ABICoderKeyword),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::ABICoderKeyword))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ABICoderPragma)
     }
@@ -2127,43 +2121,37 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn add_sub_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn address_type(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::AddressKeyword),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
+                        seq.elem(OptionalHelper::transform(
                             self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword),
                         ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 };
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
         .with_kind(RuleKind::AddressType)
     }
@@ -2176,28 +2164,20 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn arguments_declaration(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenParen))?;
+                seq.elem(OptionalHelper::transform({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self.positional_arguments_list(stream);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self.named_arguments_declaration(stream);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 }))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseParen))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ArgumentsDeclaration)
     }
@@ -2205,18 +2185,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn array_expression(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket),
-                )?;
-                helper.handle_next_result(self.array_values_list(stream))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket))?;
+                seq.elem(self.array_values_list(stream))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ArrayExpression)
     }
@@ -2224,41 +2198,29 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn array_type_name_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(self.expression(stream)))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket))?;
+                seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket))?;
+                seq.finish()
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn array_values_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.expression(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.expression(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.expression(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.expression(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ArrayValuesList)
     }
@@ -2274,28 +2236,22 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn assembly_flags_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(
                     self.default_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral),
                 )?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.default_parse_token_with_trivia(
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.default_parse_token_with_trivia(
                             stream,
                             TokenKind::AsciiStringLiteral,
                         ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::AssemblyFlagsList)
     }
@@ -2303,32 +2259,26 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn assembly_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::AssemblyKeyword),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::AssemblyKeyword))?;
+                seq.elem(OptionalHelper::transform(
                     self.default_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral),
                 ))?;
-                helper.handle_next_result(OptionalHelper::transform({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                seq.elem(OptionalHelper::transform({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
                         )?;
-                        helper.handle_next_result(self.assembly_flags_list(stream))?;
-                        helper.handle_next_result(
+                        seq.elem(self.assembly_flags_list(stream))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                helper.handle_next_result(self.yul_block(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.yul_block(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::AssemblyStatement)
     }
@@ -2336,43 +2286,41 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn assignment_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Equal);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BarEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MinusEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CaretEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SlashEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PercentEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AsteriskEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AmpersandEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::LessThanLessThanEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(
                     stream,
                     TokenKind::GreaterThanGreaterThanEqual,
                 );
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(
                     stream,
                     TokenKind::GreaterThanGreaterThanGreaterThanEqual,
                 );
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
@@ -2394,19 +2342,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn block(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
-                )?;
-                helper
-                    .handle_next_result(OptionalHelper::transform(self.statements_list(stream)))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace))?;
+                seq.elem(OptionalHelper::transform(self.statements_list(stream)))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::Block)
     }
@@ -2414,32 +2355,26 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn boolean_expression(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn break_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::BreakKeyword),
-                )?;
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::BreakKeyword))?;
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::BreakStatement)
     }
@@ -2448,18 +2383,14 @@ impl Language {
     pub fn catch_clause(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_6_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::CatchKeyword),
                     )?;
-                    helper.handle_next_result(OptionalHelper::transform(
-                        self.catch_clause_error(stream),
-                    ))?;
-                    helper.handle_next_result(self.block(stream))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.elem(OptionalHelper::transform(self.catch_clause_error(stream)))?;
+                    seq.elem(self.block(stream))?;
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -2471,15 +2402,13 @@ impl Language {
     pub fn catch_clause_error(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_6_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(OptionalHelper::transform(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(OptionalHelper::transform(
                         self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                     ))?;
-                    helper.handle_next_result(self.parameters_declaration(stream))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.elem(self.parameters_declaration(stream))?;
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -2500,19 +2429,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn conditional_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::QuestionMark),
-                )?;
-                helper.handle_next_result(self.expression(stream))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Colon),
-                )?;
-                helper.handle_next_result(self.expression(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::QuestionMark))?;
+                seq.elem(self.expression(stream))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Colon))?;
+                seq.elem(self.expression(stream))?;
+                seq.finish()
+            })
         }
     }
 
@@ -2520,33 +2443,29 @@ impl Language {
     pub fn constant_definition(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_7_4 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result({
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(self.type_name(stream))?;
-                            helper.handle_next_result(self.default_parse_token_with_trivia(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem({
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(self.type_name(stream))?;
+                            seq.elem(self.default_parse_token_with_trivia(
                                 stream,
                                 TokenKind::ConstantKeyword,
                             ))?;
-                            helper.handle_next_result(
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                             )?;
-                            helper.handle_next_result(
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::Equal),
                             )?;
-                            helper.handle_next_result(self.expression(stream))?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.elem(self.expression(stream))?;
+                            seq.finish()
+                        })
                     })?;
-                    helper.handle_next_result(
+                    seq.elem(
                         self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     )?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -2558,22 +2477,20 @@ impl Language {
     pub fn constructor_attribute(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_4_22 {
             {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             }
         } else {
             ParserResult::disabled()
@@ -2594,19 +2511,17 @@ impl Language {
     pub fn constructor_definition(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_4_22 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::ConstructorKeyword),
                     )?;
-                    helper.handle_next_result(self.parameters_declaration(stream))?;
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(self.parameters_declaration(stream))?;
+                    seq.elem(OptionalHelper::transform(
                         self.constructor_attributes_list(stream),
                     ))?;
-                    helper.handle_next_result(self.block(stream))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.elem(self.block(stream))?;
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -2617,17 +2532,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn continue_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::ContinueKeyword),
-                )?;
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::ContinueKeyword))?;
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ContinueStatement)
     }
@@ -2635,41 +2546,33 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn contract_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
                 if self.version_is_at_least_0_6_0 {
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(OptionalHelper::transform(
                         self.default_parse_token_with_trivia(stream, TokenKind::AbstractKeyword),
                     ))?;
                 }
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::ContractKeyword),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::ContractKeyword))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(OptionalHelper::transform(
                     self.inheritance_specifier(stream),
                 ))?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
+                        seq.elem(OptionalHelper::transform(
                             self.contract_members_list(stream),
                         ))?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ContractDefinition)
     }
@@ -2677,55 +2580,51 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn contract_member(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.using_directive(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.function_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.modifier_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.struct_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.enum_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.event_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.state_variable_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_4_22 {
                     let result = self.constructor_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result = {
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             let result = self.fallback_function_definition(stream);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                             let result = self.receive_function_definition(stream);
-                            helper.handle_next_result(stream, result)?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.consider(stream, result)?;
+                            choice.finish(stream)
+                        })
                     };
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if !self.version_is_at_least_0_6_0 {
                     let result = self.unnamed_function_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_8_4 {
                     let result = self.error_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_8_8 {
                     let result = self.user_defined_value_type_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -2738,94 +2637,83 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn control_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.if_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.for_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.while_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.do_while_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.continue_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.break_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.delete_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.return_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.revert_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_4_21 {
                     let result = self.emit_statement(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if !self.version_is_at_least_0_5_0 {
                     let result = self.throw_statement(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result = self.try_statement(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn data_location(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MemoryKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::StorageKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_5_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::CalldataKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn deconstruction_import(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
                         )?;
-                        helper
-                            .handle_next_result(self.deconstruction_import_symbols_list(stream))?;
-                        helper.handle_next_result(
+                        seq.elem(self.deconstruction_import_symbols_list(stream))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::FromKeyword),
-                )?;
-                helper.handle_next_result(
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::FromKeyword))?;
+                seq.elem(
                     self.default_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::DeconstructionImport)
     }
@@ -2833,27 +2721,21 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn deconstruction_import_symbol(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(OptionalHelper::transform({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::AsKeyword),
                         )?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::DeconstructionImportSymbol)
     }
@@ -2861,23 +2743,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn deconstruction_import_symbols_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.deconstruction_import_symbol(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.deconstruction_import_symbol(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.deconstruction_import_symbol(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.deconstruction_import_symbol(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::DeconstructionImportSymbolsList)
     }
@@ -2885,25 +2761,21 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn delete_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::DeleteKeyword),
                         )?;
-                        helper.handle_next_result(self.expression(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.elem(self.expression(stream))?;
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::DeleteStatement)
     }
@@ -2911,44 +2783,38 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn do_while_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::DoKeyword),
                         )?;
-                        helper.handle_next_result(self.statement(stream))?;
-                        helper.handle_next_result(
+                        seq.elem(self.statement(stream))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::WhileKeyword),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(self.default_parse_token_with_trivia(
+                        seq.elem({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::OpenParen,
                                 ))?;
-                                helper.handle_next_result(self.expression(stream))?;
-                                helper.handle_next_result(self.default_parse_token_with_trivia(
+                                seq.elem(self.expression(stream))?;
+                                seq.elem(self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::CloseParen,
                                 ))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.finish()
+                            })
                         })?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::DoWhileStatement)
     }
@@ -2956,37 +2822,35 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn elementary_type(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BoolKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StringKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.address_type(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::FixedBytesType);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SignedIntegerType);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::UnsignedIntegerType);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SignedFixedType);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::UnsignedFixedType);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if !self.version_is_at_least_0_8_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ByteKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -2994,29 +2858,25 @@ impl Language {
     pub fn emit_statement(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_5_12 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result({
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem({
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(
                                 self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::EmitKeyword,
                                 ),
                             )?;
-                            helper.handle_next_result(self.identifier_path(stream))?;
-                            helper.handle_next_result(self.arguments_declaration(stream))?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.elem(self.identifier_path(stream))?;
+                            seq.elem(self.arguments_declaration(stream))?;
+                            seq.finish()
+                        })
                     })?;
-                    helper.handle_next_result(
+                    seq.elem(
                         self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     )?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -3027,19 +2887,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn end_of_file_trivia(&self, stream: &mut Stream) -> ParserResult {
         OneOrMoreHelper::run(stream, |stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token(stream, TokenKind::Whitespace);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token(stream, TokenKind::EndOfLine);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token(stream, TokenKind::MultilineComment);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token(stream, TokenKind::SingleLineComment);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         })
         .with_kind(RuleKind::EndOfFileTrivia)
     }
@@ -3047,33 +2905,23 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn enum_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::EnumKeyword),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::EnumKeyword))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.identifiers_list(stream),
-                        ))?;
-                        helper.handle_next_result(
+                        seq.elem(OptionalHelper::transform(self.identifiers_list(stream)))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::EnumDefinition)
     }
@@ -3081,15 +2929,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn equality_comparison_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EqualEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BangEqual);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
@@ -3097,50 +2943,42 @@ impl Language {
     pub fn error_definition(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_8_4 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result({
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(self.default_parse_token_with_trivia(
-                                stream,
-                                TokenKind::ErrorKeyword,
-                            ))?;
-                            helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem({
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(
+                                self.default_parse_token_with_trivia(
+                                    stream,
+                                    TokenKind::ErrorKeyword,
+                                ),
+                            )?;
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                             )?;
-                            helper.handle_next_result({
-                                let mut helper = SequenceHelper::new();
-                                std::iter::once(()).try_for_each(|_| {
-                                    helper.handle_next_result(
-                                        self.default_parse_token_with_trivia(
-                                            stream,
-                                            TokenKind::OpenParen,
-                                        ),
-                                    )?;
-                                    helper.handle_next_result(OptionalHelper::transform(
+                            seq.elem({
+                                SequenceHelper::run(|mut seq| {
+                                    seq.elem(self.default_parse_token_with_trivia(
+                                        stream,
+                                        TokenKind::OpenParen,
+                                    ))?;
+                                    seq.elem(OptionalHelper::transform(
                                         self.error_parameters_list(stream),
                                     ))?;
-                                    helper.handle_next_result(
-                                        self.default_parse_token_with_trivia(
-                                            stream,
-                                            TokenKind::CloseParen,
-                                        ),
-                                    )?;
-                                    ParserFlow::Break(())
-                                });
-                                helper.result()
+                                    seq.elem(self.default_parse_token_with_trivia(
+                                        stream,
+                                        TokenKind::CloseParen,
+                                    ))?;
+                                    seq.finish()
+                                })
                             })?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.finish()
+                        })
                     })?;
-                    helper.handle_next_result(
+                    seq.elem(
                         self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     )?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -3152,15 +2990,13 @@ impl Language {
     pub fn error_parameter(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_8_4 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(self.type_name(stream))?;
-                    helper.handle_next_result(OptionalHelper::transform(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(self.type_name(stream))?;
+                    seq.elem(OptionalHelper::transform(
                         self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                     ))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -3172,23 +3008,19 @@ impl Language {
     pub fn error_parameters_list(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_8_4 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(self.error_parameter(stream))?;
-                    helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(self.error_parameter(stream))?;
+                    seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::Comma),
                             )?;
-                            helper.handle_next_result(self.error_parameter(stream))?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.elem(self.error_parameter(stream))?;
+                            seq.finish()
+                        })
                     }))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -3199,51 +3031,45 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn event_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::EventKeyword),
                         )?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(self.default_parse_token_with_trivia(
+                        seq.elem({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::OpenParen,
                                 ))?;
-                                helper.handle_next_result(OptionalHelper::transform(
+                                seq.elem(OptionalHelper::transform(
                                     self.event_parameters_list(stream),
                                 ))?;
-                                helper.handle_next_result(self.default_parse_token_with_trivia(
+                                seq.elem(self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::CloseParen,
                                 ))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.finish()
+                            })
                         })?;
-                        helper.handle_next_result(OptionalHelper::transform(
+                        seq.elem(OptionalHelper::transform(
                             self.default_parse_token_with_trivia(
                                 stream,
                                 TokenKind::AnonymousKeyword,
                             ),
                         ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::EventDefinition)
     }
@@ -3251,18 +3077,16 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn event_parameter(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.type_name(stream))?;
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.type_name(stream))?;
+                seq.elem(OptionalHelper::transform(
                     self.default_parse_token_with_trivia(stream, TokenKind::IndexedKeyword),
                 ))?;
-                helper.handle_next_result(OptionalHelper::transform(
+                seq.elem(OptionalHelper::transform(
                     self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                 ))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::EventParameter)
     }
@@ -3270,23 +3094,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn event_parameters_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.event_parameter(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.event_parameter(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.event_parameter(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.event_parameter(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::EventParametersList)
     }
@@ -3294,27 +3112,23 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn experimental_pragma(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(
                     self.default_parse_token_with_trivia(stream, TokenKind::ExperimentalKeyword),
                 )?;
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self
                             .default_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ExperimentalPragma)
     }
@@ -3328,65 +3142,59 @@ impl Language {
     pub fn expression(&self, stream: &mut Stream) -> ParserResult {
         let parse_assignment_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 1u8, 2u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Equal);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::BarEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::MinusEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::CaretEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::SlashEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PercentEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::AsteriskEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::AmpersandEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self
                         .default_parse_token_with_trivia(stream, TokenKind::LessThanLessThanEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(
                         stream,
                         TokenKind::GreaterThanGreaterThanEqual,
                     );
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(
                         stream,
                         TokenKind::GreaterThanGreaterThanGreaterThanEqual,
                     );
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             })
         };
         let parse_conditional_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::ConditionalExpression, 3u8, 255u8, {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::QuestionMark),
                     )?;
-                    helper.handle_next_result(self.expression(stream))?;
-                    helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::Colon),
-                    )?;
-                    helper.handle_next_result(self.expression(stream))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.elem(self.expression(stream))?;
+                    seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Colon))?;
+                    seq.elem(self.expression(stream))?;
+                    seq.finish()
+                })
             })
         };
         let parse_or_operator = |stream: &mut Stream| {
@@ -3407,36 +3215,32 @@ impl Language {
         };
         let parse_equality_comparison_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 9u8, 10u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::EqualEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::BangEqual);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             })
         };
         let parse_order_comparison_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 11u8, 12u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThan);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             })
         };
         let parse_bitwise_or_operator = |stream: &mut Stream| {
@@ -3465,50 +3269,44 @@ impl Language {
         };
         let parse_shift_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 19u8, 20u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::LessThanLessThan);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self
                         .default_parse_token_with_trivia(stream, TokenKind::GreaterThanGreaterThan);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(
                         stream,
                         TokenKind::GreaterThanGreaterThanGreaterThan,
                     );
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             })
         };
         let parse_add_sub_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 21u8, 22u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             })
         };
         let parse_mul_div_mod_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 23u8, 24u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Slash);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Percent);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             })
         };
         let parse_exponentiation_operator_removed_from_0_6_0 = |stream: &mut Stream| {
@@ -3529,217 +3327,179 @@ impl Language {
         };
         let parse_unary_postfix_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::UnaryPostfixExpression, 29u8, 255u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             })
         };
         let parse_unary_prefix_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::UnaryPrefixExpression, 255u8, 31u8, {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Tilde);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Bang);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     if !self.version_is_at_least_0_5_0 {
                         let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                     }
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.finish(stream)
+                })
             })
         };
         let parse_function_call_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::FunctionCallExpression, 33u8, 255u8, {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
+                SequenceHelper::run(|mut seq| {
                     if self.version_is_at_least_0_6_2 {
-                        helper.handle_next_result(OptionalHelper::transform(
+                        seq.elem(OptionalHelper::transform(
                             self.function_call_options(stream),
                         ))?;
                     }
-                    helper.handle_next_result(self.arguments_declaration(stream))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.elem(self.arguments_declaration(stream))?;
+                    seq.finish()
+                })
             })
         };
         let parse_member_access_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::MemberAccessExpression, 35u8, 255u8, {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::Period),
-                    )?;
-                    helper.handle_next_result({
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Period))?;
+                    seq.elem({
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                             let result = self
                                 .default_parse_token_with_trivia(stream, TokenKind::AddressKeyword);
-                            helper.handle_next_result(stream, result)?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.consider(stream, result)?;
+                            choice.finish(stream)
+                        })
                     })?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             })
         };
         let parse_index_access_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::IndexAccessExpression, 37u8, 255u8, {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket),
-                    )?;
-                    helper.handle_next_result({
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(OptionalHelper::transform(
-                                self.expression(stream),
-                            ))?;
-                            helper.handle_next_result(OptionalHelper::transform({
-                                let mut helper = SequenceHelper::new();
-                                std::iter::once(()).try_for_each(|_| {
-                                    helper.handle_next_result(
-                                        self.default_parse_token_with_trivia(
-                                            stream,
-                                            TokenKind::Colon,
-                                        ),
-                                    )?;
-                                    helper.handle_next_result(OptionalHelper::transform(
-                                        self.expression(stream),
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket))?;
+                    seq.elem({
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                            seq.elem(OptionalHelper::transform({
+                                SequenceHelper::run(|mut seq| {
+                                    seq.elem(self.default_parse_token_with_trivia(
+                                        stream,
+                                        TokenKind::Colon,
                                     ))?;
-                                    ParserFlow::Break(())
-                                });
-                                helper.result()
+                                    seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                                    seq.finish()
+                                })
                             }))?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.finish()
+                        })
                     })?;
-                    helper.handle_next_result(
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket),
                     )?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             })
         };
         let prefix_operator_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_unary_prefix_operator(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let primary_expression_parser = |stream: &mut Stream| self.primary_expression(stream);
         let postfix_operator_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_conditional_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_unary_postfix_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_function_call_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_member_access_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_index_access_operator(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let binary_operand_parser = |stream: &mut Stream| {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
                     prefix_operator_parser(stream)
                 }))?;
-                helper.handle_next_result(primary_expression_parser(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
+                seq.elem(primary_expression_parser(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
                     postfix_operator_parser(stream)
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         };
         let binary_operator_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_assignment_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_or_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_and_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_equality_comparison_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_order_comparison_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_bitwise_or_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_bitwise_x_or_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_bitwise_and_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_shift_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_add_sub_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_mul_div_mod_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if !self.version_is_at_least_0_6_0 {
                     let result = parse_exponentiation_operator_removed_from_0_6_0(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result = parse_exponentiation_operator_introduced_from_0_6_0(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         };
         let linear_expression_parser = |stream: &mut Stream| {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(binary_operand_parser(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(binary_operator_parser(stream))?;
-                        helper.handle_next_result(binary_operand_parser(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(binary_operand_parser(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(binary_operator_parser(stream))?;
+                        seq.elem(binary_operand_parser(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         };
         PrecedenceHelper::reduce_precedence_result(
             Some(RuleKind::Expression),
@@ -3751,15 +3511,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn expression_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.expression(stream))?;
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.expression(stream))?;
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ExpressionStatement)
     }
@@ -3768,30 +3526,28 @@ impl Language {
     pub fn fallback_function_attribute(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_6_0 {
             {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.override_specifier(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             }
         } else {
             ParserResult::disabled()
@@ -3812,33 +3568,27 @@ impl Language {
     pub fn fallback_function_definition(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_6_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::FallbackKeyword),
                     )?;
-                    helper.handle_next_result(self.parameters_declaration(stream))?;
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(self.parameters_declaration(stream))?;
+                    seq.elem(OptionalHelper::transform(
                         self.fallback_function_attributes_list(stream),
                     ))?;
-                    helper.handle_next_result(OptionalHelper::transform(
-                        self.returns_declaration(stream),
-                    ))?;
-                    helper.handle_next_result({
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                    seq.elem(OptionalHelper::transform(self.returns_declaration(stream)))?;
+                    seq.elem({
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                             let result = self.block(stream);
-                            helper.handle_next_result(stream, result)?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.consider(stream, result)?;
+                            choice.finish(stream)
+                        })
                     })?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -3849,66 +3599,52 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn for_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::ForKeyword),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::ForKeyword))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result({
-                                    let mut helper = ChoiceHelper::new(stream);
-                                    std::iter::once(()).try_for_each(|_| {
+                        seq.elem({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem({
+                                    ChoiceHelper::run(stream, |mut choice, stream| {
                                         let result = self.simple_statement(stream);
-                                        helper.handle_next_result(stream, result)?;
+                                        choice.consider(stream, result)?;
                                         let result = self.default_parse_token_with_trivia(
                                             stream,
                                             TokenKind::Semicolon,
                                         );
-                                        helper.handle_next_result(stream, result)?;
-                                        ParserFlow::Break(())
-                                    });
-                                    helper.result(stream)
+                                        choice.consider(stream, result)?;
+                                        choice.finish(stream)
+                                    })
                                 })?;
-                                helper.handle_next_result({
-                                    let mut helper = ChoiceHelper::new(stream);
-                                    std::iter::once(()).try_for_each(|_| {
+                                seq.elem({
+                                    ChoiceHelper::run(stream, |mut choice, stream| {
                                         let result = self.expression_statement(stream);
-                                        helper.handle_next_result(stream, result)?;
+                                        choice.consider(stream, result)?;
                                         let result = self.default_parse_token_with_trivia(
                                             stream,
                                             TokenKind::Semicolon,
                                         );
-                                        helper.handle_next_result(stream, result)?;
-                                        ParserFlow::Break(())
-                                    });
-                                    helper.result(stream)
+                                        choice.consider(stream, result)?;
+                                        choice.finish(stream)
+                                    })
                                 })?;
-                                helper.handle_next_result(OptionalHelper::transform(
-                                    self.expression(stream),
-                                ))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                                seq.finish()
+                            })
                         })?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(self.statement(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.statement(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ForStatement)
     }
@@ -3916,43 +3652,41 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn function_attribute(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.modifier_invocation(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.override_specifier(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if !self.version_is_at_least_0_5_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ConstantKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -3965,38 +3699,34 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn function_call_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
                 if self.version_is_at_least_0_6_2 {
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(OptionalHelper::transform(
                         self.function_call_options(stream),
                     ))?;
                 }
-                helper.handle_next_result(self.arguments_declaration(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.arguments_declaration(stream))?;
+                seq.finish()
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn function_call_options(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 if self.version_is_at_least_0_6_2 && !self.version_is_at_least_0_8_0 {
                     let result = OneOrMoreHelper::run(stream, |stream| {
                         self.named_arguments_declaration(stream)
                     });
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_8_0 {
                     let result = self.named_arguments_declaration(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
         .with_kind(RuleKind::FunctionCallOptions)
     }
@@ -4004,49 +3734,39 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn function_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::FunctionKeyword),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::FunctionKeyword))?;
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self
                             .default_parse_token_with_trivia(stream, TokenKind::FallbackKeyword);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::ReceiveKeyword);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
-                helper.handle_next_result(self.parameters_declaration(stream))?;
-                helper.handle_next_result(OptionalHelper::transform(
+                seq.elem(self.parameters_declaration(stream))?;
+                seq.elem(OptionalHelper::transform(
                     self.function_attributes_list(stream),
                 ))?;
-                helper.handle_next_result(OptionalHelper::transform(
-                    self.returns_declaration(stream),
-                ))?;
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+                seq.elem(OptionalHelper::transform(self.returns_declaration(stream)))?;
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self.block(stream);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::FunctionDefinition)
     }
@@ -4054,21 +3774,15 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn function_type(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::FunctionKeyword),
-                )?;
-                helper.handle_next_result(self.parameters_declaration(stream))?;
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::FunctionKeyword))?;
+                seq.elem(self.parameters_declaration(stream))?;
+                seq.elem(OptionalHelper::transform(
                     self.function_type_attributes_list(stream),
                 ))?;
-                helper.handle_next_result(OptionalHelper::transform(
-                    self.returns_declaration(stream),
-                ))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(OptionalHelper::transform(self.returns_declaration(stream)))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::FunctionType)
     }
@@ -4076,29 +3790,27 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn function_type_attribute(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
@@ -4119,27 +3831,19 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn identifier_path(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Period),
-                        )?;
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Period))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::IdentifierPath)
     }
@@ -4147,23 +3851,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn identifier_paths_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.identifier_path(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.identifier_path(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.identifier_path(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.identifier_path(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::IdentifierPathsList)
     }
@@ -4171,27 +3869,19 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn identifiers_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::IdentifiersList)
     }
@@ -4199,40 +3889,32 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn if_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::IfKeyword),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::IfKeyword))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
                         )?;
-                        helper.handle_next_result(self.expression(stream))?;
-                        helper.handle_next_result(
+                        seq.elem(self.expression(stream))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(self.statement(stream))?;
-                helper.handle_next_result(OptionalHelper::transform({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                seq.elem(self.statement(stream))?;
+                seq.elem(OptionalHelper::transform({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::ElseKeyword),
                         )?;
-                        helper.handle_next_result(self.statement(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.elem(self.statement(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::IfStatement)
     }
@@ -4240,37 +3922,31 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn import_directive(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::ImportKeyword),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = ChoiceHelper::new(stream);
-                            std::iter::once(()).try_for_each(|_| {
+                        seq.elem({
+                            ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self.path_import(stream);
-                                helper.handle_next_result(stream, result)?;
+                                choice.consider(stream, result)?;
                                 let result = self.named_import(stream);
-                                helper.handle_next_result(stream, result)?;
+                                choice.consider(stream, result)?;
                                 let result = self.deconstruction_import(stream);
-                                helper.handle_next_result(stream, result)?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result(stream)
+                                choice.consider(stream, result)?;
+                                choice.finish(stream)
+                            })
                         })?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ImportDirective)
     }
@@ -4278,55 +3954,37 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn index_access_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.expression(stream),
-                        ))?;
-                        helper.handle_next_result(OptionalHelper::transform({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                        seq.elem(OptionalHelper::transform({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(
                                     self.default_parse_token_with_trivia(stream, TokenKind::Colon),
                                 )?;
-                                helper.handle_next_result(OptionalHelper::transform(
-                                    self.expression(stream),
-                                ))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                                seq.finish()
+                            })
                         }))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket))?;
+                seq.finish()
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn inheritance_specifier(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::IsKeyword),
-                )?;
-                helper.handle_next_result(self.inheritance_types_list(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::IsKeyword))?;
+                seq.elem(self.inheritance_types_list(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::InheritanceSpecifier)
     }
@@ -4334,15 +3992,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn inheritance_type(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.identifier_path(stream))?;
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.identifier_path(stream))?;
+                seq.elem(OptionalHelper::transform(
                     self.arguments_declaration(stream),
                 ))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::InheritanceType)
     }
@@ -4350,23 +4006,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn inheritance_types_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.inheritance_type(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.inheritance_type(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.inheritance_type(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.inheritance_type(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::InheritanceTypesList)
     }
@@ -4374,36 +4024,30 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn interface_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(
                     self.default_parse_token_with_trivia(stream, TokenKind::InterfaceKeyword),
                 )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(OptionalHelper::transform(
                     self.inheritance_specifier(stream),
                 ))?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
+                        seq.elem(OptionalHelper::transform(
                             self.interface_members_list(stream),
                         ))?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::InterfaceDefinition)
     }
@@ -4417,19 +4061,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn leading_trivia(&self, stream: &mut Stream) -> ParserResult {
         OneOrMoreHelper::run(stream, |stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token(stream, TokenKind::Whitespace);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token(stream, TokenKind::EndOfLine);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token(stream, TokenKind::MultilineComment);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token(stream, TokenKind::SingleLineComment);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         })
         .with_kind(RuleKind::LeadingTrivia)
     }
@@ -4437,33 +4079,23 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn library_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::LibraryKeyword),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::LibraryKeyword))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.library_members_list(stream),
-                        ))?;
-                        helper.handle_next_result(
+                        seq.elem(OptionalHelper::transform(self.library_members_list(stream)))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::LibraryDefinition)
     }
@@ -4477,27 +4109,23 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn mapping_key_type(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self.elementary_type(stream);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self.identifier_path(stream);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
                 if self.version_is_at_least_0_8_18 {
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(OptionalHelper::transform(
                         self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                     ))?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::MappingKeyType)
     }
@@ -4505,40 +4133,32 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn mapping_type(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::MappingKeyword),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::MappingKeyword))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(self.mapping_key_type(stream))?;
-                                helper.handle_next_result(self.default_parse_token_with_trivia(
+                        seq.elem({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(self.mapping_key_type(stream))?;
+                                seq.elem(self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::EqualGreaterThan,
                                 ))?;
-                                helper.handle_next_result(self.mapping_value_type(stream))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.elem(self.mapping_value_type(stream))?;
+                                seq.finish()
+                            })
                         })?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::MappingType)
     }
@@ -4546,17 +4166,15 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn mapping_value_type(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.type_name(stream))?;
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.type_name(stream))?;
                 if self.version_is_at_least_0_8_18 {
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(OptionalHelper::transform(
                         self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                     ))?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::MappingValueType)
     }
@@ -4564,45 +4182,37 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn member_access_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Period),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Period))?;
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::AddressKeyword);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn modifier_attribute(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.override_specifier(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_6_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -4615,35 +4225,27 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn modifier_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::ModifierKeyword),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::ModifierKeyword))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(OptionalHelper::transform(
                     self.parameters_declaration(stream),
                 ))?;
-                helper.handle_next_result(OptionalHelper::transform(
+                seq.elem(OptionalHelper::transform(
                     self.modifier_attributes_list(stream),
                 ))?;
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self.block(stream);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ModifierDefinition)
     }
@@ -4651,15 +4253,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn modifier_invocation(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.identifier_path(stream))?;
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.identifier_path(stream))?;
+                seq.elem(OptionalHelper::transform(
                     self.arguments_declaration(stream),
                 ))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ModifierInvocation)
     }
@@ -4667,35 +4267,27 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn mul_div_mod_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Slash);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Percent);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn named_argument(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Colon),
-                )?;
-                helper.handle_next_result(self.expression(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Colon))?;
+                seq.elem(self.expression(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::NamedArgument)
     }
@@ -4703,20 +4295,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn named_arguments_declaration(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
-                    self.named_arguments_list(stream),
-                ))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace))?;
+                seq.elem(OptionalHelper::transform(self.named_arguments_list(stream)))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::NamedArgumentsDeclaration)
     }
@@ -4724,23 +4308,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn named_arguments_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.named_argument(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.named_argument(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.named_argument(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.named_argument(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::NamedArgumentsList)
     }
@@ -4748,26 +4326,16 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn named_import(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Asterisk),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::AsKeyword),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::FromKeyword),
-                )?;
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Asterisk))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::AsKeyword))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::FromKeyword))?;
+                seq.elem(
                     self.default_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::NamedImport)
     }
@@ -4775,15 +4343,11 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn new_expression(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::NewKeyword),
-                )?;
-                helper.handle_next_result(self.type_name(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::NewKeyword))?;
+                seq.elem(self.type_name(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::NewExpression)
     }
@@ -4791,94 +4355,80 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn number_unit(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DaysKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EtherKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::HoursKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MinutesKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SecondsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeeksKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeiKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if !self.version_is_at_least_0_5_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::YearsKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_6_11 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GweiKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if !self.version_is_at_least_0_7_0 {
                     let result = {
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             let result = self
                                 .default_parse_token_with_trivia(stream, TokenKind::FinneyKeyword);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                             let result = self
                                 .default_parse_token_with_trivia(stream, TokenKind::SzaboKeyword);
-                            helper.handle_next_result(stream, result)?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.consider(stream, result)?;
+                            choice.finish(stream)
+                        })
                     };
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn numeric_expression(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::HexLiteral),
                         )?;
                         if !self.version_is_at_least_0_5_0 {
-                            helper.handle_next_result(OptionalHelper::transform(
-                                self.number_unit(stream),
-                            ))?;
+                            seq.elem(OptionalHelper::transform(self.number_unit(stream)))?;
                         }
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 };
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::DecimalLiteral),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.number_unit(stream),
-                        ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.elem(OptionalHelper::transform(self.number_unit(stream)))?;
+                        seq.finish()
+                    })
                 };
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
         .with_kind(RuleKind::NumericExpression)
     }
@@ -4891,50 +4441,42 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn order_comparison_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThan);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn override_specifier(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OverrideKeyword),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OverrideKeyword))?;
+                seq.elem(OptionalHelper::transform({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
+                        seq.elem(OptionalHelper::transform(
                             self.identifier_paths_list(stream),
                         ))?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::OverrideSpecifier)
     }
@@ -4942,16 +4484,14 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn parameter(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.type_name(stream))?;
-                helper.handle_next_result(OptionalHelper::transform(self.data_location(stream)))?;
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.type_name(stream))?;
+                seq.elem(OptionalHelper::transform(self.data_location(stream)))?;
+                seq.elem(OptionalHelper::transform(
                     self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                 ))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::Parameter)
     }
@@ -4959,19 +4499,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn parameters_declaration(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
-                )?;
-                helper
-                    .handle_next_result(OptionalHelper::transform(self.parameters_list(stream)))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenParen))?;
+                seq.elem(OptionalHelper::transform(self.parameters_list(stream)))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseParen))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ParametersDeclaration)
     }
@@ -4979,23 +4512,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn parameters_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.parameter(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.parameter(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.parameter(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.parameter(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ParametersList)
     }
@@ -5003,27 +4530,23 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn path_import(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(
                     self.default_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral),
                 )?;
-                helper.handle_next_result(OptionalHelper::transform({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                seq.elem(OptionalHelper::transform({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::AsKeyword),
                         )?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::PathImport)
     }
@@ -5031,23 +4554,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn positional_arguments_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.expression(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.expression(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.expression(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.expression(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::PositionalArgumentsList)
     }
@@ -5055,37 +4572,31 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn pragma_directive(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::PragmaKeyword),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = ChoiceHelper::new(stream);
-                            std::iter::once(()).try_for_each(|_| {
+                        seq.elem({
+                            ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self.abi_coder_pragma(stream);
-                                helper.handle_next_result(stream, result)?;
+                                choice.consider(stream, result)?;
                                 let result = self.experimental_pragma(stream);
-                                helper.handle_next_result(stream, result)?;
+                                choice.consider(stream, result)?;
                                 let result = self.version_pragma(stream);
-                                helper.handle_next_result(stream, result)?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result(stream)
+                                choice.consider(stream, result)?;
+                                choice.finish(stream)
+                            })
                         })?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::PragmaDirective)
     }
@@ -5093,31 +4604,29 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn primary_expression(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.new_expression(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.tuple_expression(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.array_expression(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.boolean_expression(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.numeric_expression(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.string_expression(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.elementary_type(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_5_3 {
                     let result = self.type_expression(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -5125,24 +4634,22 @@ impl Language {
     pub fn receive_function_attribute(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_6_0 {
             {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.override_specifier(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             }
         } else {
             ParserResult::disabled()
@@ -5163,30 +4670,26 @@ impl Language {
     pub fn receive_function_definition(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_6_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::ReceiveKeyword),
                     )?;
-                    helper.handle_next_result(self.parameters_declaration(stream))?;
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(self.parameters_declaration(stream))?;
+                    seq.elem(OptionalHelper::transform(
                         self.receive_function_attributes_list(stream),
                     ))?;
-                    helper.handle_next_result({
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                    seq.elem({
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                             let result = self.block(stream);
-                            helper.handle_next_result(stream, result)?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.consider(stream, result)?;
+                            choice.finish(stream)
+                        })
                     })?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -5197,27 +4700,21 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn return_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::ReturnKeyword),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.expression(stream),
-                        ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ReturnStatement)
     }
@@ -5225,15 +4722,11 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn returns_declaration(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::ReturnsKeyword),
-                )?;
-                helper.handle_next_result(self.parameters_declaration(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::ReturnsKeyword))?;
+                seq.elem(self.parameters_declaration(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::ReturnsDeclaration)
     }
@@ -5241,28 +4734,22 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn revert_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::RevertKeyword),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.identifier_path(stream),
-                        ))?;
-                        helper.handle_next_result(self.arguments_declaration(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.elem(OptionalHelper::transform(self.identifier_path(stream)))?;
+                        seq.elem(self.arguments_declaration(stream))?;
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::RevertStatement)
     }
@@ -5270,324 +4757,314 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn shift_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::LessThanLessThan);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanGreaterThan);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(
                     stream,
                     TokenKind::GreaterThanGreaterThanGreaterThan,
                 );
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn simple_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.expression_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.variable_declaration_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.tuple_deconstruction_statement(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn solidity_keywords_over_all_versions(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ABICoderKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AbstractKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AddressKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AfterKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AnonymousKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AssemblyKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BoolKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BreakKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ByteKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CaseKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CatchKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ConstantKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ContinueKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ContractKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DaysKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::DefaultKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DeleteKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DoKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ElseKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EnumKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EtherKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EventKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExperimentalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::FallbackKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FinalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FinneyKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ForKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FromKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::FunctionKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::GlobalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::HexKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::HoursKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::IfKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ImportKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::IndexedKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::InKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::InlineKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InterfaceKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::IsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LetKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::LibraryKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MappingKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MatchKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MemoryKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MinutesKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ModifierKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::NewKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::NullKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::OfKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::OverrideKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PragmaKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ReceiveKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::RelocatableKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ReturnKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ReturnsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::RevertKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SecondsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SolidityKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StaticKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::StorageKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StringKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StructKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SwitchKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SzaboKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ThrowKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TypeofKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::UsingKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::VarKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeeksKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeiKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WhileKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::YearsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EmitKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ConstructorKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AliasKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ApplyKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AutoKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::CalldataKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CopyofKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DefineKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ImplementsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MacroKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MutableKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PartialKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PromiseKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ReferenceKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SealedKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SizeofKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SupportsKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::TypedefKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TypeKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LeaveKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TryKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ImmutableKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::GweiKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::UncheckedKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ErrorKeyword);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn source_unit(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(OptionalHelper::transform(
                     self.source_unit_members_list(stream),
                 ))?;
-                helper.handle_next_result(OptionalHelper::transform(
-                    self.end_of_file_trivia(stream),
-                ))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(OptionalHelper::transform(self.end_of_file_trivia(stream)))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::SourceUnit)
     }
@@ -5595,55 +5072,51 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn source_unit_member(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.pragma_directive(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.import_directive(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.contract_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.interface_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.library_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_6_0 {
                     let result = {
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             let result = self.struct_definition(stream);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                             let result = self.enum_definition(stream);
-                            helper.handle_next_result(stream, result)?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.consider(stream, result)?;
+                            choice.finish(stream)
+                        })
                     };
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_7_1 {
                     let result = self.function_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_7_4 {
                     let result = self.constant_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_8_4 {
                     let result = self.error_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_8_8 {
                     let result = self.user_defined_value_type_definition(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
                 if self.version_is_at_least_0_8_13 {
                     let result = self.using_directive(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -5656,29 +5129,27 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn state_variable_attribute(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.override_specifier(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ConstantKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_6_5 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ImmutableKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -5691,39 +5162,33 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn state_variable_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(self.type_name(stream))?;
-                        helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.type_name(stream))?;
+                        seq.elem(OptionalHelper::transform(
                             self.state_variable_attributes_list(stream),
                         ))?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(
+                        seq.elem(OptionalHelper::transform({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(
                                     self.default_parse_token_with_trivia(stream, TokenKind::Equal),
                                 )?;
-                                helper.handle_next_result(self.expression(stream))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.elem(self.expression(stream))?;
+                                seq.finish()
+                            })
                         }))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::StateVariableDefinition)
     }
@@ -5731,23 +5196,21 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.simple_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.control_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.assembly_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.block(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_8_0 {
                     let result = self.unchecked_block(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
         .with_kind(RuleKind::Statement)
     }
@@ -5761,52 +5224,40 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn string_expression(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.hex_string_literals_list(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.ascii_string_literals_list(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_7_0 {
                     let result = self.unicode_string_literals_list(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn struct_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::StructKeyword),
-                )?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::StructKeyword))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.struct_members_list(stream),
-                        ))?;
-                        helper.handle_next_result(
+                        seq.elem(OptionalHelper::transform(self.struct_members_list(stream)))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::StructDefinition)
     }
@@ -5814,25 +5265,21 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn struct_member(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(self.type_name(stream))?;
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.type_name(stream))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::StructMember)
     }
@@ -5847,17 +5294,15 @@ impl Language {
     pub fn throw_statement(&self, stream: &mut Stream) -> ParserResult {
         if !self.version_is_at_least_0_5_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::ThrowKeyword),
                     )?;
-                    helper.handle_next_result(
+                    seq.elem(
                         self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     )?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -5868,19 +5313,16 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn trailing_trivia(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(OptionalHelper::transform(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(OptionalHelper::transform(
                     self.default_parse_token(stream, TokenKind::Whitespace),
                 ))?;
-                helper.handle_next_result(OptionalHelper::transform(
+                seq.elem(OptionalHelper::transform(
                     self.default_parse_token(stream, TokenKind::SingleLineComment),
                 ))?;
-                helper
-                    .handle_next_result(self.default_parse_token(stream, TokenKind::EndOfLine))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.default_parse_token(stream, TokenKind::EndOfLine))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::TrailingTrivia)
     }
@@ -5889,20 +5331,14 @@ impl Language {
     pub fn try_statement(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_6_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::TryKeyword),
-                    )?;
-                    helper.handle_next_result(self.expression(stream))?;
-                    helper.handle_next_result(OptionalHelper::transform(
-                        self.returns_declaration(stream),
-                    ))?;
-                    helper.handle_next_result(self.block(stream))?;
-                    helper.handle_next_result(self.catch_clauses_list(stream))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::TryKeyword))?;
+                    seq.elem(self.expression(stream))?;
+                    seq.elem(OptionalHelper::transform(self.returns_declaration(stream)))?;
+                    seq.elem(self.block(stream))?;
+                    seq.elem(self.catch_clauses_list(stream))?;
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -5913,43 +5349,35 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn tuple_deconstruction_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(self.default_parse_token_with_trivia(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::OpenParen,
                                 ))?;
-                                helper.handle_next_result(OptionalHelper::transform(
+                                seq.elem(OptionalHelper::transform(
                                     self.tuple_members_list(stream),
                                 ))?;
-                                helper.handle_next_result(self.default_parse_token_with_trivia(
+                                seq.elem(self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::CloseParen,
                                 ))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.finish()
+                            })
                         })?;
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Equal),
-                        )?;
-                        helper.handle_next_result(self.expression(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Equal))?;
+                        seq.elem(self.expression(stream))?;
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::TupleDeconstructionStatement)
     }
@@ -5957,18 +5385,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn tuple_expression(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
-                )?;
-                helper.handle_next_result(self.tuple_values_list(stream))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenParen))?;
+                seq.elem(self.tuple_values_list(stream))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseParen))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::TupleExpression)
     }
@@ -5976,40 +5398,30 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn tuple_member(&self, stream: &mut Stream) -> ParserResult {
         OptionalHelper::transform({
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(self.type_name(stream))?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.data_location(stream),
-                        ))?;
-                        helper.handle_next_result(
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.type_name(stream))?;
+                        seq.elem(OptionalHelper::transform(self.data_location(stream)))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 };
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.data_location(stream),
-                        ))?;
-                        helper.handle_next_result(
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(OptionalHelper::transform(self.data_location(stream)))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 };
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         })
         .with_kind(RuleKind::TupleMember)
     }
@@ -6017,23 +5429,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn tuple_members_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.tuple_member(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.tuple_member(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.tuple_member(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.tuple_member(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::TupleMembersList)
     }
@@ -6041,25 +5447,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn tuple_values_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(OptionalHelper::transform(self.expression(stream)))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.expression(stream),
-                        ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::TupleValuesList)
     }
@@ -6068,28 +5466,22 @@ impl Language {
     pub fn type_expression(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_5_3 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::TypeKeyword),
-                    )?;
-                    helper.handle_next_result({
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::TypeKeyword))?;
+                    seq.elem({
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
                             )?;
-                            helper.handle_next_result(self.type_name(stream))?;
-                            helper.handle_next_result(
+                            seq.elem(self.type_name(stream))?;
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
                             )?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.finish()
+                        })
                     })?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -6101,55 +5493,44 @@ impl Language {
     pub fn type_name(&self, stream: &mut Stream) -> ParserResult {
         let parse_array_type_name_operator = |stream: &mut Stream| {
             PrecedenceHelper::to_precedence_result(RuleKind::ArrayTypeName, 1u8, 255u8, {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
-                        self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket),
-                    )?;
-                    helper
-                        .handle_next_result(OptionalHelper::transform(self.expression(stream)))?;
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBracket))?;
+                    seq.elem(OptionalHelper::transform(self.expression(stream)))?;
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::CloseBracket),
                     )?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             })
         };
         let primary_expression_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.function_type(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.mapping_type(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.elementary_type(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.identifier_path(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let postfix_operator_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_array_type_name_operator(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let linear_expression_parser = |stream: &mut Stream| {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(primary_expression_parser(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(primary_expression_parser(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
                     postfix_operator_parser(stream)
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         };
         PrecedenceHelper::reduce_precedence_result(
             Some(RuleKind::TypeName),
@@ -6161,40 +5542,36 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn unary_postfix_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn unary_prefix_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Tilde);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Bang);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if !self.version_is_at_least_0_5_0 {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
     }
 
@@ -6202,15 +5579,13 @@ impl Language {
     pub fn unchecked_block(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_8_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::UncheckedKeyword),
                     )?;
-                    helper.handle_next_result(self.block(stream))?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.elem(self.block(stream))?;
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -6234,27 +5609,25 @@ impl Language {
     pub fn unnamed_function_attribute(&self, stream: &mut Stream) -> ParserResult {
         if !self.version_is_at_least_0_6_0 {
             {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.override_specifier(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             }
         } else {
             ParserResult::disabled()
@@ -6275,30 +5648,26 @@ impl Language {
     pub fn unnamed_function_definition(&self, stream: &mut Stream) -> ParserResult {
         if !self.version_is_at_least_0_6_0 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem(
                         self.default_parse_token_with_trivia(stream, TokenKind::FunctionKeyword),
                     )?;
-                    helper.handle_next_result(self.parameters_declaration(stream))?;
-                    helper.handle_next_result(OptionalHelper::transform(
+                    seq.elem(self.parameters_declaration(stream))?;
+                    seq.elem(OptionalHelper::transform(
                         self.unnamed_function_attributes_list(stream),
                     ))?;
-                    helper.handle_next_result({
-                        let mut helper = ChoiceHelper::new(stream);
-                        std::iter::once(()).try_for_each(|_| {
+                    seq.elem({
+                        ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                             let result = self.block(stream);
-                            helper.handle_next_result(stream, result)?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result(stream)
+                            choice.consider(stream, result)?;
+                            choice.finish(stream)
+                        })
                     })?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -6310,34 +5679,30 @@ impl Language {
     pub fn user_defined_value_type_definition(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_8_8 {
             {
-                let mut helper = SequenceHelper::new();
-                std::iter::once(()).try_for_each(|_| {
-                    helper.handle_next_result({
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(
+                SequenceHelper::run(|mut seq| {
+                    seq.elem({
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(
                                 self.default_parse_token_with_trivia(
                                     stream,
                                     TokenKind::TypeKeyword,
                                 ),
                             )?;
-                            helper.handle_next_result(
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
                             )?;
-                            helper.handle_next_result(
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::IsKeyword),
                             )?;
-                            helper.handle_next_result(self.elementary_type(stream))?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.elem(self.elementary_type(stream))?;
+                            seq.finish()
+                        })
                     })?;
-                    helper.handle_next_result(
+                    seq.elem(
                         self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                     )?;
-                    ParserFlow::Break(())
-                });
-                helper.result()
+                    seq.finish()
+                })
             }
         } else {
             ParserResult::disabled()
@@ -6348,53 +5713,45 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn using_directive(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::UsingKeyword),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = ChoiceHelper::new(stream);
-                            std::iter::once(()).try_for_each(|_| {
+                        seq.elem({
+                            ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self.using_directive_path(stream);
-                                helper.handle_next_result(stream, result)?;
+                                choice.consider(stream, result)?;
                                 let result = self.using_directive_deconstruction(stream);
-                                helper.handle_next_result(stream, result)?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result(stream)
+                                choice.consider(stream, result)?;
+                                choice.finish(stream)
+                            })
                         })?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::ForKeyword),
                         )?;
-                        helper.handle_next_result({
-                            let mut helper = ChoiceHelper::new(stream);
-                            std::iter::once(()).try_for_each(|_| {
+                        seq.elem({
+                            ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self
                                     .default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                                helper.handle_next_result(stream, result)?;
+                                choice.consider(stream, result)?;
                                 let result = self.type_name(stream);
-                                helper.handle_next_result(stream, result)?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result(stream)
+                                choice.consider(stream, result)?;
+                                choice.finish(stream)
+                            })
                         })?;
-                        helper.handle_next_result(OptionalHelper::transform(
+                        seq.elem(OptionalHelper::transform(
                             self.default_parse_token_with_trivia(stream, TokenKind::GlobalKeyword),
                         ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::UsingDirective)
     }
@@ -6402,18 +5759,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn using_directive_deconstruction(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace),
-                )?;
-                helper.handle_next_result(self.using_directive_symbols_list(stream))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::OpenBrace))?;
+                seq.elem(self.using_directive_symbols_list(stream))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::CloseBrace))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::UsingDirectiveDeconstruction)
     }
@@ -6422,45 +5773,43 @@ impl Language {
     pub fn using_directive_operator(&self, stream: &mut Stream) -> ParserResult {
         if self.version_is_at_least_0_8_19 {
             {
-                let mut helper = ChoiceHelper::new(stream);
-                std::iter::once(()).try_for_each(|_| {
+                ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Ampersand);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::BangEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Bar);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Caret);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::EqualEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThan);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Percent);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Slash);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Tilde);
-                    helper.handle_next_result(stream, result)?;
-                    ParserFlow::Break(())
-                });
-                helper.result(stream)
+                    choice.consider(stream, result)?;
+                    choice.finish(stream)
+                })
             }
         } else {
             ParserResult::disabled()
@@ -6476,25 +5825,21 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn using_directive_symbol(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.identifier_path(stream))?;
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.identifier_path(stream))?;
                 if self.version_is_at_least_0_8_19 {
-                    helper.handle_next_result(OptionalHelper::transform({
-                        let mut helper = SequenceHelper::new();
-                        std::iter::once(()).try_for_each(|_| {
-                            helper.handle_next_result(
+                    seq.elem(OptionalHelper::transform({
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(
                                 self.default_parse_token_with_trivia(stream, TokenKind::AsKeyword),
                             )?;
-                            helper.handle_next_result(self.using_directive_operator(stream))?;
-                            ParserFlow::Break(())
-                        });
-                        helper.result()
+                            seq.elem(self.using_directive_operator(stream))?;
+                            seq.finish()
+                        })
                     }))?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::UsingDirectiveSymbol)
     }
@@ -6502,23 +5847,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn using_directive_symbols_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.using_directive_symbol(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.default_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.using_directive_symbol(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.using_directive_symbol(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.using_directive_symbol(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::UsingDirectiveSymbolsList)
     }
@@ -6526,29 +5865,23 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn variable_declaration(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         if !self.version_is_at_least_0_5_0 {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::VarKeyword);
-                            helper.handle_next_result(stream, result)?;
+                            choice.consider(stream, result)?;
                         }
                         let result = self.type_name(stream);
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
-                helper.handle_next_result(OptionalHelper::transform(self.data_location(stream)))?;
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::Identifier),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(OptionalHelper::transform(self.data_location(stream)))?;
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::Identifier))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::VariableDeclaration)
     }
@@ -6556,33 +5889,27 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn variable_declaration_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(self.variable_declaration(stream))?;
-                        helper.handle_next_result(OptionalHelper::transform({
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.variable_declaration(stream))?;
+                        seq.elem(OptionalHelper::transform({
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(
                                     self.default_parse_token_with_trivia(stream, TokenKind::Equal),
                                 )?;
-                                helper.handle_next_result(self.expression(stream))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                                seq.elem(self.expression(stream))?;
+                                seq.finish()
+                            })
                         }))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(
+                seq.elem(
                     self.default_greedy_parse_token_with_trivia(stream, TokenKind::Semicolon),
                 )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::VariableDeclarationStatement)
     }
@@ -6590,15 +5917,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn version_pragma(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(
                     self.version_pragma_parse_token_with_trivia(stream, TokenKind::SolidityKeyword),
                 )?;
-                helper.handle_next_result(self.version_pragma_expressions_list(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.version_pragma_expressions_list(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::VersionPragma)
     }
@@ -6627,87 +5952,75 @@ impl Language {
                 255u8,
                 5u8,
                 {
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.version_pragma_parse_token_with_trivia(stream, TokenKind::Caret);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result =
                             self.version_pragma_parse_token_with_trivia(stream, TokenKind::Tilde);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result =
                             self.version_pragma_parse_token_with_trivia(stream, TokenKind::Equal);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self
                             .version_pragma_parse_token_with_trivia(stream, TokenKind::LessThan);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self
                             .version_pragma_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self.version_pragma_parse_token_with_trivia(
                             stream,
                             TokenKind::LessThanEqual,
                         );
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = self.version_pragma_parse_token_with_trivia(
                             stream,
                             TokenKind::GreaterThanEqual,
                         );
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 },
             )
         };
         let prefix_operator_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_version_pragma_unary_operator(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let primary_expression_parser = |stream: &mut Stream| self.version_pragma_specifier(stream);
         let binary_operand_parser = |stream: &mut Stream| {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
                     prefix_operator_parser(stream)
                 }))?;
-                helper.handle_next_result(primary_expression_parser(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(primary_expression_parser(stream))?;
+                seq.finish()
+            })
         };
         let binary_operator_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_version_pragma_or_operator(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = parse_version_pragma_range_operator(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let linear_expression_parser = |stream: &mut Stream| {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(binary_operand_parser(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(binary_operator_parser(stream))?;
-                        helper.handle_next_result(binary_operand_parser(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(binary_operand_parser(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(binary_operator_parser(stream))?;
+                        seq.elem(binary_operand_parser(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         };
         PrecedenceHelper::reduce_precedence_result(
             Some(RuleKind::VersionPragmaExpression),
@@ -6735,29 +6048,25 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn version_pragma_specifier(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.version_pragma_parse_token_with_trivia(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.version_pragma_parse_token_with_trivia(
                     stream,
                     TokenKind::VersionPragmaValue,
                 ))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.version_pragma_parse_token_with_trivia(stream, TokenKind::Period),
                         )?;
-                        helper.handle_next_result(self.version_pragma_parse_token_with_trivia(
+                        seq.elem(self.version_pragma_parse_token_with_trivia(
                             stream,
                             TokenKind::VersionPragmaValue,
                         ))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::VersionPragmaSpecifier)
     }
@@ -6765,58 +6074,50 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn version_pragma_unary_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.version_pragma_parse_token_with_trivia(stream, TokenKind::Caret);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.version_pragma_parse_token_with_trivia(stream, TokenKind::Tilde);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.version_pragma_parse_token_with_trivia(stream, TokenKind::Equal);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.version_pragma_parse_token_with_trivia(stream, TokenKind::LessThan);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.version_pragma_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.version_pragma_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self
                     .version_pragma_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn while_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.default_parse_token_with_trivia(stream, TokenKind::WhileKeyword),
-                )?;
-                helper.handle_next_result({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.default_parse_token_with_trivia(stream, TokenKind::WhileKeyword))?;
+                seq.elem({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::OpenParen),
                         )?;
-                        helper.handle_next_result(self.expression(stream))?;
-                        helper.handle_next_result(
+                        seq.elem(self.expression(stream))?;
+                        seq.elem(
                             self.default_parse_token_with_trivia(stream, TokenKind::CloseParen),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 })?;
-                helper.handle_next_result(self.statement(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.statement(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::WhileStatement)
     }
@@ -6824,16 +6125,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_assignment_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.yul_identifier_paths_list(stream))?;
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::ColonEqual),
-                )?;
-                helper.handle_next_result(self.yul_expression(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_identifier_paths_list(stream))?;
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::ColonEqual))?;
+                seq.elem(self.yul_expression(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulAssignmentStatement)
     }
@@ -6841,20 +6138,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_block(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::OpenBrace),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
-                    self.yul_statements_list(stream),
-                ))?;
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::CloseBrace),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::OpenBrace))?;
+                seq.elem(OptionalHelper::transform(self.yul_statements_list(stream)))?;
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::CloseBrace))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulBlock)
     }
@@ -6874,26 +6163,20 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_declaration_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::LetKeyword),
-                )?;
-                helper.handle_next_result(self.yul_identifier_paths_list(stream))?;
-                helper.handle_next_result(OptionalHelper::transform({
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::LetKeyword))?;
+                seq.elem(self.yul_identifier_paths_list(stream))?;
+                seq.elem(OptionalHelper::transform({
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.yul_block_parse_token_with_trivia(stream, TokenKind::ColonEqual),
                         )?;
-                        helper.handle_next_result(self.yul_expression(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.elem(self.yul_expression(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulDeclarationStatement)
     }
@@ -6906,53 +6189,43 @@ impl Language {
                 1u8,
                 255u8,
                 {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.yul_block_parse_token_with_trivia(stream, TokenKind::OpenParen),
                         )?;
-                        helper.handle_next_result(OptionalHelper::transform(
-                            self.yul_expressions_list(stream),
-                        ))?;
-                        helper.handle_next_result(
+                        seq.elem(OptionalHelper::transform(self.yul_expressions_list(stream)))?;
+                        seq.elem(
                             self.yul_block_parse_token_with_trivia(stream, TokenKind::CloseParen),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 },
             )
         };
         let primary_expression_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.yul_literal(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_identifier_path(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let postfix_operator_parser = |stream: &mut Stream| {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_yul_function_call_operator(stream);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         };
         let linear_expression_parser = |stream: &mut Stream| {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(primary_expression_parser(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(primary_expression_parser(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
                     postfix_operator_parser(stream)
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         };
         PrecedenceHelper::reduce_precedence_result(
             Some(RuleKind::YulExpression),
@@ -6964,23 +6237,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_expressions_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.yul_expression(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.yul_block_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.yul_expression(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_expression(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.yul_expression(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulExpressionsList)
     }
@@ -6988,18 +6255,14 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_for_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::ForKeyword),
-                )?;
-                helper.handle_next_result(self.yul_block(stream))?;
-                helper.handle_next_result(self.yul_expression(stream))?;
-                helper.handle_next_result(self.yul_block(stream))?;
-                helper.handle_next_result(self.yul_block(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::ForKeyword))?;
+                seq.elem(self.yul_block(stream))?;
+                seq.elem(self.yul_expression(stream))?;
+                seq.elem(self.yul_block(stream))?;
+                seq.elem(self.yul_block(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulForStatement)
     }
@@ -7007,42 +6270,30 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_function_call_operator(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::OpenParen),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
-                    self.yul_expressions_list(stream),
-                ))?;
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::CloseParen),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::OpenParen))?;
+                seq.elem(OptionalHelper::transform(self.yul_expressions_list(stream)))?;
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::CloseParen))?;
+                seq.finish()
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_function_definition(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::FunctionKeyword),
                 )?;
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::YulIdentifier),
-                )?;
-                helper.handle_next_result(self.yul_parameters_declaration(stream))?;
-                helper.handle_next_result(OptionalHelper::transform(
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::YulIdentifier))?;
+                seq.elem(self.yul_parameters_declaration(stream))?;
+                seq.elem(OptionalHelper::transform(
                     self.yul_returns_declaration(stream),
                 ))?;
-                helper.handle_next_result(self.yul_block(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.yul_block(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulFunctionDefinition)
     }
@@ -7050,30 +6301,24 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_identifier_path(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::YulIdentifier),
-                )?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::YulIdentifier))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(
                             self.yul_block_parse_token_with_trivia(stream, TokenKind::Period),
                         )?;
-                        helper.handle_next_result(
+                        seq.elem(
                             self.yul_block_parse_token_with_trivia(
                                 stream,
                                 TokenKind::YulIdentifier,
                             ),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulIdentifierPath)
     }
@@ -7081,23 +6326,17 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_identifier_paths_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(self.yul_identifier_path(stream))?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.yul_block_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(self.yul_identifier_path(stream))?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_identifier_path(stream))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(self.yul_identifier_path(stream))?;
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulIdentifierPathsList)
     }
@@ -7105,30 +6344,22 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_identifiers_list(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::YulIdentifier),
-                )?;
-                helper.handle_next_result(ZeroOrMoreHelper::run(stream, |stream| {
-                    let mut helper = SequenceHelper::new();
-                    std::iter::once(()).try_for_each(|_| {
-                        helper.handle_next_result(
-                            self.yul_block_parse_token_with_trivia(stream, TokenKind::Comma),
-                        )?;
-                        helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::YulIdentifier))?;
+                seq.elem(ZeroOrMoreHelper::run(stream, |stream| {
+                    SequenceHelper::run(|mut seq| {
+                        seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::Comma))?;
+                        seq.elem(
                             self.yul_block_parse_token_with_trivia(
                                 stream,
                                 TokenKind::YulIdentifier,
                             ),
                         )?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result()
+                        seq.finish()
+                    })
                 }))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulIdentifiersList)
     }
@@ -7136,16 +6367,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_if_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::IfKeyword),
-                )?;
-                helper.handle_next_result(self.yul_expression(stream))?;
-                helper.handle_next_result(self.yul_block(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::IfKeyword))?;
+                seq.elem(self.yul_expression(stream))?;
+                seq.elem(self.yul_block(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulIfStatement)
     }
@@ -7153,44 +6380,42 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_keywords_over_all_versions(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::BreakKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::CaseKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::ContinueKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::DefaultKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::ForKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::FunctionKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::HexKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::IfKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::LetKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::SwitchKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::LeaveKeyword);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
@@ -7207,48 +6432,38 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_literal(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::YulHexLiteral);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::YulDecimalLiteral);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::HexStringLiteral);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral);
-                helper.handle_next_result(stream, result)?;
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.consider(stream, result)?;
+                choice.finish(stream)
+            })
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_parameters_declaration(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::OpenParen),
-                )?;
-                helper.handle_next_result(OptionalHelper::transform(
-                    self.yul_identifiers_list(stream),
-                ))?;
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::CloseParen),
-                )?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::OpenParen))?;
+                seq.elem(OptionalHelper::transform(self.yul_identifiers_list(stream)))?;
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::CloseParen))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulParametersDeclaration)
     }
@@ -7256,15 +6471,13 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_returns_declaration(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
+            SequenceHelper::run(|mut seq| {
+                seq.elem(
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::MinusGreaterThan),
                 )?;
-                helper.handle_next_result(self.yul_identifiers_list(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.yul_identifiers_list(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulReturnsDeclaration)
     }
@@ -7272,35 +6485,33 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = ChoiceHelper::new(stream);
-            std::iter::once(()).try_for_each(|_| {
+            ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.yul_block(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_function_definition(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_declaration_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_assignment_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_if_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_for_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_switch_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_break_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_continue_statement(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 let result = self.yul_expression(stream);
-                helper.handle_next_result(stream, result)?;
+                choice.consider(stream, result)?;
                 if self.version_is_at_least_0_6_0 {
                     let result = self.yul_leave_statement(stream);
-                    helper.handle_next_result(stream, result)?;
+                    choice.consider(stream, result)?;
                 }
-                ParserFlow::Break(())
-            });
-            helper.result(stream)
+                choice.finish(stream)
+            })
         }
         .with_kind(RuleKind::YulStatement)
     }
@@ -7314,37 +6525,29 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_switch_case(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result({
-                    let mut helper = ChoiceHelper::new(stream);
-                    std::iter::once(()).try_for_each(|_| {
+            SequenceHelper::run(|mut seq| {
+                seq.elem({
+                    ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self
                             .yul_block_parse_token_with_trivia(stream, TokenKind::DefaultKeyword);
-                        helper.handle_next_result(stream, result)?;
+                        choice.consider(stream, result)?;
                         let result = {
-                            let mut helper = SequenceHelper::new();
-                            std::iter::once(()).try_for_each(|_| {
-                                helper.handle_next_result(
-                                    self.yul_block_parse_token_with_trivia(
-                                        stream,
-                                        TokenKind::CaseKeyword,
-                                    ),
-                                )?;
-                                helper.handle_next_result(self.yul_literal(stream))?;
-                                ParserFlow::Break(())
-                            });
-                            helper.result()
+                            SequenceHelper::run(|mut seq| {
+                                seq.elem(self.yul_block_parse_token_with_trivia(
+                                    stream,
+                                    TokenKind::CaseKeyword,
+                                ))?;
+                                seq.elem(self.yul_literal(stream))?;
+                                seq.finish()
+                            })
                         };
-                        helper.handle_next_result(stream, result)?;
-                        ParserFlow::Break(())
-                    });
-                    helper.result(stream)
+                        choice.consider(stream, result)?;
+                        choice.finish(stream)
+                    })
                 })?;
-                helper.handle_next_result(self.yul_block(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+                seq.elem(self.yul_block(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulSwitchCase)
     }
@@ -7358,16 +6561,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     pub fn yul_switch_statement(&self, stream: &mut Stream) -> ParserResult {
         {
-            let mut helper = SequenceHelper::new();
-            std::iter::once(()).try_for_each(|_| {
-                helper.handle_next_result(
-                    self.yul_block_parse_token_with_trivia(stream, TokenKind::SwitchKeyword),
-                )?;
-                helper.handle_next_result(self.yul_expression(stream))?;
-                helper.handle_next_result(self.yul_switch_cases_list(stream))?;
-                ParserFlow::Break(())
-            });
-            helper.result()
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.yul_block_parse_token_with_trivia(stream, TokenKind::SwitchKeyword))?;
+                seq.elem(self.yul_expression(stream))?;
+                seq.elem(self.yul_switch_cases_list(stream))?;
+                seq.finish()
+            })
         }
         .with_kind(RuleKind::YulSwitchStatement)
     }

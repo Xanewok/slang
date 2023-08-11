@@ -1,5 +1,7 @@
 // This file is generated automatically by infrastructure scripts. Please don't edit by hand.
 
+use std::ops::ControlFlow;
+
 use super::{ParserFlow, ParserResult};
 
 // The sequence is finished (can't make more progress) when we have an incomplete or no match.
@@ -9,15 +11,13 @@ macro_rules! finished_state {
     };
 }
 
+#[must_use]
+#[derive(Default)]
 pub struct SequenceHelper {
     result: Option<ParserResult>,
 }
 
 impl SequenceHelper {
-    pub fn new() -> Self {
-        Self { result: None }
-    }
-
     pub fn is_done(&self) -> bool {
         matches!(self.result, finished_state!())
     }
@@ -114,7 +114,47 @@ impl SequenceHelper {
         }
     }
 
-    pub fn result(self) -> ParserResult {
+    /// Executes a closure that allows the caller to drive the sequence parse.
+    ///
+    /// Useful when you want to eagerly return a result from the parse function (e.g. when we can't make more progress).
+    ///
+    /// Usage:
+    /// ```no_run
+    /// # use codegen_parser_runtime::support::{ParserResult, SequenceHelper};
+    /// # fn parse_something() -> ParserResult { ParserResult::r#match(vec![], vec![]) }
+    /// # fn parse_another() -> ParserResult { ParserResult::r#match(vec![], vec![]) }
+    /// SequenceHelper::run(|mut sequence| {
+    ///     sequence.elem(parse_something())?;
+    ///     sequence.elem(parse_another())?;
+    ///     sequence.finish()
+    /// });
+    /// ```
+    pub fn run(f: impl FnOnce(Self) -> ControlFlow<ParserResult, Self>) -> ParserResult {
+        match f(SequenceHelper::default()) {
+            ControlFlow::Break(result) => result,
+            ControlFlow::Continue(helper) => helper.unwrap_result(),
+        }
+    }
+
+    /// Aggregates a parse result into the sequence. If we cannot make progress, returns the accumulated match.
+    pub fn elem(&mut self, value: ParserResult) -> ControlFlow<ParserResult, &mut Self> {
+        let result = self.handle_next_result(value);
+        match result {
+            ParserFlow::Break(()) => ControlFlow::Break(self.take_result()),
+            ParserFlow::Continue(()) => ControlFlow::Continue(self),
+        }
+    }
+
+    /// Finishes the sequence parse, returning the accumulated match.
+    pub fn finish(self) -> ControlFlow<ParserResult, Self> {
+        ControlFlow::Break(self.unwrap_result())
+    }
+
+    fn take_result(&mut self) -> ParserResult {
+        std::mem::take(&mut self.result).expect("SequenceHelper was not driven")
+    }
+
+    fn unwrap_result(self) -> ParserResult {
         match self.result {
             Some(result) => result,
             None => panic!("SequenceHelper was not driven"),
