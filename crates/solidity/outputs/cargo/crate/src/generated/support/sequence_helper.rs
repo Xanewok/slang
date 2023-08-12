@@ -39,8 +39,7 @@ impl SequenceHelper {
                 // Keep accepting or convert into PrattOperatorMatch
                 (ParserResult::Match(running), ParserResult::Match(next)) => {
                     running.nodes.extend(next.nodes);
-                    running.tokens_that_would_have_allowed_more_progress =
-                        next.tokens_that_would_have_allowed_more_progress;
+                    running.expected_tokens = next.expected_tokens;
                 }
                 (ParserResult::Match(running), ParserResult::PrattOperatorMatch(next)) => {
                     let mut children = vec![(0, std::mem::take(&mut running.nodes), 0)];
@@ -52,16 +51,14 @@ impl SequenceHelper {
                     running.nodes.extend(next.nodes);
                     self.result = Some(ParserResult::incomplete_match(
                         std::mem::take(&mut running.nodes),
-                        next.tokens_that_would_have_allowed_more_progress,
+                        next.expected_tokens,
                     ));
                 }
                 (ParserResult::Match(running), ParserResult::NoMatch(next)) => {
-                    running
-                        .tokens_that_would_have_allowed_more_progress
-                        .extend(next.tokens_that_would_have_allowed_more_progress);
+                    running.expected_tokens.extend(next.expected_tokens);
                     self.result = Some(ParserResult::incomplete_match(
                         std::mem::take(&mut running.nodes),
-                        std::mem::take(&mut running.tokens_that_would_have_allowed_more_progress),
+                        std::mem::take(&mut running.expected_tokens),
                     ));
                 }
                 // Keep accepting or convert Match -> PrattOperatorMatch
@@ -81,7 +78,7 @@ impl SequenceHelper {
                             .flat_map(|(_, n, _)| n)
                             .chain(next.nodes.into_iter())
                             .collect(),
-                        next.tokens_that_would_have_allowed_more_progress,
+                        next.expected_tokens,
                     ));
                 }
                 (ParserResult::PrattOperatorMatch(cur), ParserResult::NoMatch(next)) => {
@@ -90,7 +87,7 @@ impl SequenceHelper {
                             .into_iter()
                             .flat_map(|(_, n, _)| n)
                             .collect(),
-                        next.tokens_that_would_have_allowed_more_progress,
+                        next.expected_tokens,
                     ));
                 }
             },

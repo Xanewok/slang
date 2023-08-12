@@ -25,15 +25,13 @@ impl<const MIN_COUNT: usize> RepetitionHelper<MIN_COUNT> {
             // Couldn't get a full match but we allow 0 items - return an empty match
             // so the parse is considered valid but note the expected tokens
             ParserResult::IncompleteMatch(IncompleteMatch {
-                tokens_that_would_have_allowed_more_progress,
-                ..
+                expected_tokens, ..
             })
             | ParserResult::NoMatch(NoMatch {
-                tokens_that_would_have_allowed_more_progress,
-                ..
+                expected_tokens, ..
             }) if MIN_COUNT == 0 => {
                 stream.set_position(save);
-                return ParserResult::r#match(vec![], tokens_that_would_have_allowed_more_progress);
+                return ParserResult::r#match(vec![], expected_tokens);
             }
             // Don't try repeating if we don't have a full match and we require at least one
             // TODO(recovery): We should allow for incomplete matches in recovery
@@ -48,11 +46,10 @@ impl<const MIN_COUNT: usize> RepetitionHelper<MIN_COUNT> {
                 ParserResult::Match(ref mut current_match) => match next_result {
                     ParserResult::Match(Match {
                         nodes,
-                        tokens_that_would_have_allowed_more_progress,
+                        expected_tokens,
                     }) => {
                         current_match.nodes.extend(nodes);
-                        current_match.tokens_that_would_have_allowed_more_progress =
-                            tokens_that_would_have_allowed_more_progress;
+                        current_match.expected_tokens = expected_tokens;
                     }
 
                     ParserResult::PrattOperatorMatch(_) => unreachable!(
@@ -62,15 +59,11 @@ impl<const MIN_COUNT: usize> RepetitionHelper<MIN_COUNT> {
                     // the accumulated result and note the expected tokens
                     // TODO(recovery): We should allow for incomplete matches
                     ParserResult::IncompleteMatch(IncompleteMatch {
-                        tokens_that_would_have_allowed_more_progress,
-                        ..
+                        expected_tokens, ..
                     })
-                    | ParserResult::NoMatch(NoMatch {
-                        tokens_that_would_have_allowed_more_progress,
-                    }) => {
+                    | ParserResult::NoMatch(NoMatch { expected_tokens }) => {
                         stream.set_position(save);
-                        current_match.tokens_that_would_have_allowed_more_progress =
-                            tokens_that_would_have_allowed_more_progress;
+                        current_match.expected_tokens = expected_tokens;
                         return result;
                     }
                 },

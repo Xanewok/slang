@@ -12,28 +12,16 @@ pub enum ParserResult {
 }
 
 impl ParserResult {
-    pub fn r#match(
-        nodes: Vec<cst::Node>,
-        tokens_that_would_have_allowed_more_progress: Vec<TokenKind>,
-    ) -> Self {
-        ParserResult::Match(Match::new(
-            nodes,
-            tokens_that_would_have_allowed_more_progress,
-        ))
+    pub fn r#match(nodes: Vec<cst::Node>, expected_tokens: Vec<TokenKind>) -> Self {
+        ParserResult::Match(Match::new(nodes, expected_tokens))
     }
 
     pub fn pratt_operator_match(nodes: Vec<(u8, Vec<cst::Node>, u8)>) -> Self {
         ParserResult::PrattOperatorMatch(PrattOperatorMatch::new(nodes))
     }
 
-    pub fn incomplete_match(
-        nodes: Vec<cst::Node>,
-        tokens_that_would_have_allowed_more_progress: Vec<TokenKind>,
-    ) -> Self {
-        ParserResult::IncompleteMatch(IncompleteMatch::new(
-            nodes,
-            tokens_that_would_have_allowed_more_progress,
-        ))
+    pub fn incomplete_match(nodes: Vec<cst::Node>, expected_tokens: Vec<TokenKind>) -> Self {
+        ParserResult::IncompleteMatch(IncompleteMatch::new(nodes, expected_tokens))
     }
 
     /// Whenever a parser didn't run because it's disabled due to versioning. Shorthand for `no_match(vec![])`.
@@ -41,8 +29,8 @@ impl ParserResult {
         Self::no_match(vec![])
     }
 
-    pub fn no_match(tokens_that_would_have_allowed_more_progress: Vec<TokenKind>) -> Self {
-        ParserResult::NoMatch(NoMatch::new(tokens_that_would_have_allowed_more_progress))
+    pub fn no_match(expected_tokens: Vec<TokenKind>) -> Self {
+        ParserResult::NoMatch(NoMatch::new(expected_tokens))
     }
 
     pub fn is_match(&self) -> bool {
@@ -63,11 +51,11 @@ impl ParserResult {
         match self {
             ParserResult::Match(r#match) => ParserResult::r#match(
                 vec![cst::Node::rule(new_kind, r#match.nodes)],
-                r#match.tokens_that_would_have_allowed_more_progress,
+                r#match.expected_tokens,
             ),
             ParserResult::IncompleteMatch(incomplete_match) => ParserResult::incomplete_match(
                 vec![cst::Node::rule(new_kind, incomplete_match.nodes)],
-                incomplete_match.tokens_that_would_have_allowed_more_progress,
+                incomplete_match.expected_tokens,
             ),
             ParserResult::NoMatch(_) => self,
             _ => unreachable!("PrattOperatorMatch cannot be converted to a rule"),
@@ -78,17 +66,15 @@ impl ParserResult {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Match {
     pub nodes: Vec<cst::Node>,
-    pub tokens_that_would_have_allowed_more_progress: Vec<TokenKind>,
+    /// Tokens that would have allowed for more progress. Collected for the purposes of error reporting.
+    pub expected_tokens: Vec<TokenKind>,
 }
 
 impl Match {
-    pub fn new(
-        nodes: Vec<cst::Node>,
-        tokens_that_would_have_allowed_more_progress: Vec<TokenKind>,
-    ) -> Self {
+    pub fn new(nodes: Vec<cst::Node>, expected_tokens: Vec<TokenKind>) -> Self {
         Self {
             nodes,
-            tokens_that_would_have_allowed_more_progress,
+            expected_tokens,
         }
     }
 }
@@ -107,17 +93,15 @@ impl PrattOperatorMatch {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct IncompleteMatch {
     pub nodes: Vec<cst::Node>,
-    pub tokens_that_would_have_allowed_more_progress: Vec<TokenKind>,
+    /// Tokens that would have allowed for more progress. Collected for the purposes of error reporting.
+    pub expected_tokens: Vec<TokenKind>,
 }
 
 impl IncompleteMatch {
-    pub fn new(
-        nodes: Vec<cst::Node>,
-        tokens_that_would_have_allowed_more_progress: Vec<TokenKind>,
-    ) -> Self {
+    pub fn new(nodes: Vec<cst::Node>, expected_tokens: Vec<TokenKind>) -> Self {
         Self {
             nodes,
-            tokens_that_would_have_allowed_more_progress,
+            expected_tokens,
         }
     }
 
@@ -139,13 +123,12 @@ impl IncompleteMatch {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct NoMatch {
-    pub tokens_that_would_have_allowed_more_progress: Vec<TokenKind>,
+    /// Tokens that would have allowed for more progress. Collected for the purposes of error reporting.
+    pub expected_tokens: Vec<TokenKind>,
 }
 
 impl NoMatch {
-    pub fn new(tokens_that_would_have_allowed_more_progress: Vec<TokenKind>) -> Self {
-        Self {
-            tokens_that_would_have_allowed_more_progress,
-        }
+    pub fn new(expected_tokens: Vec<TokenKind>) -> Self {
+        Self { expected_tokens }
     }
 }

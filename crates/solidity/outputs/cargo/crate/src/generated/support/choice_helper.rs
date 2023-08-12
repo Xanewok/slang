@@ -43,9 +43,9 @@ impl ChoiceHelper {
             (finished_state!(), _) => return ParserFlow::Break(()),
 
             // Still no match, extend the possible expected tokens
-            (ParserResult::NoMatch(running), ParserResult::NoMatch(next)) => running
-                .tokens_that_would_have_allowed_more_progress
-                .extend(next.tokens_that_would_have_allowed_more_progress),
+            (ParserResult::NoMatch(running), ParserResult::NoMatch(next)) => {
+                running.expected_tokens.extend(next.expected_tokens)
+            }
 
             // Otherwise, we have already some match. Ignore a missing one...
             (_, ParserResult::NoMatch(..)) => {}

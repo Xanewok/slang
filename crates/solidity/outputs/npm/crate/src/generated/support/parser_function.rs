@@ -23,20 +23,15 @@ where
         let start = stream.position();
         match self(language, &mut stream) {
             ParserResult::NoMatch(no_match) => ParseOutput {
-                parse_tree: cst::Node::error(
-                    input.to_string(),
-                    no_match
-                        .tokens_that_would_have_allowed_more_progress
-                        .clone(),
-                ),
+                parse_tree: cst::Node::error(input.to_string(), no_match.expected_tokens.clone()),
                 errors: vec![ParseError::new_covering_range(
                     Default::default()..input.into(),
-                    no_match.tokens_that_would_have_allowed_more_progress,
+                    no_match.expected_tokens,
                 )],
             },
             ParserResult::IncompleteMatch(IncompleteMatch {
                 mut nodes,
-                tokens_that_would_have_allowed_more_progress,
+                expected_tokens,
             }) => {
                 if nodes.len() != 1 {
                     unreachable!(
@@ -45,10 +40,8 @@ where
                 }
                 if let cst::Node::Rule(rule_node) = nodes.remove(0) {
                     let start = stream.position();
-                    let unexpected = cst::Node::error(
-                        input[start.utf8..].to_string(),
-                        tokens_that_would_have_allowed_more_progress.clone(),
-                    );
+                    let unexpected =
+                        cst::Node::error(input[start.utf8..].to_string(), expected_tokens.clone());
 
                     let mut new_children = rule_node.children.clone();
                     new_children.push(unexpected);
@@ -56,7 +49,7 @@ where
                         parse_tree: cst::Node::rule(rule_node.kind, new_children),
                         errors: vec![ParseError::new_covering_range(
                             start..input.into(),
-                            tokens_that_would_have_allowed_more_progress,
+                            expected_tokens,
                         )],
                     }
                 } else {
@@ -73,7 +66,7 @@ where
                     if cur.utf8 < input.len() {
                         let unexpected = cst::Node::error(
                             input[cur.utf8..].to_string(),
-                            r#match.tokens_that_would_have_allowed_more_progress.clone(),
+                            r#match.expected_tokens.clone(),
                         );
                         let mut new_children = rule_node.children.clone();
                         new_children.push(unexpected);
@@ -82,7 +75,7 @@ where
                             parse_tree: cst::Node::rule(rule_node.kind, new_children),
                             errors: vec![ParseError::new_covering_range(
                                 cur..input.into(),
-                                r#match.tokens_that_would_have_allowed_more_progress,
+                                r#match.expected_tokens,
                             )],
                         }
                     } else {
@@ -93,7 +86,7 @@ where
                                 ParseError::new_covering_range(
                                     // TODO: Keep track of and use the range of the token
                                     start..stream.position(),
-                                    r#match.tokens_that_would_have_allowed_more_progress.clone(),
+                                    r#match.expected_tokens.clone(),
                                 )
                             })
                             .collect();
