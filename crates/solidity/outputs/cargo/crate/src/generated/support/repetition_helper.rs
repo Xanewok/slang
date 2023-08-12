@@ -1,7 +1,7 @@
 // This file is generated automatically by infrastructure scripts. Please don't edit by hand.
 
 use super::{
-    parser_result::{IncompleteMatch, Match, NoMatch, ParserResult},
+    parser_result::{IncompleteMatch, NoMatch, ParserResult},
     stream::Stream,
 };
 
@@ -17,12 +17,10 @@ impl<const MIN_COUNT: usize> RepetitionHelper<MIN_COUNT> {
         }
 
         let save = stream.position();
-        let mut result = parser(stream);
-
-        match result {
+        let mut accum = match parser(stream) {
             // First item parsed correctly
-            ParserResult::Match(_) => {}
-            ParserResult::PrattOperatorMatch(_) => {}
+            result @ ParserResult::Match(_) => result,
+            result @ ParserResult::PrattOperatorMatch(_) => result,
 
             // Couldn't get a full match but we allow 0 items - return an empty match
             // so the parse is considered valid but note the expected tokens
@@ -37,62 +35,54 @@ impl<const MIN_COUNT: usize> RepetitionHelper<MIN_COUNT> {
             }
             // Don't try repeating if we don't have a full match and we require at least one
             // TODO(recovery): We should allow for incomplete matches in recovery
-            ParserResult::IncompleteMatch(..) | ParserResult::NoMatch(..) => return result,
-        }
+            incomplete_or_no_match => return incomplete_or_no_match,
+        };
 
         loop {
             let save = stream.position();
             let next_result = parser(stream);
 
-            match result {
-                ParserResult::Match(ref mut current_match) => match next_result {
-                    ParserResult::Match(Match {
-                        nodes,
-                        expected_tokens,
-                    }) => {
-                        current_match.nodes.extend(nodes);
-                        current_match.expected_tokens = expected_tokens;
-                    }
+            match (&mut accum, next_result) {
+                (ParserResult::Match(running), ParserResult::Match(next)) => {
+                    running.nodes.extend(next.nodes);
+                    running.expected_tokens = next.expected_tokens;
+                }
 
-                    ParserResult::PrattOperatorMatch(_) => unreachable!(
-                        "PrattOperatorMatch seen while repeating Matches in RepetitionHelper"
-                    ),
-                    // Can't proceed further with a complete parse, so back up, return
-                    // the accumulated result and note the expected tokens
-                    // TODO(recovery): We should allow for incomplete matches
+                (ParserResult::PrattOperatorMatch(cur), ParserResult::PrattOperatorMatch(next)) => {
+                    cur.nodes.extend(next.nodes);
+                }
+
+                (ParserResult::Match(..), ParserResult::PrattOperatorMatch(..)) => unreachable!(
+                    "PrattOperatorMatch seen while repeating Matches in RepetitionHelper"
+                ),
+                (ParserResult::PrattOperatorMatch(..), ParserResult::Match(..)) => unreachable!(
+                    "Match seen while repeating PrattOperatorMatches in RepetitionHelper"
+                ),
+                // Can't proceed further with a complete parse, so back up, return
+                // the accumulated result and note the expected tokens
+                // TODO(recovery): We should allow for incomplete matches
+                (
+                    ParserResult::Match(running),
                     ParserResult::IncompleteMatch(IncompleteMatch {
                         expected_tokens, ..
                     })
-                    | ParserResult::NoMatch(NoMatch { expected_tokens }) => {
-                        stream.set_position(save);
-                        current_match.expected_tokens = expected_tokens;
-                        return result;
-                    }
-                },
-
-                ParserResult::PrattOperatorMatch(ref mut current_match) => {
-                    match next_result {
-                        ParserResult::Match(_) => unreachable!(
-                            "Match seen while repeating PrattOperatorMatches in RepetitionHelper"
-                        ),
-
-                        ParserResult::PrattOperatorMatch(r#match) => {
-                            current_match.nodes.extend(r#match.nodes);
-                        }
-
-                        ParserResult::IncompleteMatch(_) | ParserResult::NoMatch(_) => {
-                            stream.set_position(save);
-                            return result;
-                        }
-                    };
+                    | ParserResult::NoMatch(NoMatch { expected_tokens }),
+                ) => {
+                    stream.set_position(save);
+                    running.expected_tokens = expected_tokens;
+                    return accum;
                 }
 
-                ParserResult::IncompleteMatch(_) => {
-                    unreachable!("IncompleteMatch is never constructed")
+                (
+                    ParserResult::PrattOperatorMatch(_),
+                    ParserResult::IncompleteMatch(_) | ParserResult::NoMatch(_),
+                ) => {
+                    stream.set_position(save);
+                    return accum;
                 }
 
-                ParserResult::NoMatch(_) => {
-                    unreachable!("NoMatch is never constructed")
+                (ParserResult::IncompleteMatch(..) | ParserResult::NoMatch(..), _) => {
+                    unreachable!("Variants never constructed")
                 }
             }
         }
