@@ -121,6 +121,9 @@ impl IncompleteMatch {
         }
     }
 
+    /// Advances the stream by the length of the nodes in this match.
+    ///
+    /// This is used whenever we "accept" the match, even though it's incomplete.
     pub fn consume_stream(&self, stream: &mut Stream) {
         for node in &self.nodes {
             for _ in 0..node.text_len().char {

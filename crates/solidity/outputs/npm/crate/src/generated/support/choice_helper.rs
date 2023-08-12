@@ -38,33 +38,26 @@ impl ChoiceHelper {
         stream: &mut Stream,
         next_result: ParserResult,
     ) -> ParserFlow {
-        match &mut self.result {
-            finished_state!() => return ParserFlow::Break(()),
+        match (&mut self.result, next_result) {
+            // Settle for the first full match, ignore the rest
+            (finished_state!(), _) => return ParserFlow::Break(()),
 
-            ParserResult::IncompleteMatch(ref mut running_result) => match next_result {
-                ParserResult::Match(_) | ParserResult::PrattOperatorMatch(_) => {
-                    self.result = next_result;
+            // Still no match, extend the possible expected tokens
+            (ParserResult::NoMatch(running), ParserResult::NoMatch(next)) => running
+                .tokens_that_would_have_allowed_more_progress
+                .extend(next.tokens_that_would_have_allowed_more_progress),
+
+            // Otherwise, we have already some match. Ignore a missing one...
+            (_, ParserResult::NoMatch(..)) => {}
+            // Or try to improve it.
+            // If we only have incomplete matches and the next covers more bytes, then we take it...
+            (ParserResult::IncompleteMatch(running), ParserResult::IncompleteMatch(inner)) => {
+                if running.byte_len() < inner.byte_len() {
+                    self.result = ParserResult::IncompleteMatch(inner);
                 }
-                ParserResult::IncompleteMatch(ref next) => {
-                    if next.byte_len() > running_result.byte_len() {
-                        self.result = next_result;
-                    }
-                }
-
-                ParserResult::NoMatch(_) => {}
-            },
-
-            ParserResult::NoMatch(ref mut running_result) => match next_result {
-                ParserResult::Match(_)
-                | ParserResult::PrattOperatorMatch(_)
-                | ParserResult::IncompleteMatch(_) => {
-                    self.result = next_result;
-                }
-
-                ParserResult::NoMatch(next_result) => running_result
-                    .tokens_that_would_have_allowed_more_progress
-                    .extend(next_result.tokens_that_would_have_allowed_more_progress),
-            },
+            }
+            // Otherwise the next match will always be better.
+            (_, next) => self.result = next,
         }
 
         match self.result {
