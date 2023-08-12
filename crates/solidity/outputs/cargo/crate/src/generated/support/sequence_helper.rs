@@ -7,7 +7,7 @@ use super::{ParserFlow, ParserResult};
 // The sequence is finished (can't make more progress) when we have an incomplete or no match.
 macro_rules! finished_state {
     () => {
-        Some(ParserResult::IncompleteMatch(..) | ParserResult::NoMatch(..))
+        ParserResult::IncompleteMatch(..) | ParserResult::NoMatch(..)
     };
 }
 
@@ -19,88 +19,78 @@ pub struct SequenceHelper {
 
 impl SequenceHelper {
     pub fn is_done(&self) -> bool {
-        matches!(self.result, finished_state!())
+        matches!(self.result, Some(finished_state!()))
     }
 
     /// Accumulates a next result - tries to append it to the existing result until we hit an incomplete/no match.
     pub fn handle_next_result(&mut self, next_result: ParserResult) -> ParserFlow {
-        match &mut self.result {
-            finished_state!() => return ParserFlow::Break(()),
-            // Base case - if we were just constructed, we just take the next result
+        match self.result {
+            // Base case: we were just constructed, just take the next result
             None => self.result = Some(next_result),
+            Some(ref mut result) => match (result, next_result) {
+                // Can't proceed further, return what we have
+                (finished_state!(), _) => return ParserFlow::Break(()),
 
-            // Similarly, if the accumulated result is valid, but empty (e.g. we accepted an empty optional)
-            Some(ParserResult::Match(running_result)) if running_result.nodes.is_empty() => {
-                self.result = Some(next_result);
-            }
-
-            // We fully matched at least one sequence element
-            Some(ParserResult::Match(ref mut running_result)) => match next_result {
-                ParserResult::Match(next_result) => {
-                    running_result.nodes.extend(next_result.nodes);
-                    running_result.tokens_that_would_have_allowed_more_progress =
-                        next_result.tokens_that_would_have_allowed_more_progress;
+                // If the accumulated result is valid, but empty (e.g. we accepted an empty optional)
+                // just take the next result
+                (ParserResult::Match(running), next @ _) if running.nodes.is_empty() => {
+                    self.result = Some(next);
                 }
-
-                // Combine the results and convert to Pratt operator match
-                ParserResult::PrattOperatorMatch(next_result) => {
-                    let mut children = vec![(0, std::mem::take(&mut running_result.nodes), 0)];
-                    children.extend(next_result.nodes);
+                // Keep accepting or convert into PrattOperatorMatch
+                (ParserResult::Match(running), ParserResult::Match(next)) => {
+                    running.nodes.extend(next.nodes);
+                    running.tokens_that_would_have_allowed_more_progress =
+                        next.tokens_that_would_have_allowed_more_progress;
+                }
+                (ParserResult::Match(running), ParserResult::PrattOperatorMatch(next)) => {
+                    let mut children = vec![(0, std::mem::take(&mut running.nodes), 0)];
+                    children.extend(next.nodes);
                     self.result = Some(ParserResult::pratt_operator_match(children));
                 }
-                // Combine the results but prepare to return an incomplete match
-                ParserResult::IncompleteMatch(next_result) => {
-                    running_result.nodes.extend(next_result.nodes);
+                // End of a valid sequence, finish with an incomplete match
+                (ParserResult::Match(running), ParserResult::IncompleteMatch(next)) => {
+                    running.nodes.extend(next.nodes);
                     self.result = Some(ParserResult::incomplete_match(
-                        std::mem::take(&mut running_result.nodes),
-                        next_result.tokens_that_would_have_allowed_more_progress,
+                        std::mem::take(&mut running.nodes),
+                        next.tokens_that_would_have_allowed_more_progress,
                     ));
                 }
-                //
-                ParserResult::NoMatch(next_result) => {
-                    running_result
+                (ParserResult::Match(running), ParserResult::NoMatch(next)) => {
+                    running
                         .tokens_that_would_have_allowed_more_progress
-                        .extend(next_result.tokens_that_would_have_allowed_more_progress);
+                        .extend(next.tokens_that_would_have_allowed_more_progress);
                     self.result = Some(ParserResult::incomplete_match(
-                        std::mem::take(&mut running_result.nodes),
-                        std::mem::take(
-                            &mut running_result.tokens_that_would_have_allowed_more_progress,
-                        ),
+                        std::mem::take(&mut running.nodes),
+                        std::mem::take(&mut running.tokens_that_would_have_allowed_more_progress),
                     ));
                 }
-            },
-
-            Some(ParserResult::PrattOperatorMatch(ref mut runnning_result)) => match next_result {
-                ParserResult::Match(next_result) => {
-                    if !next_result.nodes.is_empty() {
-                        runnning_result.nodes.push((0, next_result.nodes, 0));
+                // Keep accepting or convert Match -> PrattOperatorMatch
+                (ParserResult::PrattOperatorMatch(running), ParserResult::Match(next)) => {
+                    if !next.nodes.is_empty() {
+                        running.nodes.push((0, next.nodes, 0));
                     }
                 }
-
-                ParserResult::PrattOperatorMatch(next_result) => {
-                    runnning_result.nodes.extend(next_result.nodes);
+                (ParserResult::PrattOperatorMatch(cur), ParserResult::PrattOperatorMatch(next)) => {
+                    cur.nodes.extend(next.nodes);
                 }
-
-                ParserResult::IncompleteMatch(next_result) => {
+                // End of a valid sequence, finish with an incomplete match
+                (ParserResult::PrattOperatorMatch(cur), ParserResult::IncompleteMatch(next)) => {
                     self.result = Some(ParserResult::incomplete_match(
-                        std::mem::take(&mut runnning_result.nodes)
+                        std::mem::take(&mut cur.nodes)
                             .into_iter()
-                            .map(|(_, n, _)| n)
-                            .flatten()
-                            .chain(next_result.nodes.into_iter())
+                            .flat_map(|(_, n, _)| n)
+                            .chain(next.nodes.into_iter())
                             .collect(),
-                        next_result.tokens_that_would_have_allowed_more_progress,
+                        next.tokens_that_would_have_allowed_more_progress,
                     ));
                 }
-
-                ParserResult::NoMatch(next_result) => {
+                (ParserResult::PrattOperatorMatch(cur), ParserResult::NoMatch(next)) => {
                     self.result = Some(ParserResult::incomplete_match(
-                        std::mem::take(&mut runnning_result.nodes)
+                        std::mem::take(&mut cur.nodes)
                             .into_iter()
-                            .map(|(_, n, _)| n)
-                            .flatten()
+                            .flat_map(|(_, n, _)| n)
                             .collect(),
-                        next_result.tokens_that_would_have_allowed_more_progress,
+                        next.tokens_that_would_have_allowed_more_progress,
                     ));
                 }
             },
@@ -109,7 +99,7 @@ impl SequenceHelper {
         // If we can't make any more progress, we have to stop
         // TODO(recovery): Handle partial parses?
         match self.result {
-            finished_state!() => ParserFlow::Break(()),
+            Some(finished_state!()) => ParserFlow::Break(()),
             _ => ParserFlow::Continue(()),
         }
     }
