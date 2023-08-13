@@ -96,6 +96,13 @@ impl Node {
         return None;
     }
 
+    pub fn as_error(&self) -> Option<&Rc<ErrorNode>> {
+        match self {
+            Self::Error(node) => Some(node),
+            _ => None,
+        }
+    }
+
     pub fn as_rule_matching<F: Fn(&Rc<RuleNode>) -> bool>(
         &self,
         predicate: F,
@@ -106,15 +113,5 @@ impl Node {
             }
         }
         return None;
-    }
-}
-
-impl RuleNode {
-    /// Whether the rule node contains [`TokenKind::SKIPPED`] children tokens.
-    pub fn skipped_tokens(&self) -> impl Iterator<Item = &TokenNode> + '_ {
-        self.children
-            .iter()
-            .filter_map(|node| node.as_token_with_kind(&[TokenKind::SKIPPED]))
-            .map(Deref::deref)
     }
 }
