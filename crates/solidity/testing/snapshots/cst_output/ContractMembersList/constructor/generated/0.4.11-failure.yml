@@ -19,4 +19,5 @@ Tree:
           - TypeName (Rule): # 0..11 "constructor"
               - IdentifierPath (Rule): # 0..11 "constructor"
                   - Identifier (Token): "constructor" # 0..11
+          - Error: "" # 11..11
       - Error: "() public {}\n" # 11..24

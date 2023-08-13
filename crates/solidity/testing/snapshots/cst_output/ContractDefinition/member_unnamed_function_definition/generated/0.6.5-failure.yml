@@ -31,4 +31,5 @@ Tree:
                       - ParametersDeclaration (Rule): # 28..31 " ()"
                           - OpenParen (Token): "(" # 29..30
                           - CloseParen (Token): ")" # 30..31
+              - Error: "" # 31..31
       - Error: " {\n  }\n}" # 31..39

@@ -22,4 +22,5 @@ Tree:
               - UsingDirectiveSymbol (Rule): # 7..10 "div"
                   - IdentifierPath (Rule): # 7..10 "div"
                       - Identifier (Token): "div" # 7..10
+          - Error: "" # 10..10
       - Error: " as /} for Int global;" # 10..32

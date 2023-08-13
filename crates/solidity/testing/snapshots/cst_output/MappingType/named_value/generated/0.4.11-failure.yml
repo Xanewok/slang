@@ -23,4 +23,5 @@ Tree:
       - MappingValueType (Rule): # 17..25 " bytes32"
           - TypeName (Rule): # 17..25 " bytes32"
               - FixedBytesType (Token): "bytes32" # 18..25
+      - Error: "" # 25..25
       - Error: " Bar)" # 25..30

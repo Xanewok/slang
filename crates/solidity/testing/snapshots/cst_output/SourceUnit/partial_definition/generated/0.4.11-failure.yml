@@ -24,4 +24,5 @@ Tree:
               - ContractMembersList (Rule): # 18..28 "  function"
                   - FunctionDefinition (Rule): # 18..28 "  function"
                       - FunctionKeyword (Token): "function" # 20..28
+                      - Error: "" # 28..28
       - Error: "" # 28..28

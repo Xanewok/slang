@@ -21,4 +21,5 @@ Tree:
                   - IdentifierPath (Rule): # 0..3 "try"
                       - Identifier (Token): "try" # 0..3
               - Identifier (Token): "a" # 4..5
+          - Error: "" # 5..5
       - Error: ".b() {} catch {}" # 5..21

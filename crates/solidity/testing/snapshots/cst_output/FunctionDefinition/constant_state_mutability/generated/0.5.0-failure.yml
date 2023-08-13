@@ -20,4 +20,5 @@ Tree:
       - ParametersDeclaration (Rule): # 10..12 "()"
           - OpenParen (Token): "(" # 10..11
           - CloseParen (Token): ")" # 11..12
+      - Error: "" # 12..12
       - Error: " constant {}" # 12..24

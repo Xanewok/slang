@@ -23,4 +23,5 @@ Tree:
       - ContractKeyword (Token): "contract" # 0..8
       - Identifier (Token): "Sample" # 9..15
       - OpenBrace (Token): "{" # 16..17
+      - Error: "" # 18..18
       - Error: "  receive() {\n  }\n}" # 18..37

@@ -19,3 +19,4 @@ Tree:
       - Identifier (Token): "Sample" # 9..15
       - OpenBrace (Token): "{" # 16..17
       - Error: "" # 17..17
+      - Error: "" # 17..17

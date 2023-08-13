@@ -2,7 +2,10 @@
 
 use std::ops::ControlFlow;
 
-use super::{ParserFlow, ParserResult};
+use crate::{
+    cst,
+    support::{ParserFlow, ParserResult},
+};
 
 // The sequence is finished (can't make more progress) when we have an incomplete or no match.
 macro_rules! finished_state {
@@ -56,6 +59,12 @@ impl SequenceHelper {
                 }
                 (ParserResult::Match(running), ParserResult::NoMatch(next)) => {
                     running.expected_tokens.extend(next.expected_tokens);
+                    // Mark this point as incomplete
+                    running.nodes.push(cst::Node::error(
+                        "".to_string(),
+                        running.expected_tokens.clone(),
+                    ));
+
                     self.result = Some(ParserResult::incomplete_match(
                         std::mem::take(&mut running.nodes),
                         std::mem::take(&mut running.expected_tokens),
@@ -82,6 +91,16 @@ impl SequenceHelper {
                     ));
                 }
                 (ParserResult::PrattOperatorMatch(cur), ParserResult::NoMatch(next)) => {
+                    // Mark this point as incomplete
+                    cur.nodes.push((
+                        0,
+                        vec![cst::Node::error(
+                            "".to_string(),
+                            next.expected_tokens.clone(),
+                        )],
+                        0,
+                    ));
+
                     self.result = Some(ParserResult::incomplete_match(
                         std::mem::take(&mut cur.nodes)
                             .into_iter()
