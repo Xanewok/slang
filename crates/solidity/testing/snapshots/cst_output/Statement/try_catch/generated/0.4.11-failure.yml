@@ -3,7 +3,7 @@
 Source: >
   1  │ try a.b() {} catch {}                                                            │ 0..21
 
-Errors: # 2 total
+Errors: # 1 total
   - >
     Error: Expected Equal or Semicolon.
        ╭─[crates/solidity/testing/snapshots/cst_output/Statement/try_catch/input.sol:1:6]
@@ -12,17 +12,9 @@ Errors: # 2 total
        │      │ 
        │      ╰─ Error occurred here.
     ───╯
-  - >
-    Error: Expected Equal or Semicolon.
-       ╭─[crates/solidity/testing/snapshots/cst_output/Statement/try_catch/input.sol:1:6]
-       │
-     1 │ try a.b() {} catch {}
-       │      ────────┬───────  
-       │              ╰───────── Error occurred here.
-    ───╯
 
 Tree:
-  - Statement (Rule): # 0..21 "try a.b() {} catch {}"
+  - Statement (Rule): # 0..5 "try a"
       - VariableDeclarationStatement (Rule): # 0..5 "try a"
           - VariableDeclaration (Rule): # 0..5 "try a"
               - TypeName (Rule): # 0..3 "try"
@@ -30,4 +22,3 @@ Tree:
                       - Identifier (Token): "try" # 0..3
               - Identifier (Token): "a" # 4..5
           - Error: "" # 5..5
-      - Error: ".b() {} catch {}" # 5..21

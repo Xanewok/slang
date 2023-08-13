@@ -3,7 +3,7 @@
 Source: >
   1  │ function a() constant {}                                                         │ 0..24
 
-Errors: # 2 total
+Errors: # 1 total
   - >
     Error: Expected OpenBrace or ReturnsKeyword or Semicolon.
        ╭─[crates/solidity/testing/snapshots/cst_output/FunctionDefinition/constant_state_mutability/input.sol:1:13]
@@ -12,21 +12,12 @@ Errors: # 2 total
        │             │ 
        │             ╰─ Error occurred here.
     ───╯
-  - >
-    Error: Expected OpenBrace or ReturnsKeyword or Semicolon.
-       ╭─[crates/solidity/testing/snapshots/cst_output/FunctionDefinition/constant_state_mutability/input.sol:1:13]
-       │
-     1 │ function a() constant {}
-       │             ──────┬─────  
-       │                   ╰─────── Error occurred here.
-    ───╯
 
 Tree:
-  - FunctionDefinition (Rule): # 0..24 "function a() constant {}"
+  - FunctionDefinition (Rule): # 0..12 "function a()"
       - FunctionKeyword (Token): "function" # 0..8
       - Identifier (Token): "a" # 9..10
       - ParametersDeclaration (Rule): # 10..12 "()"
           - OpenParen (Token): "(" # 10..11
           - CloseParen (Token): ")" # 11..12
       - Error: "" # 12..12
-      - Error: " constant {}" # 12..24

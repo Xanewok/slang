@@ -6,7 +6,7 @@ Source: >
   3  │   }                                                                              │ 34..37
   4  │ }                                                                                │ 38..39
 
-Errors: # 2 total
+Errors: # 1 total
   - >
     Error: Expected ConstantKeyword or Identifier or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword.
        ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_unnamed_function_definition/input.sol:2:14]
@@ -15,19 +15,9 @@ Errors: # 2 total
        │              │ 
        │              ╰─ Error occurred here.
     ───╯
-  - >
-    Error: Expected ConstantKeyword or Identifier or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_unnamed_function_definition/input.sol:2:14]
-       │
-     2 │ ╭─▶   function () {
-       ┆ ┆   
-     4 │ ├─▶ }
-       │ │      
-       │ ╰────── Error occurred here.
-    ───╯
 
 Tree:
-  - ContractDefinition (Rule): # 0..39 "contract Sample {\n  function () {\n  }\n}"
+  - ContractDefinition (Rule): # 0..31 "contract Sample {\n  function ()"
       - ContractKeyword (Token): "contract" # 0..8
       - Identifier (Token): "Sample" # 9..15
       - OpenBrace (Token): "{" # 16..17
@@ -40,4 +30,3 @@ Tree:
                           - OpenParen (Token): "(" # 29..30
                           - CloseParen (Token): ")" # 30..31
               - Error: "" # 31..31
-      - Error: " {\n  }\n}" # 31..39

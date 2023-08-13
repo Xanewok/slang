@@ -5,7 +5,7 @@ Source: >
   2  │   field;                                                                         │ 16..24
   3  │ }                                                                                │ 25..26
 
-Errors: # 2 total
+Errors: # 1 total
   - >
     Error: Expected ConstantKeyword or Identifier or ImmutableKeyword or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword.
        ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/missing_field_type/input.sol:2:8]
@@ -14,18 +14,9 @@ Errors: # 2 total
        │        │ 
        │        ╰─ Error occurred here.
     ───╯
-  - >
-    Error: Expected ConstantKeyword or Identifier or ImmutableKeyword or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/missing_field_type/input.sol:2:8]
-       │
-     2 │ ╭─▶   field;
-     3 │ ├─▶ }
-       │ │       
-       │ ╰─────── Error occurred here.
-    ───╯
 
 Tree:
-  - ContractDefinition (Rule): # 0..27 "contract Test {\n  field;\n}\n"
+  - ContractDefinition (Rule): # 0..23 "contract Test {\n  field"
       - ContractKeyword (Token): "contract" # 0..8
       - Identifier (Token): "Test" # 9..13
       - OpenBrace (Token): "{" # 14..15
@@ -35,4 +26,3 @@ Tree:
                   - IdentifierPath (Rule): # 16..23 "  field"
                       - Identifier (Token): "field" # 18..23
               - Error: "" # 23..23
-      - Error: ";\n}\n" # 23..27

@@ -49,9 +49,9 @@ where
                     let outer = cst::Node::Rule(rule_node.clone());
                     let errors = collect_errors_with_ranges(&outer);
 
-                    // The stream was not entirely consumed, mark the rest as skipped
+                    // The stream was not entirely consumed in a happy path, mark the rest as skipped
                     let start = stream.position();
-                    if start.utf8 < input.len() {
+                    if errors.is_empty() && start.utf8 < input.len() {
                         let unexpected = cst::Node::error(
                             input[start.utf8..].to_string(),
                             expected_tokens.clone(),
