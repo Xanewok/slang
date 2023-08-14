@@ -72,7 +72,7 @@ pub(crate) fn render_error_report(
     let tokens_that_would_have_allowed_more_progress =
         error.tokens_that_would_have_allowed_more_progress();
     let message = if tokens_that_would_have_allowed_more_progress.is_empty() {
-        "Expected end of file.".to_string()
+        "Unrecognized sequence.".to_string()
     } else {
         format!(
             "Expected {expectations}.",
