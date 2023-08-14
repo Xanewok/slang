@@ -283,7 +283,7 @@ impl Language {
     pub fn default_next_token(&self, stream: &mut Stream) -> Option<TokenKind> {
         let save = stream.position();
         let mut furthest_position = stream.position();
-        let mut longest_token = TokenKind::SKIPPED; // just a marker
+        let mut longest_token = None;
 
         if let Some(kind) = match stream.next() {
             Some('a') => match stream.next() {
@@ -1013,7 +1013,7 @@ impl Language {
             // Make sure that this is not the start of an identifier
             if !self.identifier_part(stream) {
                 furthest_position = stream.position();
-                longest_token = kind;
+                longest_token = Some(kind);
             }
         }
         stream.set_position(save);
@@ -1164,7 +1164,7 @@ impl Language {
             None => None,
         } {
             furthest_position = stream.position();
-            longest_token = kind;
+            longest_token = Some(kind);
         }
         stream.set_position(save);
 
@@ -1173,7 +1173,7 @@ impl Language {
                     $(
                         if self.$function(stream) && stream.position() > furthest_position {
                             furthest_position = stream.position();
-                            longest_token = TokenKind::$kind;
+                            longest_token = Some(TokenKind::$kind);
                         }
                         stream.set_position(save);
                     )*
@@ -1198,12 +1198,11 @@ impl Language {
             { Identifier = identifier }
         }
 
-        if longest_token != TokenKind::SKIPPED {
+        if longest_token.is_some() {
             stream.set_position(furthest_position);
-            Some(longest_token)
-        } else {
-            None
         }
+
+        longest_token
     }
 
     #[allow(dead_code)]
@@ -1323,7 +1322,7 @@ impl Language {
     pub fn version_pragma_next_token(&self, stream: &mut Stream) -> Option<TokenKind> {
         let save = stream.position();
         let mut furthest_position = stream.position();
-        let mut longest_token = TokenKind::SKIPPED; // just a marker
+        let mut longest_token = None;
 
         if let Some(kind) = scan_chars!(stream, 's', 'o', 'l', 'i', 'd', 'i', 't', 'y')
             .then_some(TokenKind::SolidityKeyword)
@@ -1331,7 +1330,7 @@ impl Language {
             // Make sure that this is not the start of an identifier
             if !self.identifier_part(stream) {
                 furthest_position = stream.position();
-                longest_token = kind;
+                longest_token = Some(kind);
             }
         }
         stream.set_position(save);
@@ -1366,7 +1365,7 @@ impl Language {
             None => None,
         } {
             furthest_position = stream.position();
-            longest_token = kind;
+            longest_token = Some(kind);
         }
         stream.set_position(save);
 
@@ -1375,7 +1374,7 @@ impl Language {
                     $(
                         if self.$function(stream) && stream.position() > furthest_position {
                             furthest_position = stream.position();
-                            longest_token = TokenKind::$kind;
+                            longest_token = Some(TokenKind::$kind);
                         }
                         stream.set_position(save);
                     )*
@@ -1386,12 +1385,11 @@ impl Language {
             { VersionPragmaValue = version_pragma_value }
         }
 
-        if longest_token != TokenKind::SKIPPED {
+        if longest_token.is_some() {
             stream.set_position(furthest_position);
-            Some(longest_token)
-        } else {
-            None
         }
+
+        longest_token
     }
 
     #[allow(dead_code)]
@@ -1511,7 +1509,7 @@ impl Language {
     pub fn yul_block_next_token(&self, stream: &mut Stream) -> Option<TokenKind> {
         let save = stream.position();
         let mut furthest_position = stream.position();
-        let mut longest_token = TokenKind::SKIPPED; // just a marker
+        let mut longest_token = None;
 
         if let Some(kind) = match stream.next() {
             Some('b') => scan_chars!(stream, 'r', 'e', 'a', 'k').then_some(TokenKind::BreakKeyword),
@@ -1574,7 +1572,7 @@ impl Language {
             // Make sure that this is not the start of an identifier
             if !self.identifier_part(stream) {
                 furthest_position = stream.position();
-                longest_token = kind;
+                longest_token = Some(kind);
             }
         }
         stream.set_position(save);
@@ -1595,7 +1593,7 @@ impl Language {
             None => None,
         } {
             furthest_position = stream.position();
-            longest_token = kind;
+            longest_token = Some(kind);
         }
         stream.set_position(save);
 
@@ -1604,7 +1602,7 @@ impl Language {
                     $(
                         if self.$function(stream) && stream.position() > furthest_position {
                             furthest_position = stream.position();
-                            longest_token = TokenKind::$kind;
+                            longest_token = Some(TokenKind::$kind);
                         }
                         stream.set_position(save);
                     )*
@@ -1619,12 +1617,11 @@ impl Language {
             { YulIdentifier = yul_identifier }
         }
 
-        if longest_token != TokenKind::SKIPPED {
+        if longest_token.is_some() {
             stream.set_position(furthest_position);
-            Some(longest_token)
-        } else {
-            None
         }
+
+        longest_token
     }
 
     /********************************************
