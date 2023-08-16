@@ -48,7 +48,7 @@ impl ChoiceHelper {
             // Or try to improve it.
             // If we only have incomplete matches and the next covers more bytes, then we take it...
             (ParserResult::IncompleteMatch(running), ParserResult::IncompleteMatch(inner)) => {
-                if running.byte_len() < inner.byte_len() {
+                if running.matching_byte_len() < inner.matching_byte_len() {
                     self.result = ParserResult::IncompleteMatch(inner);
                 }
             }

@@ -183,16 +183,34 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                     _ => unreachable!("Only tokens are permitted as terminators"),
                 };
 
-                let parser = body.to_parser_code(context_name, is_trivia);
-                let body_parser = body
-                    .applicable_version_quality_ranges()
-                    .wrap_code(quote! { seq.elem(#parser)?; }, None);
                 let terminator_token_kind =
                     format_ident!("{name}", name = terminator_scanner.name());
+
+                let greedy_parse_until = format_ident!(
+                    "{context_name}_greedy_parse_with_trivia_until",
+                    context_name = context_name.to_snake_case()
+                );
                 let greedy_parse = format_ident!(
                     "{context_name}_greedy_parse_token_with_trivia",
                     context_name = context_name.to_snake_case()
                 );
+
+                let parser = body.to_parser_code(context_name, is_trivia);
+                let body_parser = body
+                    .applicable_version_quality_ranges()
+                    .wrap_code(
+                        quote! {
+                            seq.elem(
+                                #parser
+                                    .try_recover_with(
+                                        stream,
+                                        |stream| self.#greedy_parse_until(stream, TokenKind::#terminator_token_kind)
+                                    )
+                            )?;
+                        },
+                        None,
+                    );
+
                 quote! {
                     {
                         SequenceHelper::run(|mut seq| {

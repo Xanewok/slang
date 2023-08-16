@@ -116,8 +116,12 @@ impl IncompleteMatch {
         }
     }
 
-    pub fn byte_len(&self) -> usize {
-        self.nodes.iter().map(|node| node.text_len().utf8).sum()
+    pub fn matching_byte_len(&self) -> usize {
+        self.nodes
+            .iter()
+            .filter(|node| node.as_error().is_none())
+            .map(|node| node.text_len().utf8)
+            .sum()
     }
 }
 

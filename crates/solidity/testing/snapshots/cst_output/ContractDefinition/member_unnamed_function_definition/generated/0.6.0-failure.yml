@@ -6,7 +6,7 @@ Source: >
   3  │   }                                                                              │ 34..37
   4  │ }                                                                                │ 38..39
 
-Errors: # 1 total
+Errors: # 2 total
   - >
     Error: Expected ConstantKeyword or Identifier or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword.
        ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_unnamed_function_definition/input.sol:2:14]
@@ -15,14 +15,22 @@ Errors: # 1 total
        │              │ 
        │              ╰─ Error occurred here.
     ───╯
+  - >
+    Error: Expected ConstantKeyword or Identifier or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword or Semicolon.
+       ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_unnamed_function_definition/input.sol:2:15]
+       │
+     2 │   function () {
+       │               │ 
+       │               ╰─ Error occurred here.
+    ───╯
 
 Tree:
-  - ContractDefinition (Rule): # 0..31 "contract Sample {\n  function ()"
+  - ContractDefinition (Rule): # 0..32 "contract Sample {\n  function () "
       - ContractKeyword (Token): "contract" # 0..8
       - Identifier (Token): "Sample" # 9..15
       - OpenBrace (Token): "{" # 16..17
-      - ContractMembersList (Rule): # 18..31 "  function ()"
-          - StateVariableDefinition (Rule): # 18..31 "  function ()"
+      - ContractMembersList (Rule): # 18..32 "  function () "
+          - StateVariableDefinition (Rule): # 18..32 "  function () "
               - TypeName (Rule): # 18..31 "  function ()"
                   - FunctionType (Rule): # 18..31 "  function ()"
                       - FunctionKeyword (Token): "function" # 20..28
@@ -30,3 +38,4 @@ Tree:
                           - OpenParen (Token): "(" # 29..30
                           - CloseParen (Token): ")" # 30..31
               - Error: "" # 31..31
+              - Error: "" # 32..32

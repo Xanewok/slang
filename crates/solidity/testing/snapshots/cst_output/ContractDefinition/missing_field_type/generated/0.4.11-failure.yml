@@ -16,13 +16,15 @@ Errors: # 1 total
     ───╯
 
 Tree:
-  - ContractDefinition (Rule): # 0..23 "contract Test {\n  field"
+  - ContractDefinition (Rule): # 0..27 "contract Test {\n  field;\n}\n"
       - ContractKeyword (Token): "contract" # 0..8
       - Identifier (Token): "Test" # 9..13
       - OpenBrace (Token): "{" # 14..15
-      - ContractMembersList (Rule): # 16..23 "  field"
-          - StateVariableDefinition (Rule): # 16..23 "  field"
+      - ContractMembersList (Rule): # 16..25 "  field;\n"
+          - StateVariableDefinition (Rule): # 16..25 "  field;\n"
               - TypeName (Rule): # 16..23 "  field"
                   - IdentifierPath (Rule): # 16..23 "  field"
                       - Identifier (Token): "field" # 18..23
               - Error: "" # 23..23
+              - Semicolon (Token): ";" # 23..24
+      - CloseBrace (Token): "}" # 25..26

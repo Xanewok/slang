@@ -14,6 +14,7 @@ macro_rules! finished_state {
     };
 }
 
+/// Keeps accumulating parses until it hits an incomplete or no match.
 #[must_use]
 #[derive(Default)]
 pub struct SequenceHelper {

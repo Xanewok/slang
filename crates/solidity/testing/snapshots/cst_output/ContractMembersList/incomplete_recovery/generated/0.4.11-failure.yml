@@ -17,30 +17,31 @@ Source: >
   14 │ function some(uint256 arg,)                                                      │ 157..184
   15 │                                                                                  │ 185..185
 
-Errors: # 1 total
+Errors: # 2 total
   - >
-    Error: Expected AddressKeyword or BoolKeyword or ByteKeyword or CloseParen or FixedBytesType or FunctionKeyword or Identifier or MappingKeyword or PayableKeyword or SignedFixedType or SignedIntegerType or StringKeyword or UnsignedFixedType or UnsignedIntegerType.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:1:25]
+    Error: Expected OpenParen.
+       ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:1:9]
        │
      1 │ function a(uint arg, int, true) {
-       │                         │ 
-       │                         ╰─ Error occurred here.
+       │         │ 
+       │         ╰─ Error occurred here.
+    ───╯
+  - >
+    Error: Unrecognized sequence.
+       ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:1:10]
+       │
+     1 │ ╭─▶ function a(uint arg, int, true) {
+     2 │ ├─▶   uint val;
+       │ │                 
+       │ ╰───────────────── Error occurred here.
     ───╯
 
 Tree:
-  - ContractMembersList (Rule): # 0..24 "function a(uint arg, int"
-      - FunctionDefinition (Rule): # 0..24 "function a(uint arg, int"
-          - FunctionKeyword (Token): "function" # 0..8
-          - Identifier (Token): "a" # 9..10
-          - ParametersDeclaration (Rule): # 10..24 "(uint arg, int"
-              - OpenParen (Token): "(" # 10..11
-              - ParametersList (Rule): # 11..24 "uint arg, int"
-                  - Parameter (Rule): # 11..19 "uint arg"
-                      - TypeName (Rule): # 11..15 "uint"
-                          - UnsignedIntegerType (Token): "uint" # 11..15
-                      - Identifier (Token): "arg" # 16..19
-                  - Comma (Token): "," # 19..20
-                  - Parameter (Rule): # 20..24 " int"
-                      - TypeName (Rule): # 20..24 " int"
-                          - SignedIntegerType (Token): "int" # 21..24
-              - Error: "" # 24..24
+  - ContractMembersList (Rule): # 0..46 "function a(uint arg, int, true) {\n  uint val;\n"
+      - StateVariableDefinition (Rule): # 0..46 "function a(uint arg, int, true) {\n  uint val;\n"
+          - TypeName (Rule): # 0..8 "function"
+              - FunctionType (Rule): # 0..8 "function"
+                  - FunctionKeyword (Token): "function" # 0..8
+                  - Error: "" # 8..8
+          - Error: "a(uint arg, int, true) {\n  uint val" # 9..44
+          - Semicolon (Token): ";" # 44..45
