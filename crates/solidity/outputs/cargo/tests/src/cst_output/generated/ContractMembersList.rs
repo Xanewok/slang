@@ -7,3 +7,8 @@ use anyhow::Result;
 fn constructor() -> Result<()> {
     return run("ContractMembersList", "constructor");
 }
+
+#[test]
+fn incomplete_recovery() -> Result<()> {
+    return run("ContractMembersList", "incomplete_recovery");
+}

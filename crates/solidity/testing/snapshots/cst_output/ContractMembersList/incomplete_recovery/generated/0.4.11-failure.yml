@@ -1,0 +1,46 @@
+# This file is generated automatically by infrastructure scripts. Please don't edit by hand.
+
+Source: >
+  1  │ function a(uint arg, int, true) {                                                │ 0..33
+  2  │   uint val;                                                                      │ 34..45
+  3  │   break;                                                                         │ 46..54
+  4  │   unchecked { /* hello */ }                                                      │ 55..82
+  5  │   break;                                                                         │ 83..91
+  6  │ }                                                                                │ 92..93
+  7  │                                                                                  │ 94..94
+  8  │ function nobody() public                                                         │ 95..119
+  9  │                                                                                  │ 120..120
+  10 │ function noargs public {                                                         │ 121..145
+  11 │ 	break;                                                                          │ 146..153
+  12 │ }                                                                                │ 154..155
+  13 │                                                                                  │ 156..156
+  14 │ function some(uint256 arg,)                                                      │ 157..184
+  15 │                                                                                  │ 185..185
+
+Errors: # 1 total
+  - >
+    Error: Expected AddressKeyword or BoolKeyword or ByteKeyword or CloseParen or FixedBytesType or FunctionKeyword or Identifier or MappingKeyword or PayableKeyword or SignedFixedType or SignedIntegerType or StringKeyword or UnsignedFixedType or UnsignedIntegerType.
+       ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:1:25]
+       │
+     1 │ function a(uint arg, int, true) {
+       │                         │ 
+       │                         ╰─ Error occurred here.
+    ───╯
+
+Tree:
+  - ContractMembersList (Rule): # 0..24 "function a(uint arg, int"
+      - FunctionDefinition (Rule): # 0..24 "function a(uint arg, int"
+          - FunctionKeyword (Token): "function" # 0..8
+          - Identifier (Token): "a" # 9..10
+          - ParametersDeclaration (Rule): # 10..24 "(uint arg, int"
+              - OpenParen (Token): "(" # 10..11
+              - ParametersList (Rule): # 11..24 "uint arg, int"
+                  - Parameter (Rule): # 11..19 "uint arg"
+                      - TypeName (Rule): # 11..15 "uint"
+                          - UnsignedIntegerType (Token): "uint" # 11..15
+                      - Identifier (Token): "arg" # 16..19
+                  - Comma (Token): "," # 19..20
+                  - Parameter (Rule): # 20..24 " int"
+                      - TypeName (Rule): # 20..24 " int"
+                          - SignedIntegerType (Token): "int" # 21..24
+              - Error: "" # 24..24
