@@ -157,9 +157,51 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 quote! { self.#function_name(stream) }
             }
 
-            Self::DelimitedBy(open, body, close, loc) => {
-                Self::Sequence(vec![*open.clone(), *body.clone(), *close.clone()], *loc)
-                    .to_parser_code(context_name, is_trivia)
+            Self::DelimitedBy(open, body, close, _) => {
+                let close_scanner = match close.as_ref() {
+                    ParserDefinitionNode::ScannerDefinition(scanner, ..) => scanner,
+                    _ => unreachable!("Only tokens are permitted as closing delimiters"),
+                };
+
+                let close_token_kind = format_ident!("{name}", name = close_scanner.name());
+
+                let greedy_parse_until = format_ident!(
+                    "{context_name}_greedy_parse_with_trivia_until",
+                    context_name = context_name.to_snake_case()
+                );
+                let greedy_parse = format_ident!(
+                    "{context_name}_greedy_parse_token_with_trivia",
+                    context_name = context_name.to_snake_case()
+                );
+
+                let open_parser = open.to_parser_code(context_name, is_trivia);
+
+                let parser = body.to_parser_code(context_name, is_trivia);
+                let body_parser = body
+                    .applicable_version_quality_ranges()
+                    .wrap_code(
+                        quote! {
+                            seq.elem(
+                                #parser
+                                    .try_recover_with(
+                                        stream,
+                                        |stream| self.#greedy_parse_until(stream, TokenKind::#close_token_kind)
+                                    )
+                            )?;
+                        },
+                        None,
+                    );
+
+                quote! {
+                    {
+                        SequenceHelper::run(|mut seq| {
+                            seq.elem(#open_parser)?;
+                            #body_parser
+                            seq.elem(self.#greedy_parse(stream, TokenKind::#close_token_kind))?;
+                            seq.finish()
+                        })
+                    }
+                }
             }
 
             Self::SeparatedBy(body, separator, loc) => Self::Sequence(

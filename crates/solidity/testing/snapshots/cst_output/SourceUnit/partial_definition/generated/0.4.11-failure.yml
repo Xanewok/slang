@@ -4,9 +4,17 @@ Source: >
   1  │ contract Sample {                                                                │ 0..17
   2  │   function                                                                       │ 18..28
 
-Errors: # 1 total
+Errors: # 2 total
   - >
     Error: Expected FallbackKeyword or Identifier or ReceiveKeyword.
+       ╭─[crates/solidity/testing/snapshots/cst_output/SourceUnit/partial_definition/input.sol:2:11]
+       │
+     2 │   function
+       │           │ 
+       │           ╰─ Error occurred here.
+    ───╯
+  - >
+    Error: Expected CloseBrace or FallbackKeyword or Identifier or ReceiveKeyword.
        ╭─[crates/solidity/testing/snapshots/cst_output/SourceUnit/partial_definition/input.sol:2:11]
        │
      2 │   function
@@ -25,3 +33,4 @@ Tree:
                   - FunctionDefinition (Rule): # 18..28 "  function"
                       - FunctionKeyword (Token): "function" # 20..28
                       - Error: "" # 28..28
+              - Error: "" # 28..28

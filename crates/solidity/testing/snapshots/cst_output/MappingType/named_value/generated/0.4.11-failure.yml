@@ -5,16 +5,16 @@ Source: >
 
 Errors: # 1 total
   - >
-    Error: Expected CloseParen or OpenBracket.
-       ╭─[crates/solidity/testing/snapshots/cst_output/MappingType/named_value/input.sol:1:26]
+    Error: Unrecognized sequence.
+       ╭─[crates/solidity/testing/snapshots/cst_output/MappingType/named_value/input.sol:1:27]
        │
      1 │ mapping(string => bytes32 Bar)
-       │                          │ 
-       │                          ╰─ Error occurred here.
+       │                           ─┬─  
+       │                            ╰─── Error occurred here.
     ───╯
 
 Tree:
-  - MappingType (Rule): # 0..25 "mapping(string => bytes32"
+  - MappingType (Rule): # 0..30 "mapping(string => bytes32 Bar)"
       - MappingKeyword (Token): "mapping" # 0..7
       - OpenParen (Token): "(" # 7..8
       - MappingKeyType (Rule): # 8..14 "string"
@@ -23,4 +23,5 @@ Tree:
       - MappingValueType (Rule): # 17..25 " bytes32"
           - TypeName (Rule): # 17..25 " bytes32"
               - FixedBytesType (Token): "bytes32" # 18..25
-      - Error: "" # 25..25
+      - Error: "Bar" # 26..29
+      - CloseParen (Token): ")" # 29..30

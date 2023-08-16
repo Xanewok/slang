@@ -17,7 +17,7 @@ Source: >
   14 │ function some(uint256 arg,)                                                      │ 157..184
   15 │                                                                                  │ 185..185
 
-Errors: # 5 total
+Errors: # 4 total
   - >
     Error: Unrecognized sequence.
        ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:1:25]
@@ -33,15 +33,6 @@ Errors: # 5 total
      2 │   uint val;
        │        ─┬─  
        │         ╰─── Error occurred here.
-    ───╯
-  - >
-    Error: Unrecognized sequence.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:4:13]
-       │
-     4 │ ╭─▶   unchecked { /* hello */ }
-     5 │ ├─▶   break;
-       │ │              
-       │ ╰────────────── Error occurred here.
     ───╯
   - >
     Error: Expected OpenParen.
@@ -93,11 +84,17 @@ Tree:
                       - BreakStatement (Rule): # 46..55 "  break;\n"
                           - BreakKeyword (Token): "break" # 48..53
                           - Semicolon (Token): ";" # 53..54
-                  - Statement (Rule): # 55..92 "  unchecked { /* hello */ }\n  break;\n"
-                      - ExpressionStatement (Rule): # 55..92 "  unchecked { /* hello */ }\n  break;\n"
-                          - Expression (Rule): # 55..66 "  unchecked"
-                              - Identifier (Token): "unchecked" # 57..66
-                          - Error: "{ /* hello */ }\n  break" # 67..90
+                  - Statement (Rule): # 55..83 "  unchecked { /* hello */ }\n"
+                      - UncheckedBlock (Rule): # 55..83 "  unchecked { /* hello */ }\n"
+                          - UncheckedKeyword (Token): "unchecked" # 57..66
+                          - Block (Rule): # 66..83 " { /* hello */ }\n"
+                              - OpenBrace (Token): "{" # 67..68
+                              - LeadingTrivia (Rule): # 68..81 " /* hello */ "
+                                  - MultilineComment (Trivia): "/* hello */" # 69..80
+                              - CloseBrace (Token): "}" # 81..82
+                  - Statement (Rule): # 83..92 "  break;\n"
+                      - BreakStatement (Rule): # 83..92 "  break;\n"
+                          - BreakKeyword (Token): "break" # 85..90
                           - Semicolon (Token): ";" # 90..91
               - CloseBrace (Token): "}" # 92..93
       - StateVariableDefinition (Rule): # 94..154 "\nfunction nobody() public\n\nfunction noargs public ..."
