@@ -1645,9 +1645,9 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -1668,10 +1668,10 @@ impl Language {
                         seq.finish()
                     })
                 };
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -1691,9 +1691,9 @@ impl Language {
                 seq.elem(OptionalHelper::transform({
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self.positional_arguments_list(stream);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self.named_arguments_declaration(stream);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 }))?;
@@ -1810,37 +1810,37 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Equal);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BarEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MinusEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CaretEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SlashEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PercentEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AsteriskEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AmpersandEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::LessThanLessThanEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(
                     stream,
                     TokenKind::GreaterThanGreaterThanEqual,
                 );
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(
                     stream,
                     TokenKind::GreaterThanGreaterThanGreaterThanEqual,
                 );
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -1879,9 +1879,9 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -2001,16 +2001,16 @@ impl Language {
             {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             }
@@ -2104,46 +2104,46 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.using_directive(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.function_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.modifier_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.struct_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.enum_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.event_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.state_variable_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_4_22 {
                     let result = self.constructor_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result = {
                         ChoiceHelper::run(stream, |mut choice, stream| {
                             let result = self.fallback_function_definition(stream);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             let result = self.receive_function_definition(stream);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             choice.finish(stream)
                         })
                     };
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if !self.version_is_at_least_0_6_0 {
                     let result = self.unnamed_function_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_8_4 {
                     let result = self.error_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_8_8 {
                     let result = self.user_defined_value_type_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -2161,34 +2161,34 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.if_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.for_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.while_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.do_while_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.continue_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.break_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.delete_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.return_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.revert_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_4_21 {
                     let result = self.emit_statement(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if !self.version_is_at_least_0_5_0 {
                     let result = self.throw_statement(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result = self.try_statement(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -2200,14 +2200,14 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MemoryKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::StorageKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_5_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::CalldataKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -2346,30 +2346,30 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BoolKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StringKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.address_type(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::FixedBytesType);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SignedIntegerType);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::UnsignedIntegerType);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SignedFixedType);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::UnsignedFixedType);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if !self.version_is_at_least_0_8_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ByteKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -2411,13 +2411,13 @@ impl Language {
         OneOrMoreHelper::run(stream, |stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token(stream, TokenKind::Whitespace);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token(stream, TokenKind::EndOfLine);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token(stream, TokenKind::MultilineComment);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token(stream, TokenKind::SingleLineComment);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         })
@@ -2453,9 +2453,9 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EqualEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BangEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -2642,10 +2642,10 @@ impl Language {
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self
                             .default_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;
@@ -2666,42 +2666,42 @@ impl Language {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 1u8, 2u8, {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Equal);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::BarEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::MinusEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::CaretEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::SlashEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PercentEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::AsteriskEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::AmpersandEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self
                         .default_parse_token_with_trivia(stream, TokenKind::LessThanLessThanEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(
                         stream,
                         TokenKind::GreaterThanGreaterThanEqual,
                     );
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(
                         stream,
                         TokenKind::GreaterThanGreaterThanGreaterThanEqual,
                     );
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             })
@@ -2740,9 +2740,9 @@ impl Language {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::EqualEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::BangEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             })
@@ -2751,16 +2751,16 @@ impl Language {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 11u8, 12u8, {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThan);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             })
@@ -2794,15 +2794,15 @@ impl Language {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::LessThanLessThan);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self
                         .default_parse_token_with_trivia(stream, TokenKind::GreaterThanGreaterThan);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(
                         stream,
                         TokenKind::GreaterThanGreaterThanGreaterThan,
                     );
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             })
@@ -2811,9 +2811,9 @@ impl Language {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 21u8, 22u8, {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             })
@@ -2822,11 +2822,11 @@ impl Language {
             PrecedenceHelper::to_precedence_result(RuleKind::BinaryExpression, 23u8, 24u8, {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Slash);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Percent);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             })
@@ -2851,10 +2851,10 @@ impl Language {
             PrecedenceHelper::to_precedence_result(RuleKind::UnaryPostfixExpression, 29u8, 255u8, {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             })
@@ -2863,19 +2863,19 @@ impl Language {
             PrecedenceHelper::to_precedence_result(RuleKind::UnaryPrefixExpression, 255u8, 31u8, {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Tilde);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Bang);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     if !self.version_is_at_least_0_5_0 {
                         let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                     }
                     choice.finish(stream)
                 })
@@ -2902,10 +2902,10 @@ impl Language {
                         ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             let result = self
                                 .default_parse_token_with_trivia(stream, TokenKind::AddressKeyword);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             choice.finish(stream)
                         })
                     })?;
@@ -2943,7 +2943,7 @@ impl Language {
         let prefix_operator_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_unary_prefix_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
@@ -2951,15 +2951,15 @@ impl Language {
         let postfix_operator_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_conditional_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_unary_postfix_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_function_call_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_member_access_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_index_access_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
@@ -2978,34 +2978,34 @@ impl Language {
         let binary_operator_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_assignment_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_or_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_and_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_equality_comparison_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_order_comparison_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_bitwise_or_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_bitwise_x_or_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_bitwise_and_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_shift_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_add_sub_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_mul_div_mod_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if !self.version_is_at_least_0_6_0 {
                     let result = parse_exponentiation_operator_removed_from_0_6_0(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result = parse_exponentiation_operator_introduced_from_0_6_0(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -3050,24 +3050,24 @@ impl Language {
             {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.override_specifier(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             }
@@ -3103,9 +3103,9 @@ impl Language {
                         ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             let result = self.block(stream);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             choice.finish(stream)
                         })
                     })?;
@@ -3133,24 +3133,24 @@ impl Language {
                                 seq.elem({
                                     ChoiceHelper::run(stream, |mut choice, stream| {
                                         let result = self.simple_statement(stream);
-                                        choice.consider(stream, result)?;
+                                        choice.consider(result).pick_or_backtrack(stream)?;
                                         let result = self.default_parse_token_with_trivia(
                                             stream,
                                             TokenKind::Semicolon,
                                         );
-                                        choice.consider(stream, result)?;
+                                        choice.consider(result).pick_or_backtrack(stream)?;
                                         choice.finish(stream)
                                     })
                                 })?;
                                 seq.elem({
                                     ChoiceHelper::run(stream, |mut choice, stream| {
                                         let result = self.expression_statement(stream);
-                                        choice.consider(stream, result)?;
+                                        choice.consider(result).pick_or_backtrack(stream)?;
                                         let result = self.default_parse_token_with_trivia(
                                             stream,
                                             TokenKind::Semicolon,
                                         );
-                                        choice.consider(stream, result)?;
+                                        choice.consider(result).pick_or_backtrack(stream)?;
                                         choice.finish(stream)
                                     })
                                 })?;
@@ -3176,36 +3176,36 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.modifier_invocation(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.override_specifier(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if !self.version_is_at_least_0_5_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ConstantKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_6_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -3241,11 +3241,11 @@ impl Language {
                     let result = OneOrMoreHelper::run(stream, |stream| {
                         self.named_arguments_declaration(stream)
                     });
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_8_0 {
                     let result = self.named_arguments_declaration(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -3262,13 +3262,13 @@ impl Language {
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self
                             .default_parse_token_with_trivia(stream, TokenKind::FallbackKeyword);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::ReceiveKeyword);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;
@@ -3281,9 +3281,9 @@ impl Language {
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self.block(stream);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;
@@ -3315,22 +3315,22 @@ impl Language {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -3453,11 +3453,11 @@ impl Language {
                         seq.elem({
                             ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self.path_import(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 let result = self.named_import(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 let result = self.deconstruction_import(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 choice.finish(stream)
                             })
                         })?;
@@ -3585,13 +3585,13 @@ impl Language {
         OneOrMoreHelper::run(stream, |stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token(stream, TokenKind::Whitespace);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token(stream, TokenKind::EndOfLine);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token(stream, TokenKind::MultilineComment);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token(stream, TokenKind::SingleLineComment);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         })
@@ -3635,9 +3635,9 @@ impl Language {
                 seq.elem({
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self.elementary_type(stream);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self.identifier_path(stream);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;
@@ -3710,10 +3710,10 @@ impl Language {
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::AddressKeyword);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;
@@ -3727,11 +3727,11 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.override_specifier(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_6_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -3760,9 +3760,9 @@ impl Language {
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self.block(stream);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;
@@ -3791,11 +3791,11 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Slash);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Percent);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -3879,44 +3879,44 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DaysKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EtherKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::HoursKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MinutesKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SecondsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeeksKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeiKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if !self.version_is_at_least_0_5_0 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::YearsKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_6_11 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GweiKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if !self.version_is_at_least_0_7_0 {
                     let result = {
                         ChoiceHelper::run(stream, |mut choice, stream| {
                             let result = self
                                 .default_parse_token_with_trivia(stream, TokenKind::FinneyKeyword);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             let result = self
                                 .default_parse_token_with_trivia(stream, TokenKind::SzaboKeyword);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             choice.finish(stream)
                         })
                     };
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -3938,7 +3938,7 @@ impl Language {
                         seq.finish()
                     })
                 };
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = {
                     SequenceHelper::run(|mut seq| {
                         seq.elem(
@@ -3948,7 +3948,7 @@ impl Language {
                         seq.finish()
                     })
                 };
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -3965,14 +3965,14 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThan);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -4103,11 +4103,11 @@ impl Language {
                         seq.elem({
                             ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self.abi_coder_pragma(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 let result = self.experimental_pragma(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 let result = self.version_pragma(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 choice.finish(stream)
                             })
                         })?;
@@ -4128,24 +4128,24 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.new_expression(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.tuple_expression(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.array_expression(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.boolean_expression(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.numeric_expression(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.string_expression(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.elementary_type(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Identifier);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_5_3 {
                     let result = self.type_expression(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -4158,18 +4158,18 @@ impl Language {
             {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.override_specifier(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             }
@@ -4204,9 +4204,9 @@ impl Language {
                         ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             let result = self.block(stream);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             choice.finish(stream)
                         })
                     })?;
@@ -4282,15 +4282,15 @@ impl Language {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::LessThanLessThan);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanGreaterThan);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(
                     stream,
                     TokenKind::GreaterThanGreaterThanGreaterThan,
                 );
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -4301,11 +4301,11 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.expression_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.variable_declaration_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.tuple_deconstruction_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -4317,261 +4317,261 @@ impl Language {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ABICoderKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AbstractKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AddressKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AfterKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AnonymousKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::AssemblyKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BoolKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::BreakKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ByteKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CaseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CatchKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ConstantKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ContinueKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ContractKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DaysKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::DefaultKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DeleteKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DoKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ElseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EnumKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EtherKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EventKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExperimentalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::FallbackKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FinalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FinneyKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ForKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::FromKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::FunctionKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::GlobalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::HexKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::HoursKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::IfKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ImportKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::IndexedKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::InKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::InlineKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InterfaceKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::IsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LetKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::LibraryKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MappingKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MatchKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MemoryKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MinutesKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ModifierKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::NewKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::NullKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::OfKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::OverrideKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PragmaKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ReceiveKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::RelocatableKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ReturnKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ReturnsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::RevertKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SecondsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SolidityKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StaticKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::StorageKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StringKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::StructKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SwitchKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SzaboKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ThrowKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TypeofKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::UsingKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::VarKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeeksKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WeiKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::WhileKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::YearsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::EmitKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ConstructorKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AliasKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ApplyKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::AutoKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::CalldataKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::CopyofKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::DefineKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ImplementsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MacroKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::MutableKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PartialKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PromiseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ReferenceKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SealedKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::SizeofKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::SupportsKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::TypedefKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TypeKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::LeaveKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::TryKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::VirtualKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ImmutableKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::GweiKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::UncheckedKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::ErrorKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -4596,46 +4596,46 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.pragma_directive(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.import_directive(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.contract_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.interface_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.library_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_6_0 {
                     let result = {
                         ChoiceHelper::run(stream, |mut choice, stream| {
                             let result = self.struct_definition(stream);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             let result = self.enum_definition(stream);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             choice.finish(stream)
                         })
                     };
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_7_1 {
                     let result = self.function_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_7_4 {
                     let result = self.constant_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_8_4 {
                     let result = self.error_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_8_8 {
                     let result = self.user_defined_value_type_definition(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 if self.version_is_at_least_0_8_13 {
                     let result = self.using_directive(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -4653,22 +4653,22 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.override_specifier(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::ConstantKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::InternalKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.default_parse_token_with_trivia(stream, TokenKind::PrivateKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PublicKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_6_5 {
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ImmutableKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -4720,16 +4720,16 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.simple_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.control_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.assembly_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.block(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_8_0 {
                     let result = self.unchecked_block(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -4748,12 +4748,12 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.hex_string_literals_list(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.ascii_string_literals_list(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_7_0 {
                     let result = self.unicode_string_literals_list(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -4931,7 +4931,7 @@ impl Language {
                         seq.finish()
                     })
                 };
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = {
                     SequenceHelper::run(|mut seq| {
                         seq.elem(OptionalHelper::transform(self.data_location(stream)))?;
@@ -4941,7 +4941,7 @@ impl Language {
                         seq.finish()
                     })
                 };
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         })
@@ -5028,20 +5028,20 @@ impl Language {
         let primary_expression_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.function_type(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.mapping_type(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.elementary_type(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.identifier_path(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
         let postfix_operator_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_array_type_name_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
@@ -5066,9 +5066,9 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -5079,18 +5079,18 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::PlusPlus);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::MinusMinus);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Tilde);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Bang);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if !self.version_is_at_least_0_5_0 {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -5133,21 +5133,21 @@ impl Language {
             {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.modifier_invocation(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.override_specifier(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ExternalKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PayableKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::PureKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::ViewKeyword);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             }
@@ -5182,9 +5182,9 @@ impl Language {
                         ChoiceHelper::run(stream, |mut choice, stream| {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::Semicolon);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             let result = self.block(stream);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                             choice.finish(stream)
                         })
                     })?;
@@ -5244,9 +5244,9 @@ impl Language {
                         seq.elem({
                             ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self.using_directive_path(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 let result = self.using_directive_deconstruction(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 choice.finish(stream)
                             })
                         })?;
@@ -5257,9 +5257,9 @@ impl Language {
                             ChoiceHelper::run(stream, |mut choice, stream| {
                                 let result = self
                                     .default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 let result = self.type_name(stream);
-                                choice.consider(stream, result)?;
+                                choice.consider(result).pick_or_backtrack(stream)?;
                                 choice.finish(stream)
                             })
                         })?;
@@ -5297,39 +5297,39 @@ impl Language {
             {
                 ChoiceHelper::run(stream, |mut choice, stream| {
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Ampersand);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Asterisk);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::BangEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Bar);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Caret);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::EqualEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::LessThan);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result =
                         self.default_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Minus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Percent);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Plus);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Slash);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     let result = self.default_parse_token_with_trivia(stream, TokenKind::Tilde);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                     choice.finish(stream)
                 })
             }
@@ -5393,10 +5393,10 @@ impl Language {
                         if !self.version_is_at_least_0_5_0 {
                             let result =
                                 self.default_parse_token_with_trivia(stream, TokenKind::VarKeyword);
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                         }
                         let result = self.type_name(stream);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;
@@ -5477,29 +5477,29 @@ impl Language {
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result =
                             self.version_pragma_parse_token_with_trivia(stream, TokenKind::Caret);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result =
                             self.version_pragma_parse_token_with_trivia(stream, TokenKind::Tilde);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result =
                             self.version_pragma_parse_token_with_trivia(stream, TokenKind::Equal);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self
                             .version_pragma_parse_token_with_trivia(stream, TokenKind::LessThan);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self
                             .version_pragma_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self.version_pragma_parse_token_with_trivia(
                             stream,
                             TokenKind::LessThanEqual,
                         );
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = self.version_pragma_parse_token_with_trivia(
                             stream,
                             TokenKind::GreaterThanEqual,
                         );
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 },
@@ -5508,7 +5508,7 @@ impl Language {
         let prefix_operator_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_version_pragma_unary_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
@@ -5525,9 +5525,9 @@ impl Language {
         let binary_operator_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_version_pragma_or_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = parse_version_pragma_range_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
@@ -5598,23 +5598,23 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.version_pragma_parse_token_with_trivia(stream, TokenKind::Caret);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.version_pragma_parse_token_with_trivia(stream, TokenKind::Tilde);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.version_pragma_parse_token_with_trivia(stream, TokenKind::Equal);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.version_pragma_parse_token_with_trivia(stream, TokenKind::LessThan);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.version_pragma_parse_token_with_trivia(stream, TokenKind::GreaterThan);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.version_pragma_parse_token_with_trivia(stream, TokenKind::LessThanEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self
                     .version_pragma_parse_token_with_trivia(stream, TokenKind::GreaterThanEqual);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -5727,16 +5727,16 @@ impl Language {
         let primary_expression_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.yul_literal(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_identifier_path(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
         let postfix_operator_parser = |stream: &mut Stream| {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = parse_yul_function_call_operator(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         };
@@ -5905,37 +5905,37 @@ impl Language {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::BreakKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::CaseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::ContinueKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::DefaultKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::ForKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::FunctionKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::HexKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::IfKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::LetKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::SwitchKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::LeaveKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -5956,22 +5956,22 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.yul_block_parse_token_with_trivia(stream, TokenKind::TrueKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::FalseKeyword);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::YulHexLiteral);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::YulDecimalLiteral);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::HexStringLiteral);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result =
                     self.yul_block_parse_token_with_trivia(stream, TokenKind::AsciiStringLiteral);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 choice.finish(stream)
             })
         }
@@ -6009,28 +6009,28 @@ impl Language {
         {
             ChoiceHelper::run(stream, |mut choice, stream| {
                 let result = self.yul_block(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_function_definition(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_declaration_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_assignment_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_if_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_for_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_switch_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_break_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_continue_statement(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 let result = self.yul_expression(stream);
-                choice.consider(stream, result)?;
+                choice.consider(result).pick_or_backtrack(stream)?;
                 if self.version_is_at_least_0_6_0 {
                     let result = self.yul_leave_statement(stream);
-                    choice.consider(stream, result)?;
+                    choice.consider(result).pick_or_backtrack(stream)?;
                 }
                 choice.finish(stream)
             })
@@ -6052,7 +6052,7 @@ impl Language {
                     ChoiceHelper::run(stream, |mut choice, stream| {
                         let result = self
                             .yul_block_parse_token_with_trivia(stream, TokenKind::DefaultKeyword);
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         let result = {
                             SequenceHelper::run(|mut seq| {
                                 seq.elem(self.yul_block_parse_token_with_trivia(
@@ -6063,7 +6063,7 @@ impl Language {
                                 seq.finish()
                             })
                         };
-                        choice.consider(stream, result)?;
+                        choice.consider(result).pick_or_backtrack(stream)?;
                         choice.finish(stream)
                     })
                 })?;

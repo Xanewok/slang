@@ -31,11 +31,7 @@ impl ChoiceHelper {
     }
 
     /// Accumulates a new result - if it's a better match, then it's stored, otherwise we retain the existing result.
-    pub fn handle_next_result(
-        &mut self,
-        stream: &mut Stream,
-        next_result: ParserResult,
-    ) -> ParserFlow {
+    fn handle_next_result(&mut self, next_result: ParserResult) -> ParserFlow {
         match (&mut self.result, next_result) {
             // Settle for the first full match, ignore the rest
             (finished_state!(), _) => return ParserFlow::Break(()),
@@ -60,10 +56,7 @@ impl ChoiceHelper {
 
         match self.result {
             finished_state!() => ParserFlow::Break(()),
-            _ => {
-                stream.set_position(self.start_position);
-                ParserFlow::Continue(())
-            }
+            _ => ParserFlow::Continue(()),
         }
     }
 
@@ -93,15 +86,20 @@ impl ChoiceHelper {
     }
 
     /// Aggregates a choice result into the accumulator. If we fully matched, returns the match.
-    pub fn consider(
+    pub fn consider(&mut self, value: ParserResult) -> &mut Self {
+        self.handle_next_result(value);
+        self
+    }
+
+    pub fn pick_or_backtrack(
         &mut self,
         stream: &mut Stream,
-        value: ParserResult,
     ) -> ControlFlow<ParserResult, &mut Self> {
-        let result = self.handle_next_result(stream, value);
-        match result {
-            ParserFlow::Break(()) => ControlFlow::Break(self.take_result(stream)),
-            ParserFlow::Continue(()) => ControlFlow::Continue(self),
+        if self.is_done() {
+            ControlFlow::Break(self.take_result(stream))
+        } else {
+            stream.set_position(self.start_position);
+            ControlFlow::Continue(self)
         }
     }
 

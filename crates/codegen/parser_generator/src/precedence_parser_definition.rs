@@ -155,7 +155,7 @@ impl PrecedenceParserDefinitionNodeExtensions for PrecedenceParserDefinitionNode
                     version_quality_ranges.wrap_code(
                         quote! {
                             let result = #parser;
-                            choice.consider(stream, result)?;
+                            choice.consider(result).pick_or_backtrack(stream)?;
                         },
                         None,
                     )
