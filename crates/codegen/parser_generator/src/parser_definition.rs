@@ -165,8 +165,8 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
 
                 let close_token_kind = format_ident!("{name}", name = close_scanner.name());
 
-                let greedy_parse_until = format_ident!(
-                    "{context_name}_greedy_parse_with_trivia_until",
+                let skip_tokens_until = format_ident!(
+                    "{context_name}_skip_tokens_until",
                     context_name = context_name.to_snake_case()
                 );
                 let greedy_parse = format_ident!(
@@ -185,7 +185,7 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                                 #parser
                                     .try_recover_with(
                                         stream,
-                                        |stream| self.#greedy_parse_until(stream, TokenKind::#close_token_kind)
+                                        |stream| self.#skip_tokens_until(stream, TokenKind::#close_token_kind)
                                     )
                             )?;
                         },
@@ -228,8 +228,8 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 let terminator_token_kind =
                     format_ident!("{name}", name = terminator_scanner.name());
 
-                let greedy_parse_until = format_ident!(
-                    "{context_name}_greedy_parse_with_trivia_until",
+                let skip_tokens_until = format_ident!(
+                    "{context_name}_skip_tokens_until",
                     context_name = context_name.to_snake_case()
                 );
                 let greedy_parse = format_ident!(
@@ -246,7 +246,7 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                                 #parser
                                     .try_recover_with(
                                         stream,
-                                        |stream| self.#greedy_parse_until(stream, TokenKind::#terminator_token_kind)
+                                        |stream| self.#skip_tokens_until(stream, TokenKind::#terminator_token_kind)
                                     )
                             )?;
                         },

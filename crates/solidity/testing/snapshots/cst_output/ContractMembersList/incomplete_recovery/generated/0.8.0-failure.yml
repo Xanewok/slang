@@ -44,7 +44,7 @@ Errors: # 4 total
     ───╯
   - >
     Error: Unrecognized sequence.
-        ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:8:10]
+        ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembersList/incomplete_recovery/input.sol:8:9]
         │
       8 │ ╭─▶ function nobody() public
         ┆ ┆   
@@ -102,5 +102,5 @@ Tree:
               - FunctionType (Rule): # 94..103 "\nfunction"
                   - FunctionKeyword (Token): "function" # 95..103
                   - Error: "" # 103..103
-          - Error: "nobody() public\n\nfunction noargs public {\n\tbreak" # 104..152
+          - Error: " nobody() public\n\nfunction noargs public {\n\tbreak" # 103..152
           - Semicolon (Token): ";" # 152..153

@@ -1,4 +1,4 @@
-use std::ops::ControlFlow;
+use std::{ops::ControlFlow, rc::Rc};
 
 use crate::{
     cst,
@@ -58,11 +58,18 @@ impl SequenceHelper {
                 }
                 (ParserResult::Match(running), ParserResult::NoMatch(next)) => {
                     running.expected_tokens.extend(next.expected_tokens);
+
                     // Mark this point as incomplete
-                    running.nodes.push(cst::Node::error(
-                        "".to_string(),
-                        running.expected_tokens.clone(),
-                    ));
+                    if let Some(err) = running.nodes.last_mut().and_then(|x| x.as_error_mut()) {
+                        let inner =
+                            Rc::get_mut(err).expect("Nothing to point to the inner error node");
+                        inner.expected.extend(running.expected_tokens.clone());
+                    } else {
+                        running.nodes.push(cst::Node::error(
+                            "".to_string(),
+                            running.expected_tokens.clone(),
+                        ));
+                    }
 
                     self.result = Some(ParserResult::incomplete_match(
                         std::mem::take(&mut running.nodes),

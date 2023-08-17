@@ -103,6 +103,13 @@ impl Node {
         }
     }
 
+    pub fn as_error_mut(&mut self) -> Option<&mut Rc<ErrorNode>> {
+        match self {
+            Self::Error(node) => Some(node),
+            _ => None,
+        }
+    }
+
     pub fn as_rule_matching<F: Fn(&Rc<RuleNode>) -> bool>(
         &self,
         predicate: F,

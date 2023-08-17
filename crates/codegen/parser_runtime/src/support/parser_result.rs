@@ -123,6 +123,10 @@ impl IncompleteMatch {
             .map(|node| node.text_len().utf8)
             .sum()
     }
+
+    pub fn last_error_mut(&mut self) -> Option<&mut std::rc::Rc<cst::ErrorNode>> {
+        self.nodes.last_mut().and_then(|x| x.as_error_mut())
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

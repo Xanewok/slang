@@ -6,15 +6,7 @@ Source: >
   3  │   }                                                                              │ 43..46
   4  │ }                                                                                │ 47..48
 
-Errors: # 3 total
-  - >
-    Error: Expected ConstantKeyword or Identifier or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_constructor_definition/input.sol:2:14]
-       │
-     2 │   constructor() public {
-       │              │ 
-       │              ╰─ Error occurred here.
-    ───╯
+Errors: # 2 total
   - >
     Error: Expected ConstantKeyword or Identifier or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword or Semicolon.
        ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_constructor_definition/input.sol:2:14]
@@ -43,7 +35,6 @@ Tree:
               - TypeName (Rule): # 18..31 "  constructor"
                   - IdentifierPath (Rule): # 18..31 "  constructor"
                       - Identifier (Token): "constructor" # 20..31
-              - Error: "" # 31..31
               - Error: "" # 31..31
       - Error: "() public {\n  " # 31..45
       - CloseBrace (Token): "}" # 45..46
