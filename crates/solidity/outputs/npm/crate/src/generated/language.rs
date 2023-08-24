@@ -254,6 +254,7 @@ impl Language {
     fn address_type(&self, input: &mut ParserContext) -> ParserResult {
         {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"AddressKeyword\"}"]
                 let result = {
                     SequenceHelper::run(|mut seq| {
                         seq.elem(
@@ -266,6 +267,7 @@ impl Language {
                     })
                 };
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PayableKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PayableKeyword);
                 choice.consider(input, result)?;
                 choice.finish(input)
@@ -276,32 +278,7 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn arguments_declaration(&self, input: &mut ParserContext) -> ParserResult {
-        SequenceHelper::run(|mut seq| {
-            let mut delim_guard = input.open_delim(TokenKind::CloseParen);
-            let input = delim_guard.ctx();
-            seq.elem(self.default_parse_token_with_trivia(input, TokenKind::OpenParen))?;
-            seq.elem(
-                OptionalHelper::transform({
-                    ChoiceHelper::run(input, |mut choice, input| {
-                        let result = self.positional_arguments_list(input);
-                        choice.consider(input, result)?;
-                        let result = self.named_arguments_declaration(input);
-                        choice.consider(input, result)?;
-                        choice.finish(input)
-                    })
-                })
-                .recover_until_with_nested_delims(
-                    input,
-                    |input| Lexer::next_token::<{ LexicalContext::Default as u8 }>(self, input),
-                    |input| Lexer::leading_trivia(self, input),
-                    TokenKind::CloseParen,
-                    Self::default_delimiters(),
-                ),
-            )?;
-            seq.elem(self.default_parse_token_with_trivia(input, TokenKind::CloseParen))?;
-            seq.finish()
-        })
-        .with_kind(RuleKind::ArgumentsDeclaration)
+        SequenceHelper :: run (| mut seq | { let mut delim_guard = input . open_delim (TokenKind :: CloseParen) ; let input = delim_guard . ctx () ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: OpenParen)) ? ; seq . elem (OptionalHelper :: transform ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"AsciiStringLiteral\", \"BoolKeyword\", \"ByteKeyword\", \"DecimalLiteral\", \"FalseKeyword\", \"FixedBytesType\", \"HexLiteral\", \"HexStringLiteral\", \"Identifier\", \"NewKeyword\", \"OpenBracket\", \"OpenParen\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"TrueKeyword\", \"TypeKeyword\", \"UnicodeStringLiteral\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . positional_arguments_list (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"OpenBrace\"}"] let result = self . named_arguments_declaration (input) ; choice . consider (input , result) ? ; choice . finish (input) }) }) . recover_until_with_nested_delims (input , | input | Lexer :: next_token :: < { LexicalContext :: Default as u8 } > (self , input) , | input | Lexer :: leading_trivia (self , input) , TokenKind :: CloseParen , Self :: default_delimiters () ,)) ? ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: CloseParen)) ? ; seq . finish () }) . with_kind (RuleKind :: ArgumentsDeclaration)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -524,14 +501,18 @@ impl Language {
                 if self.version_is_at_least_0_4_22 {
                     {
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Identifier\"}"]
                             let result = self.modifier_invocation(input);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"InternalKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::InternalKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"PayableKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::PayableKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"PublicKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::PublicKeyword);
                             choice.consider(input, result)?;
@@ -630,54 +611,7 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn contract_members_list(&self, input: &mut ParserContext) -> ParserResult {
-        OneOrMoreHelper::run(input, |input| {
-            ChoiceHelper::run(input, |mut choice, input| {
-                let result = self.using_directive(input);
-                choice.consider(input, result)?;
-                let result = self.function_definition(input);
-                choice.consider(input, result)?;
-                let result = self.modifier_definition(input);
-                choice.consider(input, result)?;
-                let result = self.struct_definition(input);
-                choice.consider(input, result)?;
-                let result = self.enum_definition(input);
-                choice.consider(input, result)?;
-                let result = self.event_definition(input);
-                choice.consider(input, result)?;
-                let result = self.state_variable_definition(input);
-                choice.consider(input, result)?;
-                if self.version_is_at_least_0_4_22 {
-                    let result = self.constructor_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_6_0 {
-                    let result = {
-                        ChoiceHelper::run(input, |mut choice, input| {
-                            let result = self.fallback_function_definition(input);
-                            choice.consider(input, result)?;
-                            let result = self.receive_function_definition(input);
-                            choice.consider(input, result)?;
-                            choice.finish(input)
-                        })
-                    };
-                    choice.consider(input, result)?;
-                }
-                if !self.version_is_at_least_0_6_0 {
-                    let result = self.unnamed_function_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_4 {
-                    let result = self.error_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_8 {
-                    let result = self.user_defined_value_type_definition(input);
-                    choice.consider(input, result)?;
-                }
-                choice.finish(input)
-            })
-        })
-        .with_kind(RuleKind::ContractMembersList)
+        OneOrMoreHelper :: run (input , | input | { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"UsingKeyword\"}"] let result = self . using_directive (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . function_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ModifierKeyword\"}"] let result = self . modifier_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"StructKeyword\"}"] let result = self . struct_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"EnumKeyword\"}"] let result = self . enum_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"EventKeyword\"}"] let result = self . event_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . state_variable_definition (input) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_4_22 { # [c = "first_set = {\"ConstructorKeyword\"}"] let result = self . constructor_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_6_0 { # [c = "first_set = {\"FallbackKeyword\", \"ReceiveKeyword\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"FallbackKeyword\"}"] let result = self . fallback_function_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ReceiveKeyword\"}"] let result = self . receive_function_definition (input) ; choice . consider (input , result) ? ; choice . finish (input) }) } ; choice . consider (input , result) ? ; } if ! self . version_is_at_least_0_6_0 { # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . unnamed_function_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_4 { # [c = "first_set = {\"ErrorKeyword\"}"] let result = self . error_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_8 { # [c = "first_set = {\"TypeKeyword\"}"] let result = self . user_defined_value_type_definition (input) ; choice . consider (input , result) ? ; } choice . finish (input) }) }) . with_kind (RuleKind :: ContractMembersList)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -863,12 +797,16 @@ impl Language {
     fn end_of_file_trivia(&self, input: &mut ParserContext) -> ParserResult {
         OneOrMoreHelper::run(input, |input| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"Whitespace\"}"]
                 let result = self.default_parse_token(input, TokenKind::Whitespace);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"EndOfLine\"}"]
                 let result = self.default_parse_token(input, TokenKind::EndOfLine);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"MultilineComment\"}"]
                 let result = self.default_parse_token(input, TokenKind::MultilineComment);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"SingleLineComment\"}"]
                 let result = self.default_parse_token(input, TokenKind::SingleLineComment);
                 choice.consider(input, result)?;
                 choice.finish(input)
@@ -1045,9 +983,11 @@ impl Language {
                 )?;
                 seq.elem({
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"AsciiStringLiteral\"}"]
                         let result = self
                             .default_parse_token_with_trivia(input, TokenKind::AsciiStringLiteral);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"Identifier\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::Identifier);
                         choice.consider(input, result)?;
@@ -1065,35 +1005,47 @@ impl Language {
         let parse_assignment_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_binary_operator(RuleKind::BinaryExpression, 1u8, 1u8 + 1, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"Equal\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Equal);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"BarEqual\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::BarEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"PlusEqual\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::PlusEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"MinusEqual\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::MinusEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"CaretEqual\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::CaretEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"SlashEqual\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::SlashEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"PercentEqual\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::PercentEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"AsteriskEqual\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::AsteriskEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"AmpersandEqual\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::AmpersandEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"LessThanLessThanEqual\"}"]
                     let result = self
                         .default_parse_token_with_trivia(input, TokenKind::LessThanLessThanEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThanGreaterThanEqual\"}"]
                     let result = self.default_parse_token_with_trivia(
                         input,
                         TokenKind::GreaterThanGreaterThanEqual,
                     );
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThanGreaterThanGreaterThanEqual\"}"]
                     let result = self.default_parse_token_with_trivia(
                         input,
                         TokenKind::GreaterThanGreaterThanGreaterThanEqual,
@@ -1133,8 +1085,10 @@ impl Language {
         let parse_equality_comparison_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_binary_operator(RuleKind::BinaryExpression, 9u8, 9u8 + 1, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"EqualEqual\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::EqualEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"BangEqual\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::BangEqual);
                     choice.consider(input, result)?;
                     choice.finish(input)
@@ -1144,14 +1098,18 @@ impl Language {
         let parse_order_comparison_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_binary_operator(RuleKind::BinaryExpression, 11u8, 11u8 + 1, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"LessThan\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::LessThan);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThan\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::GreaterThan);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"LessThanEqual\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::LessThanEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThanEqual\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::GreaterThanEqual);
                     choice.consider(input, result)?;
@@ -1186,12 +1144,15 @@ impl Language {
         let parse_shift_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_binary_operator(RuleKind::BinaryExpression, 19u8, 19u8 + 1, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"LessThanLessThan\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::LessThanLessThan);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThanGreaterThan\"}"]
                     let result = self
                         .default_parse_token_with_trivia(input, TokenKind::GreaterThanGreaterThan);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThanGreaterThanGreaterThan\"}"]
                     let result = self.default_parse_token_with_trivia(
                         input,
                         TokenKind::GreaterThanGreaterThanGreaterThan,
@@ -1204,8 +1165,10 @@ impl Language {
         let parse_add_sub_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_binary_operator(RuleKind::BinaryExpression, 21u8, 21u8 + 1, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"Plus\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Plus);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Minus\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Minus);
                     choice.consider(input, result)?;
                     choice.finish(input)
@@ -1215,10 +1178,13 @@ impl Language {
         let parse_mul_div_mod_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_binary_operator(RuleKind::BinaryExpression, 23u8, 23u8 + 1, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"Asterisk\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Asterisk);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Slash\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Slash);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Percent\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Percent);
                     choice.consider(input, result)?;
                     choice.finish(input)
@@ -1244,8 +1210,10 @@ impl Language {
         let parse_unary_postfix_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_postfix_operator(RuleKind::UnaryPostfixExpression, 29u8, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"PlusPlus\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::PlusPlus);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"MinusMinus\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::MinusMinus);
                     choice.consider(input, result)?;
                     choice.finish(input)
@@ -1255,17 +1223,23 @@ impl Language {
         let parse_unary_prefix_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_prefix_operator(RuleKind::UnaryPrefixExpression, 31u8, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"PlusPlus\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::PlusPlus);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"MinusMinus\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::MinusMinus);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Tilde\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Tilde);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Bang\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Bang);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Minus\"}"]
                     let result = self.default_parse_token_with_trivia(input, TokenKind::Minus);
                     choice.consider(input, result)?;
                     if !self.version_is_at_least_0_5_0 {
+                        #[c = "first_set = {\"Plus\"}"]
                         let result = self.default_parse_token_with_trivia(input, TokenKind::Plus);
                         choice.consider(input, result)?;
                     }
@@ -1290,9 +1264,11 @@ impl Language {
                     seq.elem(self.default_parse_token_with_trivia(input, TokenKind::Period))?;
                     seq.elem({
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Identifier\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::Identifier);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"AddressKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::AddressKeyword);
                             choice.consider(input, result)?;
@@ -1354,17 +1330,23 @@ impl Language {
         };
         let primary_expression_parser = |input: &mut ParserContext| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"NewKeyword\"}"]
                 let result = self.new_expression(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"OpenParen\"}"]
                 let result = self.tuple_expression(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"OpenBracket\"}"]
                 let result = self.array_expression(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"FalseKeyword\", \"TrueKeyword\"}"]
                 let result = {
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"TrueKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::TrueKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"FalseKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::FalseKeyword);
                         choice.consider(input, result)?;
@@ -1372,15 +1354,20 @@ impl Language {
                     })
                 };
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"DecimalLiteral\", \"HexLiteral\"}"]
                 let result = self.numeric_expression(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"AsciiStringLiteral\", \"HexStringLiteral\", \"UnicodeStringLiteral\"}"]
                 let result = {
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"HexStringLiteral\"}"]
                         let result = self.hex_string_literals_list(input);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"AsciiStringLiteral\"}"]
                         let result = self.ascii_string_literals_list(input);
                         choice.consider(input, result)?;
                         if self.version_is_at_least_0_7_0 {
+                            #[c = "first_set = {\"UnicodeStringLiteral\"}"]
                             let result = self.unicode_string_literals_list(input);
                             choice.consider(input, result)?;
                         }
@@ -1388,32 +1375,42 @@ impl Language {
                     })
                 };
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"]
                 let result = {
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"BoolKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::BoolKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"StringKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::StringKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"AddressKeyword\", \"PayableKeyword\"}"]
                         let result = self.address_type(input);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"FixedBytesType\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::FixedBytesType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"SignedIntegerType\"}"]
                         let result = self
                             .default_parse_token_with_trivia(input, TokenKind::SignedIntegerType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"UnsignedIntegerType\"}"]
                         let result = self
                             .default_parse_token_with_trivia(input, TokenKind::UnsignedIntegerType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"SignedFixedType\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::SignedFixedType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"UnsignedFixedType\"}"]
                         let result = self
                             .default_parse_token_with_trivia(input, TokenKind::UnsignedFixedType);
                         choice.consider(input, result)?;
                         if !self.version_is_at_least_0_8_0 {
+                            #[c = "first_set = {\"ByteKeyword\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::ByteKeyword);
                             choice.consider(input, result)?;
@@ -1422,9 +1419,11 @@ impl Language {
                     })
                 };
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"Identifier\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::Identifier);
                 choice.consider(input, result)?;
                 if self.version_is_at_least_0_5_3 {
+                    #[c = "first_set = {\"TypeKeyword\"}"]
                     let result = self.type_expression(input);
                     choice.consider(input, result)?;
                 }
@@ -1536,22 +1535,29 @@ impl Language {
                 if self.version_is_at_least_0_6_0 {
                     {
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Identifier\"}"]
                             let result = self.modifier_invocation(input);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"OverrideKeyword\"}"]
                             let result = self.override_specifier(input);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"ExternalKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::ExternalKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"PayableKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::PayableKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"PureKeyword\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::PureKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"ViewKeyword\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::ViewKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"VirtualKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::VirtualKeyword);
                             choice.consider(input, result)?;
@@ -1583,9 +1589,11 @@ impl Language {
                     seq.elem(OptionalHelper::transform(self.returns_declaration(input)))?;
                     seq.elem({
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Semicolon\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::Semicolon);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"OpenBrace\"}"]
                             let result = self.block(input);
                             choice.consider(input, result)?;
                             choice.finish(input)
@@ -1602,106 +1610,50 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn for_statement(&self, input: &mut ParserContext) -> ParserResult {
-        {
-            SequenceHelper::run(|mut seq| {
-                seq.elem(self.default_parse_token_with_trivia(input, TokenKind::ForKeyword))?;
-                seq.elem(SequenceHelper::run(|mut seq| {
-                    let mut delim_guard = input.open_delim(TokenKind::CloseParen);
-                    let input = delim_guard.ctx();
-                    seq.elem(self.default_parse_token_with_trivia(input, TokenKind::OpenParen))?;
-                    seq.elem(
-                        {
-                            SequenceHelper::run(|mut seq| {
-                                seq.elem({
-                                    ChoiceHelper::run(input, |mut choice, input| {
-                                        let result = {
-                                            ChoiceHelper::run(input, |mut choice, input| {
-                                                let result = self.expression_statement(input);
-                                                choice.consider(input, result)?;
-                                                let result =
-                                                    self.variable_declaration_statement(input);
-                                                choice.consider(input, result)?;
-                                                let result =
-                                                    self.tuple_deconstruction_statement(input);
-                                                choice.consider(input, result)?;
-                                                choice.finish(input)
-                                            })
-                                        };
-                                        choice.consider(input, result)?;
-                                        let result = self.default_parse_token_with_trivia(
-                                            input,
-                                            TokenKind::Semicolon,
-                                        );
-                                        choice.consider(input, result)?;
-                                        choice.finish(input)
-                                    })
-                                })?;
-                                seq.elem({
-                                    ChoiceHelper::run(input, |mut choice, input| {
-                                        let result = self.expression_statement(input);
-                                        choice.consider(input, result)?;
-                                        let result = self.default_parse_token_with_trivia(
-                                            input,
-                                            TokenKind::Semicolon,
-                                        );
-                                        choice.consider(input, result)?;
-                                        choice.finish(input)
-                                    })
-                                })?;
-                                seq.elem(OptionalHelper::transform(self.expression(input)))?;
-                                seq.finish()
-                            })
-                        }
-                        .recover_until_with_nested_delims(
-                            input,
-                            |input| {
-                                Lexer::next_token::<{ LexicalContext::Default as u8 }>(self, input)
-                            },
-                            |input| Lexer::leading_trivia(self, input),
-                            TokenKind::CloseParen,
-                            Self::default_delimiters(),
-                        ),
-                    )?;
-                    seq.elem(self.default_parse_token_with_trivia(input, TokenKind::CloseParen))?;
-                    seq.finish()
-                }))?;
-                seq.elem(self.statement(input))?;
-                seq.finish()
-            })
-        }
-        .with_kind(RuleKind::ForStatement)
+        { SequenceHelper :: run (| mut seq | { seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: ForKeyword)) ? ; seq . elem (SequenceHelper :: run (| mut seq | { let mut delim_guard = input . open_delim (TokenKind :: CloseParen) ; let input = delim_guard . ctx () ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: OpenParen)) ? ; seq . elem ({ SequenceHelper :: run (| mut seq | { seq . elem ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"AsciiStringLiteral\", \"BoolKeyword\", \"ByteKeyword\", \"DecimalLiteral\", \"FalseKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"HexLiteral\", \"HexStringLiteral\", \"Identifier\", \"MappingKeyword\", \"NewKeyword\", \"OpenBracket\", \"OpenParen\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"TrueKeyword\", \"TypeKeyword\", \"UnicodeStringLiteral\", \"UnsignedFixedType\", \"UnsignedIntegerType\", \"VarKeyword\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"AsciiStringLiteral\", \"BoolKeyword\", \"ByteKeyword\", \"DecimalLiteral\", \"FalseKeyword\", \"FixedBytesType\", \"HexLiteral\", \"HexStringLiteral\", \"Identifier\", \"NewKeyword\", \"OpenBracket\", \"OpenParen\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"TrueKeyword\", \"TypeKeyword\", \"UnicodeStringLiteral\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . expression_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\", \"VarKeyword\"}"] let result = self . variable_declaration_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"OpenParen\"}"] let result = self . tuple_deconstruction_statement (input) ; choice . consider (input , result) ? ; choice . finish (input) }) } ; choice . consider (input , result) ? ; # [c = "first_set = {\"Semicolon\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: Semicolon) ; choice . consider (input , result) ? ; choice . finish (input) }) }) ? ; seq . elem ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"AsciiStringLiteral\", \"BoolKeyword\", \"ByteKeyword\", \"DecimalLiteral\", \"FalseKeyword\", \"FixedBytesType\", \"HexLiteral\", \"HexStringLiteral\", \"Identifier\", \"NewKeyword\", \"OpenBracket\", \"OpenParen\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"TrueKeyword\", \"TypeKeyword\", \"UnicodeStringLiteral\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . expression_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"Semicolon\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: Semicolon) ; choice . consider (input , result) ? ; choice . finish (input) }) }) ? ; seq . elem (OptionalHelper :: transform (self . expression (input))) ? ; seq . finish () }) } . recover_until_with_nested_delims (input , | input | Lexer :: next_token :: < { LexicalContext :: Default as u8 } > (self , input) , | input | Lexer :: leading_trivia (self , input) , TokenKind :: CloseParen , Self :: default_delimiters () ,)) ? ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: CloseParen)) ? ; seq . finish () })) ? ; seq . elem (self . statement (input)) ? ; seq . finish () }) } . with_kind (RuleKind :: ForStatement)
     }
 
     #[allow(unused_assignments, unused_parens)]
     fn function_attributes_list(&self, input: &mut ParserContext) -> ParserResult {
         OneOrMoreHelper::run(input, |input| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"Identifier\"}"]
                 let result = self.modifier_invocation(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"OverrideKeyword\"}"]
                 let result = self.override_specifier(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"ExternalKeyword\"}"]
                 let result =
                     self.default_parse_token_with_trivia(input, TokenKind::ExternalKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"InternalKeyword\"}"]
                 let result =
                     self.default_parse_token_with_trivia(input, TokenKind::InternalKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PayableKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PayableKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PrivateKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PrivateKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PublicKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PublicKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PureKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PureKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"ViewKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::ViewKeyword);
                 choice.consider(input, result)?;
                 if !self.version_is_at_least_0_5_0 {
+                    #[c = "first_set = {\"ConstantKeyword\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::ConstantKeyword);
                     choice.consider(input, result)?;
                 }
                 if self.version_is_at_least_0_6_0 {
+                    #[c = "first_set = {\"VirtualKeyword\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::VirtualKeyword);
                     choice.consider(input, result)?;
@@ -1717,12 +1669,14 @@ impl Language {
         {
             ChoiceHelper::run(input, |mut choice, input| {
                 if self.version_is_at_least_0_6_2 && !self.version_is_at_least_0_8_0 {
+                    #[c = "first_set = {\"OpenBrace\"}"]
                     let result = OneOrMoreHelper::run(input, |input| {
                         self.named_arguments_declaration(input)
                     });
                     choice.consider(input, result)?;
                 }
                 if self.version_is_at_least_0_8_0 {
+                    #[c = "first_set = {\"OpenBrace\"}"]
                     let result = self.named_arguments_declaration(input);
                     choice.consider(input, result)?;
                 }
@@ -1739,12 +1693,15 @@ impl Language {
                 seq.elem(self.default_parse_token_with_trivia(input, TokenKind::FunctionKeyword))?;
                 seq.elem({
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"Identifier\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::Identifier);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"FallbackKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::FallbackKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"ReceiveKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::ReceiveKeyword);
                         choice.consider(input, result)?;
@@ -1758,9 +1715,11 @@ impl Language {
                 seq.elem(OptionalHelper::transform(self.returns_declaration(input)))?;
                 seq.elem({
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"Semicolon\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::Semicolon);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"OpenBrace\"}"]
                         let result = self.block(input);
                         choice.consider(input, result)?;
                         choice.finish(input)
@@ -1792,20 +1751,27 @@ impl Language {
     fn function_type_attributes_list(&self, input: &mut ParserContext) -> ParserResult {
         OneOrMoreHelper::run(input, |input| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"InternalKeyword\"}"]
                 let result =
                     self.default_parse_token_with_trivia(input, TokenKind::InternalKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"ExternalKeyword\"}"]
                 let result =
                     self.default_parse_token_with_trivia(input, TokenKind::ExternalKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PrivateKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PrivateKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PublicKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PublicKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PureKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PureKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"ViewKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::ViewKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PayableKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PayableKeyword);
                 choice.consider(input, result)?;
                 choice.finish(input)
@@ -1901,10 +1867,13 @@ impl Language {
                         )?;
                         seq.elem({
                             ChoiceHelper::run(input, |mut choice, input| {
+                                #[c = "first_set = {\"AsciiStringLiteral\"}"]
                                 let result = self.path_import(input);
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"Asterisk\"}"]
                                 let result = self.named_import(input);
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"OpenBrace\"}"]
                                 let result = self.deconstruction_import(input);
                                 choice.consider(input, result)?;
                                 choice.finish(input)
@@ -1998,66 +1967,23 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn interface_members_list(&self, input: &mut ParserContext) -> ParserResult {
-        OneOrMoreHelper::run(input, |input| {
-            ChoiceHelper::run(input, |mut choice, input| {
-                let result = self.using_directive(input);
-                choice.consider(input, result)?;
-                let result = self.function_definition(input);
-                choice.consider(input, result)?;
-                let result = self.modifier_definition(input);
-                choice.consider(input, result)?;
-                let result = self.struct_definition(input);
-                choice.consider(input, result)?;
-                let result = self.enum_definition(input);
-                choice.consider(input, result)?;
-                let result = self.event_definition(input);
-                choice.consider(input, result)?;
-                let result = self.state_variable_definition(input);
-                choice.consider(input, result)?;
-                if self.version_is_at_least_0_4_22 {
-                    let result = self.constructor_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_6_0 {
-                    let result = {
-                        ChoiceHelper::run(input, |mut choice, input| {
-                            let result = self.fallback_function_definition(input);
-                            choice.consider(input, result)?;
-                            let result = self.receive_function_definition(input);
-                            choice.consider(input, result)?;
-                            choice.finish(input)
-                        })
-                    };
-                    choice.consider(input, result)?;
-                }
-                if !self.version_is_at_least_0_6_0 {
-                    let result = self.unnamed_function_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_4 {
-                    let result = self.error_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_8 {
-                    let result = self.user_defined_value_type_definition(input);
-                    choice.consider(input, result)?;
-                }
-                choice.finish(input)
-            })
-        })
-        .with_kind(RuleKind::InterfaceMembersList)
+        OneOrMoreHelper :: run (input , | input | { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"UsingKeyword\"}"] let result = self . using_directive (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . function_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ModifierKeyword\"}"] let result = self . modifier_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"StructKeyword\"}"] let result = self . struct_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"EnumKeyword\"}"] let result = self . enum_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"EventKeyword\"}"] let result = self . event_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . state_variable_definition (input) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_4_22 { # [c = "first_set = {\"ConstructorKeyword\"}"] let result = self . constructor_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_6_0 { # [c = "first_set = {\"FallbackKeyword\", \"ReceiveKeyword\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"FallbackKeyword\"}"] let result = self . fallback_function_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ReceiveKeyword\"}"] let result = self . receive_function_definition (input) ; choice . consider (input , result) ? ; choice . finish (input) }) } ; choice . consider (input , result) ? ; } if ! self . version_is_at_least_0_6_0 { # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . unnamed_function_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_4 { # [c = "first_set = {\"ErrorKeyword\"}"] let result = self . error_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_8 { # [c = "first_set = {\"TypeKeyword\"}"] let result = self . user_defined_value_type_definition (input) ; choice . consider (input , result) ? ; } choice . finish (input) }) }) . with_kind (RuleKind :: InterfaceMembersList)
     }
 
     #[allow(unused_assignments, unused_parens)]
     fn leading_trivia(&self, input: &mut ParserContext) -> ParserResult {
         OneOrMoreHelper::run(input, |input| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"Whitespace\"}"]
                 let result = self.default_parse_token(input, TokenKind::Whitespace);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"EndOfLine\"}"]
                 let result = self.default_parse_token(input, TokenKind::EndOfLine);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"MultilineComment\"}"]
                 let result = self.default_parse_token(input, TokenKind::MultilineComment);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"SingleLineComment\"}"]
                 let result = self.default_parse_token(input, TokenKind::SingleLineComment);
                 choice.consider(input, result)?;
                 choice.finish(input)
@@ -2101,124 +2027,12 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn library_members_list(&self, input: &mut ParserContext) -> ParserResult {
-        OneOrMoreHelper::run(input, |input| {
-            ChoiceHelper::run(input, |mut choice, input| {
-                let result = self.using_directive(input);
-                choice.consider(input, result)?;
-                let result = self.function_definition(input);
-                choice.consider(input, result)?;
-                let result = self.modifier_definition(input);
-                choice.consider(input, result)?;
-                let result = self.struct_definition(input);
-                choice.consider(input, result)?;
-                let result = self.enum_definition(input);
-                choice.consider(input, result)?;
-                let result = self.event_definition(input);
-                choice.consider(input, result)?;
-                let result = self.state_variable_definition(input);
-                choice.consider(input, result)?;
-                if self.version_is_at_least_0_4_22 {
-                    let result = self.constructor_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_6_0 {
-                    let result = {
-                        ChoiceHelper::run(input, |mut choice, input| {
-                            let result = self.fallback_function_definition(input);
-                            choice.consider(input, result)?;
-                            let result = self.receive_function_definition(input);
-                            choice.consider(input, result)?;
-                            choice.finish(input)
-                        })
-                    };
-                    choice.consider(input, result)?;
-                }
-                if !self.version_is_at_least_0_6_0 {
-                    let result = self.unnamed_function_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_4 {
-                    let result = self.error_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_8 {
-                    let result = self.user_defined_value_type_definition(input);
-                    choice.consider(input, result)?;
-                }
-                choice.finish(input)
-            })
-        })
-        .with_kind(RuleKind::LibraryMembersList)
+        OneOrMoreHelper :: run (input , | input | { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"UsingKeyword\"}"] let result = self . using_directive (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . function_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ModifierKeyword\"}"] let result = self . modifier_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"StructKeyword\"}"] let result = self . struct_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"EnumKeyword\"}"] let result = self . enum_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"EventKeyword\"}"] let result = self . event_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . state_variable_definition (input) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_4_22 { # [c = "first_set = {\"ConstructorKeyword\"}"] let result = self . constructor_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_6_0 { # [c = "first_set = {\"FallbackKeyword\", \"ReceiveKeyword\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"FallbackKeyword\"}"] let result = self . fallback_function_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ReceiveKeyword\"}"] let result = self . receive_function_definition (input) ; choice . consider (input , result) ? ; choice . finish (input) }) } ; choice . consider (input , result) ? ; } if ! self . version_is_at_least_0_6_0 { # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . unnamed_function_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_4 { # [c = "first_set = {\"ErrorKeyword\"}"] let result = self . error_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_8 { # [c = "first_set = {\"TypeKeyword\"}"] let result = self . user_defined_value_type_definition (input) ; choice . consider (input , result) ? ; } choice . finish (input) }) }) . with_kind (RuleKind :: LibraryMembersList)
     }
 
     #[allow(unused_assignments, unused_parens)]
     fn mapping_key_type(&self, input: &mut ParserContext) -> ParserResult {
-        {
-            SequenceHelper::run(|mut seq| {
-                seq.elem({
-                    ChoiceHelper::run(input, |mut choice, input| {
-                        let result = {
-                            ChoiceHelper::run(input, |mut choice, input| {
-                                let result = self
-                                    .default_parse_token_with_trivia(input, TokenKind::BoolKeyword);
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::StringKeyword,
-                                );
-                                choice.consider(input, result)?;
-                                let result = self.address_type(input);
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::FixedBytesType,
-                                );
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::SignedIntegerType,
-                                );
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::UnsignedIntegerType,
-                                );
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::SignedFixedType,
-                                );
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::UnsignedFixedType,
-                                );
-                                choice.consider(input, result)?;
-                                if !self.version_is_at_least_0_8_0 {
-                                    let result = self.default_parse_token_with_trivia(
-                                        input,
-                                        TokenKind::ByteKeyword,
-                                    );
-                                    choice.consider(input, result)?;
-                                }
-                                choice.finish(input)
-                            })
-                        };
-                        choice.consider(input, result)?;
-                        let result = self.identifier_path(input);
-                        choice.consider(input, result)?;
-                        choice.finish(input)
-                    })
-                })?;
-                if self.version_is_at_least_0_8_18 {
-                    seq.elem(OptionalHelper::transform(
-                        self.default_parse_token_with_trivia(input, TokenKind::Identifier),
-                    ))?;
-                }
-                seq.finish()
-            })
-        }
-        .with_kind(RuleKind::MappingKeyType)
+        { SequenceHelper :: run (| mut seq | { seq . elem ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"BoolKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: BoolKeyword) ; choice . consider (input , result) ? ; # [c = "first_set = {\"StringKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: StringKeyword) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AddressKeyword\", \"PayableKeyword\"}"] let result = self . address_type (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"FixedBytesType\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: FixedBytesType) ; choice . consider (input , result) ? ; # [c = "first_set = {\"SignedIntegerType\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: SignedIntegerType) ; choice . consider (input , result) ? ; # [c = "first_set = {\"UnsignedIntegerType\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: UnsignedIntegerType) ; choice . consider (input , result) ? ; # [c = "first_set = {\"SignedFixedType\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: SignedFixedType) ; choice . consider (input , result) ? ; # [c = "first_set = {\"UnsignedFixedType\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: UnsignedFixedType) ; choice . consider (input , result) ? ; if ! self . version_is_at_least_0_8_0 { # [c = "first_set = {\"ByteKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: ByteKeyword) ; choice . consider (input , result) ? ; } choice . finish (input) }) } ; choice . consider (input , result) ? ; # [c = "first_set = {\"Identifier\"}"] let result = self . identifier_path (input) ; choice . consider (input , result) ? ; choice . finish (input) }) }) ? ; if self . version_is_at_least_0_8_18 { seq . elem (OptionalHelper :: transform (self . default_parse_token_with_trivia (input , TokenKind :: Identifier))) ? ; } seq . finish () }) } . with_kind (RuleKind :: MappingKeyType)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -2281,9 +2095,11 @@ impl Language {
     fn modifier_attributes_list(&self, input: &mut ParserContext) -> ParserResult {
         OneOrMoreHelper::run(input, |input| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"OverrideKeyword\"}"]
                 let result = self.override_specifier(input);
                 choice.consider(input, result)?;
                 if self.version_is_at_least_0_6_0 {
+                    #[c = "first_set = {\"VirtualKeyword\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::VirtualKeyword);
                     choice.consider(input, result)?;
@@ -2308,9 +2124,11 @@ impl Language {
                 ))?;
                 seq.elem({
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"Semicolon\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::Semicolon);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"OpenBrace\"}"]
                         let result = self.block(input);
                         choice.consider(input, result)?;
                         choice.finish(input)
@@ -2413,6 +2231,7 @@ impl Language {
     fn numeric_expression(&self, input: &mut ParserContext) -> ParserResult {
         {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"HexLiteral\"}"]
                 let result = {
                     SequenceHelper::run(|mut seq| {
                         seq.elem(
@@ -2421,42 +2240,50 @@ impl Language {
                         if !self.version_is_at_least_0_5_0 {
                             seq.elem(OptionalHelper::transform({
                                 ChoiceHelper::run(input, |mut choice, input| {
+                                    #[c = "first_set = {\"DaysKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::DaysKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"EtherKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::EtherKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"HoursKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::HoursKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"MinutesKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::MinutesKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"SecondsKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::SecondsKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"WeeksKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::WeeksKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"WeiKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::WeiKeyword,
                                     );
                                     choice.consider(input, result)?;
                                     if !self.version_is_at_least_0_5_0 {
+                                        #[c = "first_set = {\"YearsKeyword\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::YearsKeyword,
@@ -2464,6 +2291,7 @@ impl Language {
                                         choice.consider(input, result)?;
                                     }
                                     if self.version_is_at_least_0_6_11 {
+                                        #[c = "first_set = {\"GweiKeyword\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::GweiKeyword,
@@ -2471,13 +2299,16 @@ impl Language {
                                         choice.consider(input, result)?;
                                     }
                                     if !self.version_is_at_least_0_7_0 {
+                                        #[c = "first_set = {\"FinneyKeyword\", \"SzaboKeyword\"}"]
                                         let result = {
                                             ChoiceHelper::run(input, |mut choice, input| {
+                                                #[c = "first_set = {\"FinneyKeyword\"}"]
                                                 let result = self.default_parse_token_with_trivia(
                                                     input,
                                                     TokenKind::FinneyKeyword,
                                                 );
                                                 choice.consider(input, result)?;
+                                                #[c = "first_set = {\"SzaboKeyword\"}"]
                                                 let result = self.default_parse_token_with_trivia(
                                                     input,
                                                     TokenKind::SzaboKeyword,
@@ -2496,6 +2327,7 @@ impl Language {
                     })
                 };
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"DecimalLiteral\"}"]
                 let result = {
                     SequenceHelper::run(|mut seq| {
                         seq.elem(
@@ -2503,38 +2335,46 @@ impl Language {
                         )?;
                         seq.elem(OptionalHelper::transform({
                             ChoiceHelper::run(input, |mut choice, input| {
+                                #[c = "first_set = {\"DaysKeyword\"}"]
                                 let result = self
                                     .default_parse_token_with_trivia(input, TokenKind::DaysKeyword);
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"EtherKeyword\"}"]
                                 let result = self.default_parse_token_with_trivia(
                                     input,
                                     TokenKind::EtherKeyword,
                                 );
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"HoursKeyword\"}"]
                                 let result = self.default_parse_token_with_trivia(
                                     input,
                                     TokenKind::HoursKeyword,
                                 );
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"MinutesKeyword\"}"]
                                 let result = self.default_parse_token_with_trivia(
                                     input,
                                     TokenKind::MinutesKeyword,
                                 );
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"SecondsKeyword\"}"]
                                 let result = self.default_parse_token_with_trivia(
                                     input,
                                     TokenKind::SecondsKeyword,
                                 );
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"WeeksKeyword\"}"]
                                 let result = self.default_parse_token_with_trivia(
                                     input,
                                     TokenKind::WeeksKeyword,
                                 );
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"WeiKeyword\"}"]
                                 let result = self
                                     .default_parse_token_with_trivia(input, TokenKind::WeiKeyword);
                                 choice.consider(input, result)?;
                                 if !self.version_is_at_least_0_5_0 {
+                                    #[c = "first_set = {\"YearsKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::YearsKeyword,
@@ -2542,6 +2382,7 @@ impl Language {
                                     choice.consider(input, result)?;
                                 }
                                 if self.version_is_at_least_0_6_11 {
+                                    #[c = "first_set = {\"GweiKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::GweiKeyword,
@@ -2549,13 +2390,16 @@ impl Language {
                                     choice.consider(input, result)?;
                                 }
                                 if !self.version_is_at_least_0_7_0 {
+                                    #[c = "first_set = {\"FinneyKeyword\", \"SzaboKeyword\"}"]
                                     let result = {
                                         ChoiceHelper::run(input, |mut choice, input| {
+                                            #[c = "first_set = {\"FinneyKeyword\"}"]
                                             let result = self.default_parse_token_with_trivia(
                                                 input,
                                                 TokenKind::FinneyKeyword,
                                             );
                                             choice.consider(input, result)?;
+                                            #[c = "first_set = {\"SzaboKeyword\"}"]
                                             let result = self.default_parse_token_with_trivia(
                                                 input,
                                                 TokenKind::SzaboKeyword,
@@ -2618,13 +2462,16 @@ impl Language {
                 seq.elem(self.type_name(input))?;
                 seq.elem(OptionalHelper::transform({
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"MemoryKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::MemoryKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"StorageKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::StorageKeyword);
                         choice.consider(input, result)?;
                         if self.version_is_at_least_0_5_0 {
+                            #[c = "first_set = {\"CalldataKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::CalldataKeyword);
                             choice.consider(input, result)?;
@@ -2720,10 +2567,13 @@ impl Language {
                         )?;
                         seq.elem({
                             ChoiceHelper::run(input, |mut choice, input| {
+                                #[c = "first_set = {\"ABICoderKeyword\"}"]
                                 let result = self.abi_coder_pragma(input);
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"ExperimentalKeyword\"}"]
                                 let result = self.experimental_pragma(input);
                                 choice.consider(input, result)?;
+                                #[c = "first_set = {\"SolidityKeyword\"}"]
                                 let result = self.version_pragma(input);
                                 choice.consider(input, result)?;
                                 choice.finish(input)
@@ -2753,16 +2603,21 @@ impl Language {
                 if self.version_is_at_least_0_6_0 {
                     {
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Identifier\"}"]
                             let result = self.modifier_invocation(input);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"OverrideKeyword\"}"]
                             let result = self.override_specifier(input);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"ExternalKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::ExternalKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"PayableKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::PayableKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"VirtualKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::VirtualKeyword);
                             choice.consider(input, result)?;
@@ -2793,9 +2648,11 @@ impl Language {
                     ))?;
                     seq.elem({
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Semicolon\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::Semicolon);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"OpenBrace\"}"]
                             let result = self.block(input);
                             choice.consider(input, result)?;
                             choice.finish(input)
@@ -2893,73 +2750,32 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn source_unit_members_list(&self, input: &mut ParserContext) -> ParserResult {
-        OneOrMoreHelper::run(input, |input| {
-            ChoiceHelper::run(input, |mut choice, input| {
-                let result = self.pragma_directive(input);
-                choice.consider(input, result)?;
-                let result = self.import_directive(input);
-                choice.consider(input, result)?;
-                let result = self.contract_definition(input);
-                choice.consider(input, result)?;
-                let result = self.interface_definition(input);
-                choice.consider(input, result)?;
-                let result = self.library_definition(input);
-                choice.consider(input, result)?;
-                if self.version_is_at_least_0_6_0 {
-                    let result = {
-                        ChoiceHelper::run(input, |mut choice, input| {
-                            let result = self.struct_definition(input);
-                            choice.consider(input, result)?;
-                            let result = self.enum_definition(input);
-                            choice.consider(input, result)?;
-                            choice.finish(input)
-                        })
-                    };
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_7_1 {
-                    let result = self.function_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_7_4 {
-                    let result = self.constant_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_4 {
-                    let result = self.error_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_8 {
-                    let result = self.user_defined_value_type_definition(input);
-                    choice.consider(input, result)?;
-                }
-                if self.version_is_at_least_0_8_13 {
-                    let result = self.using_directive(input);
-                    choice.consider(input, result)?;
-                }
-                choice.finish(input)
-            })
-        })
-        .with_kind(RuleKind::SourceUnitMembersList)
+        OneOrMoreHelper :: run (input , | input | { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"PragmaKeyword\"}"] let result = self . pragma_directive (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ImportKeyword\"}"] let result = self . import_directive (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AbstractKeyword\", \"ContractKeyword\"}"] let result = self . contract_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"InterfaceKeyword\"}"] let result = self . interface_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"LibraryKeyword\"}"] let result = self . library_definition (input) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_6_0 { # [c = "first_set = {\"EnumKeyword\", \"StructKeyword\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"StructKeyword\"}"] let result = self . struct_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"EnumKeyword\"}"] let result = self . enum_definition (input) ; choice . consider (input , result) ? ; choice . finish (input) }) } ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_7_1 { # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . function_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_7_4 { # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . constant_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_4 { # [c = "first_set = {\"ErrorKeyword\"}"] let result = self . error_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_8 { # [c = "first_set = {\"TypeKeyword\"}"] let result = self . user_defined_value_type_definition (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_8_13 { # [c = "first_set = {\"UsingKeyword\"}"] let result = self . using_directive (input) ; choice . consider (input , result) ? ; } choice . finish (input) }) }) . with_kind (RuleKind :: SourceUnitMembersList)
     }
 
     #[allow(unused_assignments, unused_parens)]
     fn state_variable_attributes_list(&self, input: &mut ParserContext) -> ParserResult {
         OneOrMoreHelper::run(input, |input| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"OverrideKeyword\"}"]
                 let result = self.override_specifier(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"ConstantKeyword\"}"]
                 let result =
                     self.default_parse_token_with_trivia(input, TokenKind::ConstantKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"InternalKeyword\"}"]
                 let result =
                     self.default_parse_token_with_trivia(input, TokenKind::InternalKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PrivateKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PrivateKeyword);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"PublicKeyword\"}"]
                 let result = self.default_parse_token_with_trivia(input, TokenKind::PublicKeyword);
                 choice.consider(input, result)?;
                 if self.version_is_at_least_0_6_5 {
+                    #[c = "first_set = {\"ImmutableKeyword\"}"]
                     let result =
                         self.default_parse_token_with_trivia(input, TokenKind::ImmutableKeyword);
                     choice.consider(input, result)?;
@@ -3011,68 +2827,7 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn statement(&self, input: &mut ParserContext) -> ParserResult {
-        {
-            ChoiceHelper::run(input, |mut choice, input| {
-                let result = {
-                    ChoiceHelper::run(input, |mut choice, input| {
-                        let result = self.expression_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.variable_declaration_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.tuple_deconstruction_statement(input);
-                        choice.consider(input, result)?;
-                        choice.finish(input)
-                    })
-                };
-                choice.consider(input, result)?;
-                let result = {
-                    ChoiceHelper::run(input, |mut choice, input| {
-                        let result = self.if_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.for_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.while_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.do_while_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.continue_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.break_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.delete_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.return_statement(input);
-                        choice.consider(input, result)?;
-                        let result = self.revert_statement(input);
-                        choice.consider(input, result)?;
-                        if self.version_is_at_least_0_4_21 {
-                            let result = self.emit_statement(input);
-                            choice.consider(input, result)?;
-                        }
-                        if !self.version_is_at_least_0_5_0 {
-                            let result = self.throw_statement(input);
-                            choice.consider(input, result)?;
-                        }
-                        if self.version_is_at_least_0_6_0 {
-                            let result = self.try_statement(input);
-                            choice.consider(input, result)?;
-                        }
-                        choice.finish(input)
-                    })
-                };
-                choice.consider(input, result)?;
-                let result = self.assembly_statement(input);
-                choice.consider(input, result)?;
-                let result = self.block(input);
-                choice.consider(input, result)?;
-                if self.version_is_at_least_0_8_0 {
-                    let result = self.unchecked_block(input);
-                    choice.consider(input, result)?;
-                }
-                choice.finish(input)
-            })
-        }
-        .with_kind(RuleKind::Statement)
+        { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"AsciiStringLiteral\", \"BoolKeyword\", \"ByteKeyword\", \"DecimalLiteral\", \"FalseKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"HexLiteral\", \"HexStringLiteral\", \"Identifier\", \"MappingKeyword\", \"NewKeyword\", \"OpenBracket\", \"OpenParen\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"TrueKeyword\", \"TypeKeyword\", \"UnicodeStringLiteral\", \"UnsignedFixedType\", \"UnsignedIntegerType\", \"VarKeyword\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"AsciiStringLiteral\", \"BoolKeyword\", \"ByteKeyword\", \"DecimalLiteral\", \"FalseKeyword\", \"FixedBytesType\", \"HexLiteral\", \"HexStringLiteral\", \"Identifier\", \"NewKeyword\", \"OpenBracket\", \"OpenParen\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"TrueKeyword\", \"TypeKeyword\", \"UnicodeStringLiteral\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . expression_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\", \"VarKeyword\"}"] let result = self . variable_declaration_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"OpenParen\"}"] let result = self . tuple_deconstruction_statement (input) ; choice . consider (input , result) ? ; choice . finish (input) }) } ; choice . consider (input , result) ? ; # [c = "first_set = {\"BreakKeyword\", \"ContinueKeyword\", \"DeleteKeyword\", \"DoKeyword\", \"EmitKeyword\", \"ForKeyword\", \"IfKeyword\", \"ReturnKeyword\", \"RevertKeyword\", \"ThrowKeyword\", \"TryKeyword\", \"WhileKeyword\"}"] let result = { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"IfKeyword\"}"] let result = self . if_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ForKeyword\"}"] let result = self . for_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"WhileKeyword\"}"] let result = self . while_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"DoKeyword\"}"] let result = self . do_while_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ContinueKeyword\"}"] let result = self . continue_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"BreakKeyword\"}"] let result = self . break_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"DeleteKeyword\"}"] let result = self . delete_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ReturnKeyword\"}"] let result = self . return_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"RevertKeyword\"}"] let result = self . revert_statement (input) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_4_21 { # [c = "first_set = {\"EmitKeyword\"}"] let result = self . emit_statement (input) ; choice . consider (input , result) ? ; } if ! self . version_is_at_least_0_5_0 { # [c = "first_set = {\"ThrowKeyword\"}"] let result = self . throw_statement (input) ; choice . consider (input , result) ? ; } if self . version_is_at_least_0_6_0 { # [c = "first_set = {\"TryKeyword\"}"] let result = self . try_statement (input) ; choice . consider (input , result) ? ; } choice . finish (input) }) } ; choice . consider (input , result) ? ; # [c = "first_set = {\"AssemblyKeyword\"}"] let result = self . assembly_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"OpenBrace\"}"] let result = self . block (input) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_8_0 { # [c = "first_set = {\"UncheckedKeyword\"}"] let result = self . unchecked_block (input) ; choice . consider (input , result) ? ; } choice . finish (input) }) } . with_kind (RuleKind :: Statement)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -3282,75 +3037,7 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_member(&self, input: &mut ParserContext) -> ParserResult {
-        OptionalHelper::transform({
-            ChoiceHelper::run(input, |mut choice, input| {
-                let result = {
-                    SequenceHelper::run(|mut seq| {
-                        seq.elem(self.type_name(input))?;
-                        seq.elem(OptionalHelper::transform({
-                            ChoiceHelper::run(input, |mut choice, input| {
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::MemoryKeyword,
-                                );
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::StorageKeyword,
-                                );
-                                choice.consider(input, result)?;
-                                if self.version_is_at_least_0_5_0 {
-                                    let result = self.default_parse_token_with_trivia(
-                                        input,
-                                        TokenKind::CalldataKeyword,
-                                    );
-                                    choice.consider(input, result)?;
-                                }
-                                choice.finish(input)
-                            })
-                        }))?;
-                        seq.elem(
-                            self.default_parse_token_with_trivia(input, TokenKind::Identifier),
-                        )?;
-                        seq.finish()
-                    })
-                };
-                choice.consider(input, result)?;
-                let result = {
-                    SequenceHelper::run(|mut seq| {
-                        seq.elem(OptionalHelper::transform({
-                            ChoiceHelper::run(input, |mut choice, input| {
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::MemoryKeyword,
-                                );
-                                choice.consider(input, result)?;
-                                let result = self.default_parse_token_with_trivia(
-                                    input,
-                                    TokenKind::StorageKeyword,
-                                );
-                                choice.consider(input, result)?;
-                                if self.version_is_at_least_0_5_0 {
-                                    let result = self.default_parse_token_with_trivia(
-                                        input,
-                                        TokenKind::CalldataKeyword,
-                                    );
-                                    choice.consider(input, result)?;
-                                }
-                                choice.finish(input)
-                            })
-                        }))?;
-                        seq.elem(
-                            self.default_parse_token_with_trivia(input, TokenKind::Identifier),
-                        )?;
-                        seq.finish()
-                    })
-                };
-                choice.consider(input, result)?;
-                choice.finish(input)
-            })
-        })
-        .with_kind(RuleKind::TupleMember)
+        OptionalHelper :: transform ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = { SequenceHelper :: run (| mut seq | { seq . elem (self . type_name (input)) ? ; seq . elem (OptionalHelper :: transform ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"MemoryKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: MemoryKeyword) ; choice . consider (input , result) ? ; # [c = "first_set = {\"StorageKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: StorageKeyword) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_5_0 { # [c = "first_set = {\"CalldataKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: CalldataKeyword) ; choice . consider (input , result) ? ; } choice . finish (input) }) })) ? ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: Identifier)) ? ; seq . finish () }) } ; choice . consider (input , result) ? ; # [c = "first_set = {\"CalldataKeyword\", \"Identifier\", \"MemoryKeyword\", \"StorageKeyword\"}"] let result = { SequenceHelper :: run (| mut seq | { seq . elem (OptionalHelper :: transform ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"MemoryKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: MemoryKeyword) ; choice . consider (input , result) ? ; # [c = "first_set = {\"StorageKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: StorageKeyword) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_5_0 { # [c = "first_set = {\"CalldataKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: CalldataKeyword) ; choice . consider (input , result) ? ; } choice . finish (input) }) })) ? ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: Identifier)) ? ; seq . finish () }) } ; choice . consider (input , result) ? ; choice . finish (input) }) }) . with_kind (RuleKind :: TupleMember)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -3441,36 +3128,48 @@ impl Language {
         };
         let primary_expression_parser = |input: &mut ParserContext| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"FunctionKeyword\"}"]
                 let result = self.function_type(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"MappingKeyword\"}"]
                 let result = self.mapping_type(input);
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"]
                 let result = {
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"BoolKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::BoolKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"StringKeyword\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::StringKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"AddressKeyword\", \"PayableKeyword\"}"]
                         let result = self.address_type(input);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"FixedBytesType\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::FixedBytesType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"SignedIntegerType\"}"]
                         let result = self
                             .default_parse_token_with_trivia(input, TokenKind::SignedIntegerType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"UnsignedIntegerType\"}"]
                         let result = self
                             .default_parse_token_with_trivia(input, TokenKind::UnsignedIntegerType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"SignedFixedType\"}"]
                         let result =
                             self.default_parse_token_with_trivia(input, TokenKind::SignedFixedType);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"UnsignedFixedType\"}"]
                         let result = self
                             .default_parse_token_with_trivia(input, TokenKind::UnsignedFixedType);
                         choice.consider(input, result)?;
                         if !self.version_is_at_least_0_8_0 {
+                            #[c = "first_set = {\"ByteKeyword\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::ByteKeyword);
                             choice.consider(input, result)?;
@@ -3479,6 +3178,7 @@ impl Language {
                     })
                 };
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"Identifier\"}"]
                 let result = self.identifier_path(input);
                 choice.consider(input, result)?;
                 choice.finish(input)
@@ -3544,19 +3244,25 @@ impl Language {
                 if !self.version_is_at_least_0_6_0 {
                     {
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Identifier\"}"]
                             let result = self.modifier_invocation(input);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"OverrideKeyword\"}"]
                             let result = self.override_specifier(input);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"ExternalKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::ExternalKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"PayableKeyword\"}"]
                             let result = self
                                 .default_parse_token_with_trivia(input, TokenKind::PayableKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"PureKeyword\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::PureKeyword);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"ViewKeyword\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::ViewKeyword);
                             choice.consider(input, result)?;
@@ -3587,9 +3293,11 @@ impl Language {
                     ))?;
                     seq.elem({
                         ChoiceHelper::run(input, |mut choice, input| {
+                            #[c = "first_set = {\"Semicolon\"}"]
                             let result =
                                 self.default_parse_token_with_trivia(input, TokenKind::Semicolon);
                             choice.consider(input, result)?;
+                            #[c = "first_set = {\"OpenBrace\"}"]
                             let result = self.block(input);
                             choice.consider(input, result)?;
                             choice.finish(input)
@@ -3622,44 +3330,53 @@ impl Language {
                             )?;
                             seq.elem({
                                 ChoiceHelper::run(input, |mut choice, input| {
+                                    #[c = "first_set = {\"BoolKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::BoolKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"StringKeyword\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::StringKeyword,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"AddressKeyword\", \"PayableKeyword\"}"]
                                     let result = self.address_type(input);
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"FixedBytesType\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::FixedBytesType,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"SignedIntegerType\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::SignedIntegerType,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"UnsignedIntegerType\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::UnsignedIntegerType,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"SignedFixedType\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::SignedFixedType,
                                     );
                                     choice.consider(input, result)?;
+                                    #[c = "first_set = {\"UnsignedFixedType\"}"]
                                     let result = self.default_parse_token_with_trivia(
                                         input,
                                         TokenKind::UnsignedFixedType,
                                     );
                                     choice.consider(input, result)?;
                                     if !self.version_is_at_least_0_8_0 {
+                                        #[c = "first_set = {\"ByteKeyword\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::ByteKeyword,
@@ -3691,53 +3408,7 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_directive(&self, input: &mut ParserContext) -> ParserResult {
-        SequenceHelper::run(|mut seq| {
-            seq.elem(
-                {
-                    SequenceHelper::run(|mut seq| {
-                        seq.elem(
-                            self.default_parse_token_with_trivia(input, TokenKind::UsingKeyword),
-                        )?;
-                        seq.elem({
-                            ChoiceHelper::run(input, |mut choice, input| {
-                                let result = self.using_directive_path(input);
-                                choice.consider(input, result)?;
-                                let result = self.using_directive_deconstruction(input);
-                                choice.consider(input, result)?;
-                                choice.finish(input)
-                            })
-                        })?;
-                        seq.elem(
-                            self.default_parse_token_with_trivia(input, TokenKind::ForKeyword),
-                        )?;
-                        seq.elem({
-                            ChoiceHelper::run(input, |mut choice, input| {
-                                let result = self
-                                    .default_parse_token_with_trivia(input, TokenKind::Asterisk);
-                                choice.consider(input, result)?;
-                                let result = self.type_name(input);
-                                choice.consider(input, result)?;
-                                choice.finish(input)
-                            })
-                        })?;
-                        seq.elem(OptionalHelper::transform(
-                            self.default_parse_token_with_trivia(input, TokenKind::GlobalKeyword),
-                        ))?;
-                        seq.finish()
-                    })
-                }
-                .recover_until_with_nested_delims(
-                    input,
-                    |input| Lexer::next_token::<{ LexicalContext::Default as u8 }>(self, input),
-                    |input| Lexer::leading_trivia(self, input),
-                    TokenKind::Semicolon,
-                    Self::default_delimiters(),
-                ),
-            )?;
-            seq.elem(self.default_parse_token_with_trivia(input, TokenKind::Semicolon))?;
-            seq.finish()
-        })
-        .with_kind(RuleKind::UsingDirective)
+        SequenceHelper :: run (| mut seq | { seq . elem ({ SequenceHelper :: run (| mut seq | { seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: UsingKeyword)) ? ; seq . elem ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"Identifier\"}"] let result = self . using_directive_path (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"OpenBrace\"}"] let result = self . using_directive_deconstruction (input) ; choice . consider (input , result) ? ; choice . finish (input) }) }) ? ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: ForKeyword)) ? ; seq . elem ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"Asterisk\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: Asterisk) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . type_name (input) ; choice . consider (input , result) ? ; choice . finish (input) }) }) ? ; seq . elem (OptionalHelper :: transform (self . default_parse_token_with_trivia (input , TokenKind :: GlobalKeyword))) ? ; seq . finish () }) } . recover_until_with_nested_delims (input , | input | Lexer :: next_token :: < { LexicalContext :: Default as u8 } > (self , input) , | input | Lexer :: leading_trivia (self , input) , TokenKind :: Semicolon , Self :: default_delimiters () ,)) ? ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: Semicolon)) ? ; seq . finish () }) . with_kind (RuleKind :: UsingDirective)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -3782,74 +3453,89 @@ impl Language {
                             seq.elem(if self.version_is_at_least_0_8_19 {
                                 {
                                     ChoiceHelper::run(input, |mut choice, input| {
+                                        #[c = "first_set = {\"Ampersand\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Ampersand,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Asterisk\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Asterisk,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"BangEqual\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::BangEqual,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Bar\"}"]
                                         let result = self
                                             .default_parse_token_with_trivia(input, TokenKind::Bar);
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Caret\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Caret,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"EqualEqual\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::EqualEqual,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"GreaterThan\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::GreaterThan,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"GreaterThanEqual\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::GreaterThanEqual,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"LessThan\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::LessThan,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"LessThanEqual\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::LessThanEqual,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Minus\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Minus,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Percent\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Percent,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Plus\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Plus,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Slash\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Slash,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"Tilde\"}"]
                                         let result = self.default_parse_token_with_trivia(
                                             input,
                                             TokenKind::Tilde,
@@ -3884,41 +3570,7 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn variable_declaration(&self, input: &mut ParserContext) -> ParserResult {
-        {
-            SequenceHelper::run(|mut seq| {
-                seq.elem({
-                    ChoiceHelper::run(input, |mut choice, input| {
-                        if !self.version_is_at_least_0_5_0 {
-                            let result =
-                                self.default_parse_token_with_trivia(input, TokenKind::VarKeyword);
-                            choice.consider(input, result)?;
-                        }
-                        let result = self.type_name(input);
-                        choice.consider(input, result)?;
-                        choice.finish(input)
-                    })
-                })?;
-                seq.elem(OptionalHelper::transform({
-                    ChoiceHelper::run(input, |mut choice, input| {
-                        let result =
-                            self.default_parse_token_with_trivia(input, TokenKind::MemoryKeyword);
-                        choice.consider(input, result)?;
-                        let result =
-                            self.default_parse_token_with_trivia(input, TokenKind::StorageKeyword);
-                        choice.consider(input, result)?;
-                        if self.version_is_at_least_0_5_0 {
-                            let result = self
-                                .default_parse_token_with_trivia(input, TokenKind::CalldataKeyword);
-                            choice.consider(input, result)?;
-                        }
-                        choice.finish(input)
-                    })
-                }))?;
-                seq.elem(self.default_parse_token_with_trivia(input, TokenKind::Identifier))?;
-                seq.finish()
-            })
-        }
-        .with_kind(RuleKind::VariableDeclaration)
+        { SequenceHelper :: run (| mut seq | { seq . elem ({ ChoiceHelper :: run (input , | mut choice , input | { if ! self . version_is_at_least_0_5_0 { # [c = "first_set = {\"VarKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: VarKeyword) ; choice . consider (input , result) ? ; } # [c = "first_set = {\"AddressKeyword\", \"BoolKeyword\", \"ByteKeyword\", \"FixedBytesType\", \"FunctionKeyword\", \"Identifier\", \"MappingKeyword\", \"PayableKeyword\", \"SignedFixedType\", \"SignedIntegerType\", \"StringKeyword\", \"UnsignedFixedType\", \"UnsignedIntegerType\"}"] let result = self . type_name (input) ; choice . consider (input , result) ? ; choice . finish (input) }) }) ? ; seq . elem (OptionalHelper :: transform ({ ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"MemoryKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: MemoryKeyword) ; choice . consider (input , result) ? ; # [c = "first_set = {\"StorageKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: StorageKeyword) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_5_0 { # [c = "first_set = {\"CalldataKeyword\"}"] let result = self . default_parse_token_with_trivia (input , TokenKind :: CalldataKeyword) ; choice . consider (input , result) ? ; } choice . finish (input) }) })) ? ; seq . elem (self . default_parse_token_with_trivia (input , TokenKind :: Identifier)) ? ; seq . finish () }) } . with_kind (RuleKind :: VariableDeclaration)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -3989,24 +3641,31 @@ impl Language {
         let parse_version_pragma_unary_operator = |input: &mut ParserContext| {
             PrecedenceHelper::to_prefix_operator(RuleKind::VersionPragmaUnaryExpression, 5u8, {
                 ChoiceHelper::run(input, |mut choice, input| {
+                    #[c = "first_set = {\"Caret\"}"]
                     let result =
                         self.version_pragma_parse_token_with_trivia(input, TokenKind::Caret);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Tilde\"}"]
                     let result =
                         self.version_pragma_parse_token_with_trivia(input, TokenKind::Tilde);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"Equal\"}"]
                     let result =
                         self.version_pragma_parse_token_with_trivia(input, TokenKind::Equal);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"LessThan\"}"]
                     let result =
                         self.version_pragma_parse_token_with_trivia(input, TokenKind::LessThan);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThan\"}"]
                     let result =
                         self.version_pragma_parse_token_with_trivia(input, TokenKind::GreaterThan);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"LessThanEqual\"}"]
                     let result = self
                         .version_pragma_parse_token_with_trivia(input, TokenKind::LessThanEqual);
                     choice.consider(input, result)?;
+                    #[c = "first_set = {\"GreaterThanEqual\"}"]
                     let result = self
                         .version_pragma_parse_token_with_trivia(input, TokenKind::GreaterThanEqual);
                     choice.consider(input, result)?;
@@ -4207,23 +3866,30 @@ impl Language {
         };
         let primary_expression_parser = |input: &mut ParserContext| {
             ChoiceHelper::run(input, |mut choice, input| {
+                #[c = "first_set = {\"AsciiStringLiteral\", \"FalseKeyword\", \"HexStringLiteral\", \"TrueKeyword\", \"YulDecimalLiteral\", \"YulHexLiteral\"}"]
                 let result = {
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"TrueKeyword\"}"]
                         let result =
                             self.yul_block_parse_token_with_trivia(input, TokenKind::TrueKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"FalseKeyword\"}"]
                         let result =
                             self.yul_block_parse_token_with_trivia(input, TokenKind::FalseKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"YulHexLiteral\"}"]
                         let result =
                             self.yul_block_parse_token_with_trivia(input, TokenKind::YulHexLiteral);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"YulDecimalLiteral\"}"]
                         let result = self
                             .yul_block_parse_token_with_trivia(input, TokenKind::YulDecimalLiteral);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"HexStringLiteral\"}"]
                         let result = self
                             .yul_block_parse_token_with_trivia(input, TokenKind::HexStringLiteral);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"AsciiStringLiteral\"}"]
                         let result = self.yul_block_parse_token_with_trivia(
                             input,
                             TokenKind::AsciiStringLiteral,
@@ -4233,6 +3899,7 @@ impl Language {
                     })
                 };
                 choice.consider(input, result)?;
+                #[c = "first_set = {\"YulIdentifier\"}"]
                 let result = self.yul_identifier_path(input);
                 choice.consider(input, result)?;
                 choice.finish(input)
@@ -4402,36 +4069,7 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_statement(&self, input: &mut ParserContext) -> ParserResult {
-        {
-            ChoiceHelper::run(input, |mut choice, input| {
-                let result = self.yul_block(input);
-                choice.consider(input, result)?;
-                let result = self.yul_function_definition(input);
-                choice.consider(input, result)?;
-                let result = self.yul_declaration_statement(input);
-                choice.consider(input, result)?;
-                let result = self.yul_assignment_statement(input);
-                choice.consider(input, result)?;
-                let result = self.yul_if_statement(input);
-                choice.consider(input, result)?;
-                let result = self.yul_for_statement(input);
-                choice.consider(input, result)?;
-                let result = self.yul_switch_statement(input);
-                choice.consider(input, result)?;
-                let result = self.yul_break_statement(input);
-                choice.consider(input, result)?;
-                let result = self.yul_continue_statement(input);
-                choice.consider(input, result)?;
-                let result = self.yul_expression(input);
-                choice.consider(input, result)?;
-                if self.version_is_at_least_0_6_0 {
-                    let result = self.yul_leave_statement(input);
-                    choice.consider(input, result)?;
-                }
-                choice.finish(input)
-            })
-        }
-        .with_kind(RuleKind::YulStatement)
+        { ChoiceHelper :: run (input , | mut choice , input | { # [c = "first_set = {\"OpenBrace\"}"] let result = self . yul_block (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"FunctionKeyword\"}"] let result = self . yul_function_definition (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"LetKeyword\"}"] let result = self . yul_declaration_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"YulIdentifier\"}"] let result = self . yul_assignment_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"IfKeyword\"}"] let result = self . yul_if_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ForKeyword\"}"] let result = self . yul_for_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"SwitchKeyword\"}"] let result = self . yul_switch_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"BreakKeyword\"}"] let result = self . yul_break_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"ContinueKeyword\"}"] let result = self . yul_continue_statement (input) ; choice . consider (input , result) ? ; # [c = "first_set = {\"AsciiStringLiteral\", \"FalseKeyword\", \"HexStringLiteral\", \"TrueKeyword\", \"YulDecimalLiteral\", \"YulHexLiteral\", \"YulIdentifier\"}"] let result = self . yul_expression (input) ; choice . consider (input , result) ? ; if self . version_is_at_least_0_6_0 { # [c = "first_set = {\"LeaveKeyword\"}"] let result = self . yul_leave_statement (input) ; choice . consider (input , result) ? ; } choice . finish (input) }) } . with_kind (RuleKind :: YulStatement)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -4446,9 +4084,11 @@ impl Language {
             SequenceHelper::run(|mut seq| {
                 seq.elem({
                     ChoiceHelper::run(input, |mut choice, input| {
+                        #[c = "first_set = {\"DefaultKeyword\"}"]
                         let result = self
                             .yul_block_parse_token_with_trivia(input, TokenKind::DefaultKeyword);
                         choice.consider(input, result)?;
+                        #[c = "first_set = {\"CaseKeyword\"}"]
                         let result = {
                             SequenceHelper::run(|mut seq| {
                                 seq.elem(self.yul_block_parse_token_with_trivia(
@@ -4457,31 +4097,37 @@ impl Language {
                                 ))?;
                                 seq.elem({
                                     ChoiceHelper::run(input, |mut choice, input| {
+                                        #[c = "first_set = {\"TrueKeyword\"}"]
                                         let result = self.yul_block_parse_token_with_trivia(
                                             input,
                                             TokenKind::TrueKeyword,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"FalseKeyword\"}"]
                                         let result = self.yul_block_parse_token_with_trivia(
                                             input,
                                             TokenKind::FalseKeyword,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"YulHexLiteral\"}"]
                                         let result = self.yul_block_parse_token_with_trivia(
                                             input,
                                             TokenKind::YulHexLiteral,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"YulDecimalLiteral\"}"]
                                         let result = self.yul_block_parse_token_with_trivia(
                                             input,
                                             TokenKind::YulDecimalLiteral,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"HexStringLiteral\"}"]
                                         let result = self.yul_block_parse_token_with_trivia(
                                             input,
                                             TokenKind::HexStringLiteral,
                                         );
                                         choice.consider(input, result)?;
+                                        #[c = "first_set = {\"AsciiStringLiteral\"}"]
                                         let result = self.yul_block_parse_token_with_trivia(
                                             input,
                                             TokenKind::AsciiStringLiteral,

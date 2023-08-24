@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use inflector::Inflector;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -29,9 +31,82 @@ impl ParserDefinitionExtensions for TriviaParserDefinitionRef {
 pub trait ParserDefinitionNodeExtensions {
     fn to_parser_code(&self, context_name: &'static str, is_trivia: bool) -> TokenStream;
     fn applicable_version_quality_ranges(&self) -> Vec<VersionQualityRange>;
+    fn can_be_empty(&self) -> bool;
+    fn first_set(&self, accum: &mut BTreeSet<&'static str>);
 }
 
 impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
+    fn can_be_empty(&self) -> bool {
+        match self {
+            ParserDefinitionNode::Versioned(body, _, _) => body.can_be_empty(),
+
+            ParserDefinitionNode::Optional(_, _) | ParserDefinitionNode::ZeroOrMore(_, _) => true,
+
+            ParserDefinitionNode::Sequence(nodes, _) => {
+                nodes.iter().all(|node| node.can_be_empty())
+            }
+
+            ParserDefinitionNode::Choice(nodes, _) => nodes.iter().any(|node| node.can_be_empty()),
+
+            ParserDefinitionNode::OneOrMore(_, _)
+            | ParserDefinitionNode::ScannerDefinition(_, _)
+            | ParserDefinitionNode::TriviaParserDefinition(_, _)
+            | ParserDefinitionNode::ParserDefinition(_, _)
+            | ParserDefinitionNode::PrecedenceParserDefinition(_, _)
+            | ParserDefinitionNode::DelimitedBy(_, _, _, _)
+            | ParserDefinitionNode::SeparatedBy(_, _, _)
+            | ParserDefinitionNode::TerminatedBy(_, _, _) => false,
+        }
+    }
+
+    fn first_set(&self, accum: &mut BTreeSet<&'static str>) {
+        match self {
+            ParserDefinitionNode::Versioned(node, _, _)
+            | ParserDefinitionNode::Optional(node, _)
+            | ParserDefinitionNode::ZeroOrMore(node, _)
+            | ParserDefinitionNode::OneOrMore(node, _) => node.first_set(accum),
+
+            ParserDefinitionNode::Sequence(nodes, _) => {
+                for node in nodes {
+                    node.first_set(accum);
+                    if !node.can_be_empty() {
+                        break;
+                    }
+                }
+            }
+
+            ParserDefinitionNode::Choice(nodes, _) => {
+                for node in nodes {
+                    node.first_set(accum);
+                }
+            }
+
+            ParserDefinitionNode::ScannerDefinition(definition, _) => {
+                accum.insert(definition.name());
+            }
+
+            ParserDefinitionNode::TriviaParserDefinition(definition, _) => {
+                definition.node().first_set(accum)
+            }
+            ParserDefinitionNode::ParserDefinition(definition, _) => {
+                definition.node().first_set(accum)
+            }
+            ParserDefinitionNode::PrecedenceParserDefinition(definition, _) => {
+                definition.node().primary_expression.first_set(accum)
+            }
+
+            ParserDefinitionNode::DelimitedBy(open, _, _, _) => open.first_set(accum),
+
+            ParserDefinitionNode::SeparatedBy(body, follow, _)
+            | ParserDefinitionNode::TerminatedBy(body, follow, _) => {
+                body.first_set(accum);
+                if body.can_be_empty() {
+                    follow.first_set(accum);
+                }
+            }
+        }
+    }
+
     fn to_parser_code(&self, context_name: &'static str, is_trivia: bool) -> TokenStream {
         match self {
             Self::Versioned(body, _, _) => body.to_parser_code(context_name, is_trivia),
@@ -81,12 +156,37 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
             }
 
             Self::Choice(nodes, _) => {
-                let parsers = nodes
+                let first_sets = nodes
                     .iter()
                     .map(|node| {
+                        let mut first_set = BTreeSet::new();
+                        node.first_set(&mut first_set);
+                        first_set
+                    })
+                    .collect::<Vec<_>>();
+                // let union_set = first_sets.iter().fold(
+                //     BTreeSet::<&'static str>::new(),
+                //     |mut union_set, first_set| {
+                //         union_set.extend(first_set);
+                //         union_set
+                //     },
+                // );
+                // if union_set.len() == first_sets.iter().fold(0, |count, set| count + set.len()) {
+                //     // Dispatch on next token kind
+                // } else {
+                //     // TODO: collect the productions that share a token kind
+                //     // and dispatch directly for the rest
+                //     // Backracking
+                // }
+                let parsers = nodes
+                    .iter()
+                    .zip(first_sets.iter())
+                    .map(|(node, first_set)| {
                         let parser = node.to_parser_code(context_name, is_trivia);
+                        let comment = format!("first_set = {:?}", first_set);
                         node.applicable_version_quality_ranges().wrap_code(
                             quote! {
+                                #[c = #comment]
                                 let result = #parser;
                                 choice.consider(input, result)?;
                             },
