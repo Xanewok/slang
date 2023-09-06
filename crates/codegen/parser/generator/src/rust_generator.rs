@@ -143,6 +143,7 @@ impl RustGenerator {
             "napi_interface/mod.rs",
             "parser_support/mod.rs",
             "parser_support/context.rs",
+            "parser_support/debugger.rs",
             "parser_support/parser_function.rs",
             "parser_support/optional_helper.rs",
             "parser_support/sequence_helper.rs",

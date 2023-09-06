@@ -79,6 +79,10 @@ impl<'s> ParserContext<'s> {
         &self.closing_delimiters
     }
 
+    pub(super) fn source(&self) -> &str {
+        self.source
+    }
+
     pub fn position(&self) -> TextIndex {
         self.position
     }

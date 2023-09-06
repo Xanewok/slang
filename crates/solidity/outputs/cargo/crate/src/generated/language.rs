@@ -21,6 +21,7 @@ use crate::lexer::{KeywordScan, Lexer, ScannedToken};
 #[cfg(feature = "slang_napi_interfaces")]
 use crate::napi_interface::parse_output::ParseOutput as NAPIParseOutput;
 use crate::parse_output::ParseOutput;
+use crate::parser_support::debugger::Debugger;
 use crate::parser_support::{
     ChoiceHelper, OneOrMoreHelper, OptionalHelper, ParserContext, ParserFunction, ParserResult,
     PrecedenceHelper, RecoverFromNoMatch, SeparatedHelper, SequenceHelper, ZeroOrMoreHelper,
@@ -198,6 +199,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn abi_coder_pragma(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "abi_coder_pragma");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::AbicoderKeyword,
@@ -220,6 +224,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn additive_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "additive_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -243,6 +250,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn address_type(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "address_type");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::AddressKeyword,
@@ -267,6 +277,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn and_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "and_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -290,6 +303,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn arguments_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "arguments_declaration");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.positional_arguments_declaration(input);
             choice.consider(input, result)?;
@@ -303,6 +319,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn array_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "array_expression");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseBracket);
             let input = delim_guard.ctx();
@@ -337,6 +356,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn array_type_name(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "array_type_name");
+        let input = guard.context();
+
         let result = self.type_name(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -360,6 +382,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn array_values(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "array_values");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -372,6 +397,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn ascii_string_literals(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "ascii_string_literals");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -384,6 +412,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn assembly_flags(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "assembly_flags");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -402,6 +433,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn assembly_flags_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "assembly_flags_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -436,6 +470,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn assembly_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "assembly_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::AssemblyKeyword,
@@ -465,6 +502,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn assignment_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "assignment_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -488,6 +528,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn bitwise_and_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "bitwise_and_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -511,6 +554,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn bitwise_or_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "bitwise_or_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -534,6 +580,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn bitwise_xor_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "bitwise_xor_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -557,6 +606,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn block(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "block");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
             let input = delim_guard.ctx();
@@ -591,6 +643,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn break_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "break_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 self.parse_token_with_trivia::<LexicalContextType::Default>(
@@ -619,6 +674,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn catch_clause(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "catch_clause");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -643,6 +701,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn catch_clause_error(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "catch_clause_error");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -665,6 +726,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn catch_clauses(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "catch_clauses");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(input, |input| {
                 self.catch_clause(input).with_name(FieldName::Item)
@@ -677,6 +741,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn comparison_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "comparison_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -700,6 +767,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn conditional_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "conditional_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -723,6 +793,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn constant_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "constant_definition");
+        let input = guard.context();
+
         if self.version_is_at_least_0_7_4 {
             SequenceHelper::run(|mut seq| {
                 seq.elem(
@@ -776,6 +849,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn constructor_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "constructor_attribute");
+        let input = guard.context();
+
         if self.version_is_at_least_0_4_22 {
             ChoiceHelper::run(input, |mut choice, input| {
                 let result = self.modifier_invocation(input);
@@ -806,6 +882,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn constructor_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "constructor_attributes");
+        let input = guard.context();
+
         if self.version_is_at_least_0_4_22 {
             OneOrMoreHelper::run(input, |input| {
                 self.constructor_attribute(input).with_name(FieldName::Item)
@@ -818,6 +897,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn constructor_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "constructor_definition");
+        let input = guard.context();
+
         if self.version_is_at_least_0_4_22 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -843,6 +925,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn continue_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "continue_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 self.parse_token_with_trivia::<LexicalContextType::Default>(
@@ -871,6 +956,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn contract_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "contract_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             if self.version_is_at_least_0_6_0 {
                 seq.elem_named(
@@ -937,6 +1025,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn contract_member(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "contract_member");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.using_directive(input);
             choice.consider(input, result)?;
@@ -984,6 +1075,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn contract_members(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "contract_members");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.contract_member(input).with_name(FieldName::Item)
         })
@@ -992,6 +1086,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn decimal_number_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "decimal_number_expression");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Literal,
@@ -1011,6 +1108,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn delete_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "delete_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -1045,6 +1145,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn do_while_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "do_while_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -1115,6 +1218,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn elementary_type(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "elementary_type");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -1168,6 +1274,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn else_branch(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "else_branch");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::ElseKeyword,
@@ -1184,6 +1293,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn emit_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "emit_statement");
+        let input = guard.context();
+
         if self.version_is_at_least_0_4_21 {
             SequenceHelper::run(|mut seq| {
                 seq.elem(
@@ -1223,6 +1335,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn enum_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "enum_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::EnumKeyword,
@@ -1274,6 +1389,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn enum_members(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "enum_members");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -1292,6 +1410,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn equality_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "equality_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -1315,6 +1436,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn error_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "error_definition");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_4 {
             SequenceHelper::run(|mut seq| {
                 seq.elem(
@@ -1363,6 +1487,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn error_parameter(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "error_parameter");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_4 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(FieldName::TypeName, self.type_name(input))?;
@@ -1385,6 +1512,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn error_parameters(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "error_parameters");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_4 {
             SeparatedHelper::run::<_, LexicalContextType::Default>(
                 input,
@@ -1401,6 +1531,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn error_parameters_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "error_parameters_declaration");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_4 {
             SequenceHelper::run(|mut seq| {
                 let mut delim_guard = input.open_delim(TokenKind::CloseParen);
@@ -1439,6 +1572,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn event_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "event_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -1492,6 +1628,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn event_parameter(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "event_parameter");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::TypeName, self.type_name(input))?;
             seq.elem_named(
@@ -1519,6 +1658,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn event_parameters(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "event_parameters");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -1531,6 +1673,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn event_parameters_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "event_parameters_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -1565,6 +1710,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn experimental_feature(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "experimental_feature");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Pragma>(
                 input,
@@ -1584,6 +1732,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn experimental_pragma(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "experimental_pragma");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::ExperimentalKeyword,
@@ -1600,6 +1751,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn exponentiation_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "exponentiation_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -1623,6 +1777,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "expression");
+        let input = guard.context();
+
         let parse_left_assignment_expression = |input: &mut ParserContext<'_>| {
             PrecedenceHelper::to_binary_operator(
                 RuleKind::AssignmentExpression,
@@ -2267,6 +2424,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn expression_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "expression_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 self.expression(input)
@@ -2292,6 +2452,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn fallback_function_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "fallback_function_attribute");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             ChoiceHelper::run(input, |mut choice, input| {
                 let result = self.modifier_invocation(input);
@@ -2334,6 +2497,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn fallback_function_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "fallback_function_attributes");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(input, |input| {
                 self.fallback_function_attribute(input)
@@ -2347,6 +2513,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn fallback_function_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "fallback_function_definition");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -2376,6 +2545,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn for_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "for_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::ForKeyword,
@@ -2431,6 +2603,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn for_statement_condition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "for_statement_condition");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.expression_statement(input);
             choice.consider(input, result)?;
@@ -2447,6 +2622,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn for_statement_initialization(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "for_statement_initialization");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.expression_statement(input);
             choice.consider(input, result)?;
@@ -2467,6 +2645,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_attribute");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.modifier_invocation(input);
             choice.consider(input, result)?;
@@ -2529,6 +2710,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_attributes");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.function_attribute(input).with_name(FieldName::Item)
         })
@@ -2537,6 +2721,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_body(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_body");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.block(input);
             choice.consider(input, result)?;
@@ -2553,6 +2740,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_call_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_call_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -2576,6 +2766,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_call_options(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_call_options");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_2 {
             ChoiceHelper::run(input, |mut choice, input| {
                 if self.version_is_at_least_0_6_2 && !self.version_is_at_least_0_8_0 {
@@ -2597,6 +2790,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::FunctionKeyword,
@@ -2623,6 +2819,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_name(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_name");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -2647,6 +2846,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_type(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_type");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::FunctionKeyword,
@@ -2671,6 +2873,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_type_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_type_attribute");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -2715,6 +2920,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn function_type_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "function_type_attributes");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.function_type_attribute(input)
                 .with_name(FieldName::Item)
@@ -2724,6 +2932,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn hex_number_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "hex_number_expression");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Literal,
@@ -2745,6 +2956,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn hex_string_literals(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "hex_string_literals");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -2757,6 +2971,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn identifier_path(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "identifier_path");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -2775,6 +2992,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn if_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "if_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::IfKeyword,
@@ -2824,6 +3044,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn import_alias(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "import_alias");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::AsKeyword,
@@ -2846,6 +3069,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn import_clause(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "import_clause");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.path_import(input);
             choice.consider(input, result)?;
@@ -2861,6 +3087,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn import_deconstruction(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "import_deconstruction");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(SequenceHelper::run(|mut seq| {
                 let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
@@ -2912,6 +3141,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn import_deconstruction_symbol(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "import_deconstruction_symbol");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Name,
@@ -2931,6 +3163,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn import_deconstruction_symbols(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "import_deconstruction_symbols");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -2946,6 +3181,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn import_directive(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "import_directive");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -2980,6 +3218,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn index_access_end(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "index_access_end");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Colon,
@@ -2999,6 +3240,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn index_access_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "index_access_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -3022,6 +3266,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn inheritance_specifier(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "inheritance_specifier");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::IsKeyword,
@@ -3038,6 +3285,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn inheritance_type(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "inheritance_type");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::TypeName, self.identifier_path(input))?;
             seq.elem_named(
@@ -3051,6 +3301,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn inheritance_types(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "inheritance_types");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -3063,6 +3316,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn interface_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "interface_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::InterfaceKeyword,
@@ -3118,6 +3374,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn interface_members(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "interface_members");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.contract_member(input).with_name(FieldName::Item)
         })
@@ -3126,6 +3385,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn leading_trivia(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "leading_trivia");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             ChoiceHelper::run(input, |mut choice, input| {
                 let result =
@@ -3160,6 +3422,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn library_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "library_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::LibraryKeyword,
@@ -3211,6 +3476,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn library_members(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "library_members");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.contract_member(input).with_name(FieldName::Item)
         })
@@ -3219,6 +3487,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn mapping_key(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "mapping_key");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::KeyType, self.mapping_key_type(input))?;
             if self.version_is_at_least_0_8_18 {
@@ -3239,6 +3510,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn mapping_key_type(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "mapping_key_type");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.elementary_type(input);
             choice.consider(input, result)?;
@@ -3252,6 +3526,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn mapping_type(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "mapping_type");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::MappingKeyword,
@@ -3306,6 +3583,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn mapping_value(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "mapping_value");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::TypeName, self.type_name(input))?;
             if self.version_is_at_least_0_8_18 {
@@ -3326,6 +3606,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn member_access(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "member_access");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -3345,6 +3628,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn member_access_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "member_access_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -3368,6 +3654,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn modifier_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "modifier_attribute");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.override_specifier(input);
             choice.consider(input, result)?;
@@ -3386,6 +3675,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn modifier_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "modifier_attributes");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.modifier_attribute(input).with_name(FieldName::Item)
         })
@@ -3394,6 +3686,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn modifier_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "modifier_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::ModifierKeyword,
@@ -3425,6 +3720,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn modifier_invocation(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "modifier_invocation");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::Name, self.identifier_path(input))?;
             seq.elem_named(
@@ -3438,6 +3736,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn multiplicative_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "multiplicative_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -3461,6 +3762,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn named_argument(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "named_argument");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Name,
@@ -3484,6 +3788,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn named_argument_group(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "named_argument_group");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
             let input = delim_guard.ctx();
@@ -3518,6 +3825,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn named_argument_groups(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "named_argument_groups");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_2 && !self.version_is_at_least_0_8_0 {
             OneOrMoreHelper::run(input, |input| {
                 self.named_argument_group(input).with_name(FieldName::Item)
@@ -3530,6 +3840,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn named_arguments(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "named_arguments");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -3542,6 +3855,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn named_arguments_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "named_arguments_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -3576,6 +3892,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn named_import(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "named_import");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Asterisk,
@@ -3606,6 +3925,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn new_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "new_expression");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::NewKeyword,
@@ -3622,6 +3944,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn number_unit(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "number_unit");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -3694,6 +4019,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn or_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "or_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -3717,6 +4045,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn override_paths(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "override_paths");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -3729,6 +4060,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn override_paths_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "override_paths_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -3763,6 +4097,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn override_specifier(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "override_specifier");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::OverrideKeyword,
@@ -3782,6 +4119,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn parameter(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "parameter");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::TypeName, self.type_name(input))?;
             seq.elem_named(
@@ -3804,6 +4144,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn parameters(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "parameters");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -3816,6 +4159,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn parameters_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "parameters_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -3850,6 +4196,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn path_import(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "path_import");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Path,
@@ -3869,6 +4218,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn positional_arguments(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "positional_arguments");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -3881,6 +4233,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn positional_arguments_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "positional_arguments_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -3915,6 +4270,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn postfix_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "postfix_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -3938,6 +4296,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn pragma(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "pragma");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.abi_coder_pragma(input);
             choice.consider(input, result)?;
@@ -3953,6 +4314,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn pragma_directive(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "pragma_directive");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -3987,6 +4351,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn prefix_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "prefix_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -4010,6 +4377,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn receive_function_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "receive_function_attribute");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             ChoiceHelper::run(input, |mut choice, input| {
                 let result = self.modifier_invocation(input);
@@ -4042,6 +4412,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn receive_function_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "receive_function_attributes");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(input, |input| {
                 self.receive_function_attribute(input)
@@ -4055,6 +4428,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn receive_function_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "receive_function_definition");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -4080,6 +4456,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn return_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "return_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -4117,6 +4496,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn returns_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "returns_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::ReturnsKeyword,
@@ -4133,6 +4515,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn revert_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "revert_statement");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_4 {
             SequenceHelper::run(|mut seq| {
                 seq.elem(
@@ -4175,6 +4560,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn shift_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "shift_expression");
+        let input = guard.context();
+
         let result = self.expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -4198,6 +4586,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn source_unit(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "source_unit");
+        let input = guard.context();
+
         OptionalHelper::transform(self.source_unit_members(input))
             .with_name(FieldName::Members)
             .with_kind(RuleKind::SourceUnit)
@@ -4205,6 +4596,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn source_unit_member(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "source_unit_member");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.pragma_directive(input);
             choice.consider(input, result)?;
@@ -4256,6 +4650,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn source_unit_members(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "source_unit_members");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.source_unit_member(input).with_name(FieldName::Item)
         })
@@ -4264,6 +4661,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn state_variable_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "state_variable_attribute");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.override_specifier(input);
             choice.consider(input, result)?;
@@ -4302,6 +4702,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn state_variable_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "state_variable_attributes");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.state_variable_attribute(input)
                 .with_name(FieldName::Item)
@@ -4311,6 +4714,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn state_variable_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "state_variable_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -4353,6 +4759,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn state_variable_definition_value(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "state_variable_definition_value");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Equal,
@@ -4369,6 +4778,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "statement");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.expression_statement(input);
             choice.consider(input, result)?;
@@ -4424,6 +4836,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn statements(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "statements");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.statement(input).with_name(FieldName::Item)
         })
@@ -4432,6 +4847,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn storage_location(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "storage_location");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -4458,6 +4876,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn string_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "string_expression");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.hex_string_literals(input);
             choice.consider(input, result)?;
@@ -4475,6 +4896,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn struct_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "struct_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::StructKeyword,
@@ -4526,6 +4950,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn struct_member(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "struct_member");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -4560,6 +4987,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn struct_members(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "struct_members");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.struct_member(input).with_name(FieldName::Item)
         })
@@ -4568,6 +4998,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn throw_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "throw_statement");
+        let input = guard.context();
+
         if !self.version_is_at_least_0_5_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem(
@@ -4600,6 +5033,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn trailing_trivia(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "trailing_trivia");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(OptionalHelper::transform(
                 self.parse_token::<LexicalContextType::Default>(input, TokenKind::Whitespace),
@@ -4618,6 +5054,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn try_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "try_statement");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -4644,6 +5083,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_deconstruction_element(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "tuple_deconstruction_element");
+        let input = guard.context();
+
         OptionalHelper::transform(self.tuple_member(input))
             .with_name(FieldName::Member)
             .with_kind(RuleKind::TupleDeconstructionElement)
@@ -4651,6 +5093,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_deconstruction_elements(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "tuple_deconstruction_elements");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -4666,6 +5111,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_deconstruction_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "tuple_deconstruction_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -4729,6 +5177,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "tuple_expression");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -4763,6 +5214,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_member(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "tuple_member");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.typed_tuple_member(input);
             choice.consider(input, result)?;
@@ -4776,6 +5230,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_value(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "tuple_value");
+        let input = guard.context();
+
         OptionalHelper::transform(self.expression(input))
             .with_name(FieldName::Expression)
             .with_kind(RuleKind::TupleValue)
@@ -4783,6 +5240,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_values(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "tuple_values");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
@@ -4795,6 +5255,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn type_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "type_expression");
+        let input = guard.context();
+
         if self.version_is_at_least_0_5_3 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -4843,6 +5306,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn type_name(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "type_name");
+        let input = guard.context();
+
         let parse_postfix_array_type_name = |input: &mut ParserContext<'_>| {
             PrecedenceHelper::to_postfix_operator(
                 RuleKind::ArrayTypeName,
@@ -4915,6 +5381,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn typed_tuple_member(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "typed_tuple_member");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::TypeName, self.type_name(input))?;
             seq.elem_named(
@@ -4935,6 +5404,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn unchecked_block(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "unchecked_block");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -4955,6 +5427,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn unicode_string_literals(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "unicode_string_literals");
+        let input = guard.context();
+
         if self.version_is_at_least_0_7_0 {
             OneOrMoreHelper::run(input, |input| {
                 self.parse_token_with_trivia::<LexicalContextType::Default>(
@@ -4971,6 +5446,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn unnamed_function_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "unnamed_function_attribute");
+        let input = guard.context();
+
         if !self.version_is_at_least_0_6_0 {
             ChoiceHelper::run(input, |mut choice, input| {
                 let result = self.modifier_invocation(input);
@@ -5008,6 +5486,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn unnamed_function_attributes(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "unnamed_function_attributes");
+        let input = guard.context();
+
         if !self.version_is_at_least_0_6_0 {
             OneOrMoreHelper::run(input, |input| {
                 self.unnamed_function_attribute(input)
@@ -5021,6 +5502,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn unnamed_function_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "unnamed_function_definition");
+        let input = guard.context();
+
         if !self.version_is_at_least_0_6_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -5046,6 +5530,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn untyped_tuple_member(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "untyped_tuple_member");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::StorageLocation,
@@ -5065,6 +5552,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn user_defined_value_type_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "user_defined_value_type_definition");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_8 {
             SequenceHelper::run(|mut seq| {
                 seq.elem(
@@ -5117,6 +5607,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_alias(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_alias");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_19 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -5137,6 +5630,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_clause(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_clause");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.identifier_path(input);
             choice.consider(input, result)?;
@@ -5152,6 +5648,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_deconstruction(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_deconstruction");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_13 {
             SequenceHelper::run(|mut seq| {
                 let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
@@ -5190,6 +5689,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_deconstruction_symbol(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_deconstruction_symbol");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_13 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(FieldName::Name, self.identifier_path(input))?;
@@ -5209,6 +5711,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_deconstruction_symbols(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_deconstruction_symbols");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_13 {
             SeparatedHelper::run::<_, LexicalContextType::Default>(
                 input,
@@ -5228,6 +5733,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_directive(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_directive");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -5281,6 +5789,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_operator(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_operator");
+        let input = guard.context();
+
         if self.version_is_at_least_0_8_19 {
             ChoiceHelper::run(input, |mut choice, input| {
                 let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
@@ -5365,6 +5876,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_target(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "using_target");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.type_name(input);
             choice.consider(input, result)?;
@@ -5379,6 +5893,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn variable_declaration_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "variable_declaration_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -5424,6 +5941,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn variable_declaration_type(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "variable_declaration_type");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.type_name(input);
             choice.consider(input, result)?;
@@ -5442,6 +5962,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn variable_declaration_value(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "variable_declaration_value");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::Equal,
@@ -5458,6 +5981,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn version_pragma(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "version_pragma");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::SolidityKeyword,
@@ -5477,6 +6003,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn version_pragma_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "version_pragma_expression");
+        let input = guard.context();
+
         let parse_left_version_pragma_or_expression = |input: &mut ParserContext<'_>| {
             PrecedenceHelper::to_binary_operator(
                 RuleKind::VersionPragmaOrExpression,
@@ -5603,6 +6132,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn version_pragma_expressions(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "version_pragma_expressions");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.version_pragma_expression(input)
                 .with_name(FieldName::Item)
@@ -5612,6 +6144,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn version_pragma_or_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "version_pragma_or_expression");
+        let input = guard.context();
+
         let result = self.version_pragma_expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -5635,6 +6170,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn version_pragma_prefix_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "version_pragma_prefix_expression");
+        let input = guard.context();
+
         let result = self.version_pragma_expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -5658,6 +6196,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn version_pragma_range_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "version_pragma_range_expression");
+        let input = guard.context();
+
         let result = self.version_pragma_expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -5681,6 +6222,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn version_pragma_specifier(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "version_pragma_specifier");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Pragma>(
             input,
             self,
@@ -5699,6 +6243,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn while_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "while_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::WhileKeyword,
@@ -5744,6 +6291,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_arguments(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_arguments");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Yul>(
             input,
             self,
@@ -5756,6 +6306,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_assignment_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_assignment_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(FieldName::Names, self.yul_identifier_paths(input))?;
             seq.elem_named(
@@ -5773,6 +6326,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_block(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_block");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
             let input = delim_guard.ctx();
@@ -5807,6 +6363,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_break_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_break_statement");
+        let input = guard.context();
+
         self.parse_token_with_trivia::<LexicalContextType::Yul>(input, TokenKind::YulBreakKeyword)
             .with_name(FieldName::BreakKeyword)
             .with_kind(RuleKind::YulBreakStatement)
@@ -5814,6 +6373,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_built_in_function(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_built_in_function");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Yul>(
                 input,
@@ -6217,6 +6779,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_continue_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_continue_statement");
+        let input = guard.context();
+
         self.parse_token_with_trivia::<LexicalContextType::Yul>(
             input,
             TokenKind::YulContinueKeyword,
@@ -6227,6 +6792,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_default_case(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_default_case");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::DefaultKeyword,
@@ -6243,6 +6811,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_expression");
+        let input = guard.context();
+
         let parse_postfix_yul_function_call_expression = |input: &mut ParserContext<'_>| {
             PrecedenceHelper::to_postfix_operator(
                 RuleKind::YulFunctionCallExpression,
@@ -6313,6 +6884,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_for_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_for_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::ForKeyword,
@@ -6332,6 +6906,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_function_call_expression(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_function_call_expression");
+        let input = guard.context();
+
         let result = self.yul_expression(input);
         let ParserResult::Match(r#match) = &result else {
             return result;
@@ -6355,6 +6932,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_function_definition(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_function_definition");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::FunctionKeyword,
@@ -6386,6 +6966,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_identifier_path(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_identifier_path");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Yul>(
             input,
             self,
@@ -6404,6 +6987,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_identifier_paths(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_identifier_paths");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Yul>(
             input,
             self,
@@ -6416,6 +7002,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_if_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_if_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::IfKeyword,
@@ -6433,6 +7022,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_label(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_label");
+        let input = guard.context();
+
         if !self.version_is_at_least_0_5_0 {
             SequenceHelper::run(|mut seq| {
                 seq.elem_named(
@@ -6459,6 +7051,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_leave_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_leave_statement");
+        let input = guard.context();
+
         if self.version_is_at_least_0_6_0 {
             self.parse_token_with_trivia::<LexicalContextType::Yul>(
                 input,
@@ -6473,6 +7068,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_literal(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_literal");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.parse_token_with_trivia::<LexicalContextType::Yul>(
                 input,
@@ -6512,6 +7110,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_parameters(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_parameters");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Yul>(
             input,
             self,
@@ -6530,6 +7131,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_parameters_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_parameters_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
@@ -6564,6 +7168,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_return_variables(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_return_variables");
+        let input = guard.context();
+
         SeparatedHelper::run::<_, LexicalContextType::Yul>(
             input,
             self,
@@ -6582,6 +7189,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_returns_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_returns_declaration");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::MinusGreaterThan,
@@ -6598,6 +7208,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_statement");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.yul_block(input);
             choice.consider(input, result)?;
@@ -6635,6 +7248,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_statements(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_statements");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.yul_statement(input).with_name(FieldName::Item)
         })
@@ -6643,6 +7259,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_switch_case(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_switch_case");
+        let input = guard.context();
+
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.yul_default_case(input);
             choice.consider(input, result)?;
@@ -6656,6 +7275,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_switch_cases(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_switch_cases");
+        let input = guard.context();
+
         OneOrMoreHelper::run(input, |input| {
             self.yul_switch_case(input).with_name(FieldName::Item)
         })
@@ -6664,6 +7286,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_switch_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_switch_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::SwitchKeyword,
@@ -6681,6 +7306,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_value_case(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_value_case");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::CaseKeyword,
@@ -6698,6 +7326,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_variable_declaration_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_variable_declaration_statement");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::LetKeyword,
@@ -6718,6 +7349,9 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn yul_variable_declaration_value(&self, input: &mut ParserContext<'_>) -> ParserResult {
+        let mut guard = Debugger::enter_parser(input, "yul_variable_declaration_value");
+        let input = guard.context();
+
         SequenceHelper::run(|mut seq| {
             seq.elem_named(
                 FieldName::ColonEqual,
@@ -8761,6 +9395,8 @@ impl Language {
     }
 
     pub fn parse(&self, kind: RuleKind, input: &str) -> ParseOutput {
+        Debugger::start_parse(kind, self.version.to_string());
+
         match kind {
             RuleKind::ABICoderPragma => Self::abi_coder_pragma.parse(self, input, true),
             RuleKind::AdditiveExpression => Self::additive_expression.parse(self, input, true),

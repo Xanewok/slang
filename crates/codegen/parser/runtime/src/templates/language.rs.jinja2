@@ -19,6 +19,7 @@ use crate::lexer::{KeywordScan, Lexer, ScannedToken};
 #[cfg(feature = "slang_napi_interfaces")]
 use crate::napi_interface::parse_output::ParseOutput as NAPIParseOutput;
 use crate::parse_output::ParseOutput;
+use crate::parser_support::debugger::Debugger;
 use crate::parser_support::{
     ChoiceHelper, OneOrMoreHelper, OptionalHelper, ParserContext, ParserFunction, ParserResult,
     PrecedenceHelper, RecoverFromNoMatch, SeparatedHelper, SequenceHelper, ZeroOrMoreHelper,
@@ -80,7 +81,12 @@ impl Language {
 
     {% for parser_name, parser_code in generator.parser_functions %}
         #[allow(unused_assignments, unused_parens)]
-        fn {{ parser_name | snake_case }}(&self, input: &mut ParserContext<'_>) -> ParserResult { {{ parser_code }} }
+        fn {{ parser_name | snake_case }}(&self, input: &mut ParserContext<'_>) -> ParserResult {
+            let mut guard = Debugger::enter_parser(input, "{{ parser_name | snake_case }}");
+            let input = guard.context();
+
+            {{ parser_code }}
+        }
     {% endfor %}
 
     /********************************************
@@ -99,6 +105,8 @@ impl Language {
     {% endfor %}
 
     pub fn parse(&self, kind: RuleKind, input: &str) -> ParseOutput {
+        Debugger::start_parse(kind, self.version.to_string());
+
         match kind {
             {%- for parser_name, _ in generator.parser_functions -%}
             {# TODO(#737): Remove the special case once we stop generating RuleKind for trivia #}

@@ -2,6 +2,7 @@
 
 mod choice_helper;
 mod context;
+pub(crate) mod debugger;
 mod optional_helper;
 mod parser_function;
 mod parser_result;
