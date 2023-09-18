@@ -28,10 +28,10 @@ pub struct CodeGenerator {
     trivia_kinds: BTreeSet<&'static str>,
 
     top_level_scanner_names: BTreeSet<&'static str>,
-    scanner_functions: Vec<(&'static str, String)>, // (name of scanner, code)
+    scanner_functions: BTreeMap<&'static str, String>, // (name of scanner, code)
     scanner_contexts: Vec<ScannerContext>,
 
-    parser_functions: Vec<(&'static str, String)>, // (name of parser, code)
+    parser_functions: BTreeMap<&'static str, String>, // (name of parser, code)
 
     #[serde(skip)]
     scanner_contexts_map: BTreeMap<&'static str, ScannerContext>,
@@ -160,9 +160,6 @@ impl GrammarVisitor for CodeGenerator {
             .map(|(name, scanner)| (*name, scanner.to_scanner_code().to_string()))
             .collect();
 
-        self.parser_functions.sort_by(|a, b| a.0.cmp(b.0));
-        self.scanner_functions.sort_by(|a, b| a.0.cmp(b.0));
-
         for context in self.scanner_contexts_map.values_mut() {
             let mut alpha_literal_trie = Trie::new();
             let mut non_alpha_literal_trie = Trie::new();
@@ -215,7 +212,7 @@ impl GrammarVisitor for CodeGenerator {
         self.set_current_context(parser.context());
         self.rule_kinds.insert(parser.name());
         self.trivia_kinds.insert(parser.name());
-        self.parser_functions.push((
+        self.parser_functions.insert(
             parser.name(),
             {
                 let code = parser.to_parser_code();
@@ -223,7 +220,7 @@ impl GrammarVisitor for CodeGenerator {
                 quote! { #code.with_kind(RuleKind::#rule_kind) }
             }
             .to_string(),
-        ));
+        );
     }
 
     fn parser_definition_enter(&mut self, parser: &ParserDefinitionRef) {
@@ -232,14 +229,14 @@ impl GrammarVisitor for CodeGenerator {
         if !parser.is_inline() {
             self.rule_kinds.insert(parser.name());
             let code = parser.to_parser_code();
-            self.parser_functions.push((
+            self.parser_functions.insert(
                 parser.name(),
                 {
                     let rule_kind = format_ident!("{}", parser.name());
                     quote! { #code.with_kind(RuleKind::#rule_kind) }
                 }
                 .to_string(),
-            ));
+            );
         }
     }
 
@@ -253,10 +250,10 @@ impl GrammarVisitor for CodeGenerator {
         // While it's not common to parse a precedence expression as a standalone rule,
         // we generate a function for completeness.
         for (name, code) in parser.to_precedence_expression_parser_code() {
-            self.parser_functions.push((name, code.to_string()));
+            self.parser_functions.insert(name, code.to_string());
         }
 
-        self.parser_functions.push((
+        self.parser_functions.insert(
             parser.name(),
             {
                 let code = parser.to_parser_code();
@@ -264,7 +261,7 @@ impl GrammarVisitor for CodeGenerator {
                 quote! { #code.with_kind(RuleKind::#rule_kind) }
             }
             .to_string(),
-        ));
+        );
     }
 
     fn scanner_definition_node_enter(&mut self, node: &ScannerDefinitionNode) {
