@@ -415,6 +415,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn break_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 self.parse_token_with_trivia::<{ LexicalContext::Default as u8 }>(
@@ -493,6 +495,8 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn constant_definition(&self, input: &mut ParserContext) -> ParserResult {
         if self.version_is_at_least_0_7_4 {
+            let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+            let input = delim_guard.ctx();
             SequenceHelper::run(|mut seq| {
                 seq.elem(
                     SequenceHelper::run(|mut seq| {
@@ -604,6 +608,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn continue_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 self.parse_token_with_trivia::<{ LexicalContext::Default as u8 }>(
@@ -831,6 +837,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn delete_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -865,6 +873,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn do_while_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -933,6 +943,8 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn emit_statement(&self, input: &mut ParserContext) -> ParserResult {
         if self.version_is_at_least_0_4_21 {
+            let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+            let input = delim_guard.ctx();
             SequenceHelper::run(|mut seq| {
                 seq.elem(
                     SequenceHelper::run(|mut seq| {
@@ -1048,6 +1060,8 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn error_definition(&self, input: &mut ParserContext) -> ParserResult {
         if self.version_is_at_least_0_8_4 {
+            let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+            let input = delim_guard.ctx();
             SequenceHelper::run(|mut seq| {
                 seq.elem(
                     SequenceHelper::run(|mut seq| {
@@ -1156,6 +1170,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn event_definition(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -1898,6 +1914,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn expression_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(self.expression(input).recover_until_with_nested_delims(
                 input,
@@ -2376,6 +2394,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn import_directive(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -3175,6 +3195,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn pragma_directive(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -3289,6 +3311,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn return_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -3338,6 +3362,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn revert_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -3474,6 +3500,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn state_variable_definition(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -3639,6 +3667,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn struct_member(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -3680,6 +3710,8 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn throw_statement(&self, input: &mut ParserContext) -> ParserResult {
         if !self.version_is_at_least_0_5_0 {
+            let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+            let input = delim_guard.ctx();
             SequenceHelper::run(|mut seq| {
                 seq.elem(
                     self.parse_token_with_trivia::<{ LexicalContext::Default as u8 }>(
@@ -3756,6 +3788,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn tuple_deconstruction_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -4237,6 +4271,8 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn user_defined_value_type_definition(&self, input: &mut ParserContext) -> ParserResult {
         if self.version_is_at_least_0_8_8 {
+            let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+            let input = delim_guard.ctx();
             SequenceHelper::run(|mut seq| {
                 seq.elem(
                     SequenceHelper::run(|mut seq| {
@@ -4340,6 +4376,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn using_directive(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {
@@ -4622,6 +4660,8 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn variable_declaration_statement(&self, input: &mut ParserContext) -> ParserResult {
+        let mut delim_guard = input.open_delim(TokenKind::Semicolon);
+        let input = delim_guard.ctx();
         SequenceHelper::run(|mut seq| {
             seq.elem(
                 SequenceHelper::run(|mut seq| {

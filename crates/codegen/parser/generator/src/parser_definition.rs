@@ -236,6 +236,9 @@ impl ParserDefinitionNodeExtensions for ParserDefinitionNode {
                 );
 
                 quote! {
+                    let mut delim_guard = input.open_delim(TokenKind::#terminator);
+                    let input = delim_guard.ctx();
+
                     SequenceHelper::run(|mut seq| {
                         #body_parser
                         seq.elem(self.parse_token_with_trivia::<{#lex_ctx}>(input, TokenKind::#terminator))?;
