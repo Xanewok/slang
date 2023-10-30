@@ -1,7 +1,7 @@
 use std::ops::ControlFlow;
 use std::rc::Rc;
 
-use anyhow::{bail, ensure, Error, Result};
+use anyhow::{anyhow, Error, Result};
 use semver::Version;
 
 use slang_solidity::{
@@ -21,19 +21,23 @@ impl Visitor<Error> for ContractCollector {
         &mut self,
         node: &Rc<RuleNode>,
         _cursor: &Cursor,
-    ) -> Result<ControlFlow<(), Step>> {
+    ) -> ControlFlow<Result<(), Error>, Step> {
         if node.kind == RuleKind::ContractDefinition {
-            if let Node::Token(token) = &node.children[2] {
-                ensure!(token.kind == TokenKind::Identifier);
-                self.contract_names.push(token.text.to_owned());
-            } else {
-                bail!("Expected contract identifier: {node:?}");
-            };
+            match &node.children[2] {
+                Node::Token(token) if token.kind == TokenKind::Identifier => {
+                    self.contract_names.push(token.text.to_owned());
+                }
+                _ => {
+                    return ControlFlow::Break(Err(anyhow!(
+                        "Expected contract identifier: {node:?}"
+                    )))
+                }
+            }
 
-            return Ok(ControlFlow::Continue(Step::Over));
+            return ControlFlow::Continue(Step::Over);
         }
 
-        Ok(ControlFlow::Continue(Step::In))
+        ControlFlow::Continue(Step::In)
     }
 }
 
@@ -46,10 +50,13 @@ fn visitor_api() -> Result<()> {
         contract_names: Vec::new(),
     };
 
-    parse_output
+    if let ControlFlow::Break(result) = parse_output
         .parse_tree()
         .cursor()
-        .drive_visitor(&mut collector)?;
+        .drive_visitor(&mut collector)
+    {
+        result?;
+    }
 
     assert!(matches!(&collector.contract_names[..], [single] if single == "Foo"));
 

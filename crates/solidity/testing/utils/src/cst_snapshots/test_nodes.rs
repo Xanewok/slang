@@ -29,17 +29,17 @@ impl Visitor<()> for TestNodeBuilder {
         &mut self,
         _node: &Rc<RuleNode>,
         _cursor: &Cursor,
-    ) -> Result<ControlFlow<(), Step>, ()> {
+    ) -> ControlFlow<Result<(), ()>, Step> {
         self.stack.push(vec![]);
-        Ok(ControlFlow::Continue(Step::In))
+        ControlFlow::Continue(Step::In)
     }
 
-    fn rule_exit(&mut self, node: &Rc<RuleNode>, cursor: &Cursor) -> Result<ControlFlow<()>, ()> {
+    fn rule_exit(&mut self, node: &Rc<RuleNode>, cursor: &Cursor) -> ControlFlow<Result<(), ()>> {
         let children = self.stack.pop().unwrap();
 
         if (node.kind == RuleKind::LeadingTrivia) | (node.kind == RuleKind::TrailingTrivia) {
             if children.is_empty() {
-                return Ok(ControlFlow::Continue(()));
+                return ControlFlow::Continue(());
             }
         }
 
@@ -50,10 +50,10 @@ impl Visitor<()> for TestNodeBuilder {
         };
         self.stack.last_mut().unwrap().push(new_node);
 
-        Ok(ControlFlow::Continue(()))
+        ControlFlow::Continue(())
     }
 
-    fn token(&mut self, node: &Rc<TokenNode>, cursor: &Cursor) -> Result<ControlFlow<()>, ()> {
+    fn token(&mut self, node: &Rc<TokenNode>, cursor: &Cursor) -> ControlFlow<Result<(), ()>> {
         if !Self::is_whitespace(node) {
             let kind = if Self::is_comment(node) {
                 TestNodeKind::Trivia(node.kind)
@@ -69,7 +69,7 @@ impl Visitor<()> for TestNodeBuilder {
             self.stack.last_mut().unwrap().push(new_node);
         }
 
-        Ok(ControlFlow::Continue(()))
+        ControlFlow::Continue(())
     }
 }
 
@@ -89,7 +89,9 @@ impl TestNode {
         let mut visitor = TestNodeBuilder {
             stack: vec![vec![]],
         };
-        node.cursor().drive_visitor(&mut visitor).unwrap();
+        if let ControlFlow::Break(result) = node.cursor().drive_visitor(&mut visitor) {
+            assert!(result.is_ok());
+        }
         return visitor.stack.remove(0).remove(0);
     }
 
