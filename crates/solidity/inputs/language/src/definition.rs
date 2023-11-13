@@ -231,8 +231,8 @@ codegen_language_macros::compile!(Language(
                         Enum(
                             name = ImportSymbol,
                             variants = [
-                                EnumVariant(name = Path, reference = PathImportSymbol),
-                                EnumVariant(name = Named, reference = NamedImportSymbol),
+                                EnumVariant(name = Path, reference = PathImport),
+                                EnumVariant(name = Named, reference = NamedImport),
                                 EnumVariant(
                                     name = Deconstruction,
                                     reference = DeconstructionImport
@@ -240,14 +240,14 @@ codegen_language_macros::compile!(Language(
                             ]
                         ),
                         Struct(
-                            name = PathImportSymbol,
+                            name = PathImport,
                             fields = (
                                 path = Required(Terminal([AsciiStringLiteral])),
                                 alias = Optional(kind = NonTerminal(ImportAlias))
                             )
                         ),
                         Struct(
-                            name = NamedImportSymbol,
+                            name = NamedImport,
                             fields = (
                                 asterisk = Required(Terminal([Asterisk])),
                                 alias = Required(NonTerminal(ImportAlias)),
