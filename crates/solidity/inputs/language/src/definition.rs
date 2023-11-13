@@ -235,7 +235,7 @@ codegen_language_macros::compile!(Language(
                                 EnumVariant(name = Named, reference = NamedImportSymbol),
                                 EnumVariant(
                                     name = Deconstruction,
-                                    reference = ImportSymbolDeconstruction
+                                    reference = DeconstructionImport
                                 )
                             ]
                         ),
@@ -256,26 +256,26 @@ codegen_language_macros::compile!(Language(
                             )
                         ),
                         Struct(
-                            name = ImportSymbolDeconstruction,
+                            name = DeconstructionImport,
                             error_recovery = FieldsErrorRecovery(
                                 delimiters =
                                     FieldDelimiters(open = open_brace, close = close_brace)
                             ),
                             fields = (
                                 open_brace = Required(Terminal([OpenBrace])),
-                                fields = Required(NonTerminal(ImportDeconstructionFields)),
+                                fields = Required(NonTerminal(DeconstructionImportSymbols)),
                                 close_brace = Required(Terminal([CloseBrace])),
                                 from_keyword = Required(Terminal([FromKeyword])),
                                 path = Required(Terminal([AsciiStringLiteral]))
                             )
                         ),
                         Separated(
-                            name = ImportDeconstructionFields,
-                            separated = ImportDeconstructionField,
+                            name = DeconstructionImportSymbols,
+                            separated = DeconstructionImportSymbol,
                             separator = Comma
                         ),
                         Struct(
-                            name = ImportDeconstructionField,
+                            name = DeconstructionImportSymbol,
                             fields = (
                                 name = Required(Terminal([Identifier])),
                                 alias = Optional(kind = NonTerminal(ImportAlias))
