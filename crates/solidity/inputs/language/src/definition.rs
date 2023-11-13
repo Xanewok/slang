@@ -315,12 +315,12 @@ codegen_language_macros::compile!(Language(
                                 EnumVariant(
                                     name = Deconstruction,
                                     enabled = From("0.8.13"),
-                                    reference = UsingSymbolDeconstruction
+                                    reference = UsingDirectiveDeconstruction
                                 )
                             ]
                         ),
                         Struct(
-                            name = UsingSymbolDeconstruction,
+                            name = UsingDirectiveDeconstruction,
                             enabled = From("0.8.13"),
                             error_recovery = FieldsErrorRecovery(
                                 delimiters =
@@ -328,18 +328,18 @@ codegen_language_macros::compile!(Language(
                             ),
                             fields = (
                                 open_brace = Required(Terminal([OpenBrace])),
-                                fields = Required(NonTerminal(UsingDeconstructionFields)),
+                                fields = Required(NonTerminal(UsingDirectiveSymbols)),
                                 close_brace = Required(Terminal([CloseBrace]))
                             )
                         ),
                         Separated(
-                            name = UsingDeconstructionFields,
-                            separated = UsingDeconstructionField,
+                            name = UsingDirectiveSymbols,
+                            separated = UsingDirectiveSymbol,
                             separator = Comma,
                             enabled = From("0.8.13")
                         ),
                         Struct(
-                            name = UsingDeconstructionField,
+                            name = UsingDirectiveSymbol,
                             enabled = From("0.8.13"),
                             fields = (
                                 name = Required(NonTerminal(IdentifierPath)),
