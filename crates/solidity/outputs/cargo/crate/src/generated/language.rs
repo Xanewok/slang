@@ -266,11 +266,11 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn assembly_flags(&self, input: &mut ParserContext) -> ParserResult {
-        SeparatedHelper::run::<_, LexicalContextType::Yul>(
+        SeparatedHelper::run::<_, LexicalContextType::Default>(
             input,
             self,
             |input| {
-                self.parse_token_with_trivia::<LexicalContextType::Yul>(
+                self.parse_token_with_trivia::<LexicalContextType::Default>(
                     input,
                     TokenKind::AsciiStringLiteral,
                 )
@@ -285,27 +285,23 @@ impl Language {
         SequenceHelper::run(|mut seq| {
             let mut delim_guard = input.open_delim(TokenKind::CloseParen);
             let input = delim_guard.ctx();
-            seq.elem(
-                self.parse_token_with_trivia::<LexicalContextType::Yul>(
-                    input,
-                    TokenKind::OpenParen,
-                ),
-            )?;
+            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
+                input,
+                TokenKind::OpenParen,
+            ))?;
             seq.elem(
                 self.assembly_flags(input)
-                    .recover_until_with_nested_delims::<_, LexicalContextType::Yul>(
+                    .recover_until_with_nested_delims::<_, LexicalContextType::Default>(
                         input,
                         self,
                         TokenKind::CloseParen,
                         RecoverFromNoMatch::Yes,
                     ),
             )?;
-            seq.elem(
-                self.parse_token_with_trivia::<LexicalContextType::Yul>(
-                    input,
-                    TokenKind::CloseParen,
-                ),
-            )?;
+            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
+                input,
+                TokenKind::CloseParen,
+            ))?;
             seq.finish()
         })
         .with_kind(RuleKind::AssemblyFlagsDeclaration)
@@ -314,12 +310,12 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn assembly_statement(&self, input: &mut ParserContext) -> ParserResult {
         SequenceHelper::run(|mut seq| {
-            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Yul>(
+            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
                 TokenKind::AssemblyKeyword,
             ))?;
             seq.elem(OptionalHelper::transform(
-                self.parse_token_with_trivia::<LexicalContextType::Yul>(
+                self.parse_token_with_trivia::<LexicalContextType::Default>(
                     input,
                     TokenKind::AsciiStringLiteral,
                 ),
@@ -723,6 +719,68 @@ impl Language {
             seq.finish()
         })
         .with_kind(RuleKind::DecimalNumberExpression)
+    }
+
+    #[allow(unused_assignments, unused_parens)]
+    fn deconstruction_import(&self, input: &mut ParserContext) -> ParserResult {
+        SequenceHelper::run(|mut seq| {
+            seq.elem(SequenceHelper::run(|mut seq| {
+                let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
+                let input = delim_guard.ctx();
+                seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
+                    input,
+                    TokenKind::OpenBrace,
+                ))?;
+                seq.elem(
+                    self.deconstruction_import_symbols(input)
+                        .recover_until_with_nested_delims::<_, LexicalContextType::Default>(
+                            input,
+                            self,
+                            TokenKind::CloseBrace,
+                            RecoverFromNoMatch::Yes,
+                        ),
+                )?;
+                seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
+                    input,
+                    TokenKind::CloseBrace,
+                ))?;
+                seq.finish()
+            }))?;
+            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
+                input,
+                TokenKind::FromKeyword,
+            ))?;
+            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
+                input,
+                TokenKind::AsciiStringLiteral,
+            ))?;
+            seq.finish()
+        })
+        .with_kind(RuleKind::DeconstructionImport)
+    }
+
+    #[allow(unused_assignments, unused_parens)]
+    fn deconstruction_import_symbol(&self, input: &mut ParserContext) -> ParserResult {
+        SequenceHelper::run(|mut seq| {
+            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
+                input,
+                TokenKind::Identifier,
+            ))?;
+            seq.elem(OptionalHelper::transform(self.import_alias(input)))?;
+            seq.finish()
+        })
+        .with_kind(RuleKind::DeconstructionImportSymbol)
+    }
+
+    #[allow(unused_assignments, unused_parens)]
+    fn deconstruction_import_symbols(&self, input: &mut ParserContext) -> ParserResult {
+        SeparatedHelper::run::<_, LexicalContextType::Default>(
+            input,
+            self,
+            |input| self.deconstruction_import_symbol(input),
+            TokenKind::Comma,
+        )
+        .with_kind(RuleKind::DeconstructionImportSymbols)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -2643,30 +2701,6 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn import_deconstruction_field(&self, input: &mut ParserContext) -> ParserResult {
-        SequenceHelper::run(|mut seq| {
-            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
-                input,
-                TokenKind::Identifier,
-            ))?;
-            seq.elem(OptionalHelper::transform(self.import_alias(input)))?;
-            seq.finish()
-        })
-        .with_kind(RuleKind::ImportDeconstructionField)
-    }
-
-    #[allow(unused_assignments, unused_parens)]
-    fn import_deconstruction_fields(&self, input: &mut ParserContext) -> ParserResult {
-        SeparatedHelper::run::<_, LexicalContextType::Default>(
-            input,
-            self,
-            |input| self.import_deconstruction_field(input),
-            TokenKind::Comma,
-        )
-        .with_kind(RuleKind::ImportDeconstructionFields)
-    }
-
-    #[allow(unused_assignments, unused_parens)]
     fn import_directive(&self, input: &mut ParserContext) -> ParserResult {
         SequenceHelper::run(|mut seq| {
             seq.elem(
@@ -2676,11 +2710,11 @@ impl Language {
                         TokenKind::ImportKeyword,
                     ))?;
                     seq.elem(ChoiceHelper::run(input, |mut choice, input| {
-                        let result = self.path_import_symbol(input);
+                        let result = self.path_import(input);
                         choice.consider(input, result)?;
-                        let result = self.named_import_symbol(input);
+                        let result = self.named_import(input);
                         choice.consider(input, result)?;
-                        let result = self.import_symbol_deconstruction(input);
+                        let result = self.deconstruction_import(input);
                         choice.consider(input, result)?;
                         choice.finish(input)
                     }))?;
@@ -2700,44 +2734,6 @@ impl Language {
             seq.finish()
         })
         .with_kind(RuleKind::ImportDirective)
-    }
-
-    #[allow(unused_assignments, unused_parens)]
-    fn import_symbol_deconstruction(&self, input: &mut ParserContext) -> ParserResult {
-        SequenceHelper::run(|mut seq| {
-            seq.elem(SequenceHelper::run(|mut seq| {
-                let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
-                let input = delim_guard.ctx();
-                seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
-                    input,
-                    TokenKind::OpenBrace,
-                ))?;
-                seq.elem(
-                    self.import_deconstruction_fields(input)
-                        .recover_until_with_nested_delims::<_, LexicalContextType::Default>(
-                            input,
-                            self,
-                            TokenKind::CloseBrace,
-                            RecoverFromNoMatch::Yes,
-                        ),
-                )?;
-                seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
-                    input,
-                    TokenKind::CloseBrace,
-                ))?;
-                seq.finish()
-            }))?;
-            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
-                input,
-                TokenKind::FromKeyword,
-            ))?;
-            seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
-                input,
-                TokenKind::AsciiStringLiteral,
-            ))?;
-            seq.finish()
-        })
-        .with_kind(RuleKind::ImportSymbolDeconstruction)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -3291,7 +3287,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn named_import_symbol(&self, input: &mut ParserContext) -> ParserResult {
+    fn named_import(&self, input: &mut ParserContext) -> ParserResult {
         SequenceHelper::run(|mut seq| {
             seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -3308,7 +3304,7 @@ impl Language {
             ))?;
             seq.finish()
         })
-        .with_kind(RuleKind::NamedImportSymbol)
+        .with_kind(RuleKind::NamedImport)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -3454,7 +3450,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn path_import_symbol(&self, input: &mut ParserContext) -> ParserResult {
+    fn path_import(&self, input: &mut ParserContext) -> ParserResult {
         SequenceHelper::run(|mut seq| {
             seq.elem(self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
@@ -3463,7 +3459,7 @@ impl Language {
             seq.elem(OptionalHelper::transform(self.import_alias(input)))?;
             seq.finish()
         })
-        .with_kind(RuleKind::PathImportSymbol)
+        .with_kind(RuleKind::PathImport)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -4672,37 +4668,6 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn using_deconstruction_field(&self, input: &mut ParserContext) -> ParserResult {
-        if self.version_is_at_least_0_8_13 {
-            SequenceHelper::run(|mut seq| {
-                seq.elem(self.identifier_path(input))?;
-                if self.version_is_at_least_0_8_19 {
-                    seq.elem(OptionalHelper::transform(self.using_alias(input)))?;
-                }
-                seq.finish()
-            })
-        } else {
-            ParserResult::disabled()
-        }
-        .with_kind(RuleKind::UsingDeconstructionField)
-    }
-
-    #[allow(unused_assignments, unused_parens)]
-    fn using_deconstruction_fields(&self, input: &mut ParserContext) -> ParserResult {
-        if self.version_is_at_least_0_8_13 {
-            SeparatedHelper::run::<_, LexicalContextType::Default>(
-                input,
-                self,
-                |input| self.using_deconstruction_field(input),
-                TokenKind::Comma,
-            )
-        } else {
-            ParserResult::disabled()
-        }
-        .with_kind(RuleKind::UsingDeconstructionFields)
-    }
-
-    #[allow(unused_assignments, unused_parens)]
     fn using_directive(&self, input: &mut ParserContext) -> ParserResult {
         SequenceHelper::run(|mut seq| {
             seq.elem(
@@ -4715,7 +4680,7 @@ impl Language {
                         let result = self.identifier_path(input);
                         choice.consider(input, result)?;
                         if self.version_is_at_least_0_8_13 {
-                            let result = self.using_symbol_deconstruction(input);
+                            let result = self.using_directive_deconstruction(input);
                             choice.consider(input, result)?;
                         }
                         choice.finish(input)
@@ -4761,7 +4726,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn using_symbol_deconstruction(&self, input: &mut ParserContext) -> ParserResult {
+    fn using_directive_deconstruction(&self, input: &mut ParserContext) -> ParserResult {
         if self.version_is_at_least_0_8_13 {
             SequenceHelper::run(|mut seq| {
                 let mut delim_guard = input.open_delim(TokenKind::CloseBrace);
@@ -4771,7 +4736,7 @@ impl Language {
                     TokenKind::OpenBrace,
                 ))?;
                 seq.elem(
-                    self.using_deconstruction_fields(input)
+                    self.using_directive_symbols(input)
                         .recover_until_with_nested_delims::<_, LexicalContextType::Default>(
                             input,
                             self,
@@ -4788,7 +4753,38 @@ impl Language {
         } else {
             ParserResult::disabled()
         }
-        .with_kind(RuleKind::UsingSymbolDeconstruction)
+        .with_kind(RuleKind::UsingDirectiveDeconstruction)
+    }
+
+    #[allow(unused_assignments, unused_parens)]
+    fn using_directive_symbol(&self, input: &mut ParserContext) -> ParserResult {
+        if self.version_is_at_least_0_8_13 {
+            SequenceHelper::run(|mut seq| {
+                seq.elem(self.identifier_path(input))?;
+                if self.version_is_at_least_0_8_19 {
+                    seq.elem(OptionalHelper::transform(self.using_alias(input)))?;
+                }
+                seq.finish()
+            })
+        } else {
+            ParserResult::disabled()
+        }
+        .with_kind(RuleKind::UsingDirectiveSymbol)
+    }
+
+    #[allow(unused_assignments, unused_parens)]
+    fn using_directive_symbols(&self, input: &mut ParserContext) -> ParserResult {
+        if self.version_is_at_least_0_8_13 {
+            SeparatedHelper::run::<_, LexicalContextType::Default>(
+                input,
+                self,
+                |input| self.using_directive_symbol(input),
+                TokenKind::Comma,
+            )
+        } else {
+            ParserResult::disabled()
+        }
+        .with_kind(RuleKind::UsingDirectiveSymbols)
     }
 
     #[allow(unused_assignments, unused_parens)]
@@ -7638,6 +7634,13 @@ impl Language {
             ProductionKind::DecimalNumberExpression => {
                 Self::decimal_number_expression.parse(self, input)
             }
+            ProductionKind::DeconstructionImport => Self::deconstruction_import.parse(self, input),
+            ProductionKind::DeconstructionImportSymbol => {
+                Self::deconstruction_import_symbol.parse(self, input)
+            }
+            ProductionKind::DeconstructionImportSymbols => {
+                Self::deconstruction_import_symbols.parse(self, input)
+            }
             ProductionKind::DeleteStatement => Self::delete_statement.parse(self, input),
             ProductionKind::DoWhileStatement => Self::do_while_statement.parse(self, input),
             ProductionKind::ElseBranch => Self::else_branch.parse(self, input),
@@ -7678,16 +7681,7 @@ impl Language {
             ProductionKind::IdentifierPath => Self::identifier_path.parse(self, input),
             ProductionKind::IfStatement => Self::if_statement.parse(self, input),
             ProductionKind::ImportAlias => Self::import_alias.parse(self, input),
-            ProductionKind::ImportDeconstructionField => {
-                Self::import_deconstruction_field.parse(self, input)
-            }
-            ProductionKind::ImportDeconstructionFields => {
-                Self::import_deconstruction_fields.parse(self, input)
-            }
             ProductionKind::ImportDirective => Self::import_directive.parse(self, input),
-            ProductionKind::ImportSymbolDeconstruction => {
-                Self::import_symbol_deconstruction.parse(self, input)
-            }
             ProductionKind::IndexAccessEnd => Self::index_access_end.parse(self, input),
             ProductionKind::InheritanceSpecifier => Self::inheritance_specifier.parse(self, input),
             ProductionKind::InheritanceType => Self::inheritance_type.parse(self, input),
@@ -7710,7 +7704,7 @@ impl Language {
             ProductionKind::NamedArgumentsDeclaration => {
                 Self::named_arguments_declaration.parse(self, input)
             }
-            ProductionKind::NamedImportSymbol => Self::named_import_symbol.parse(self, input),
+            ProductionKind::NamedImport => Self::named_import.parse(self, input),
             ProductionKind::NewExpression => Self::new_expression.parse(self, input),
             ProductionKind::OverridePaths => Self::override_paths.parse(self, input),
             ProductionKind::OverridePathsDeclaration => {
@@ -7722,7 +7716,7 @@ impl Language {
             ProductionKind::ParametersDeclaration => {
                 Self::parameters_declaration.parse(self, input)
             }
-            ProductionKind::PathImportSymbol => Self::path_import_symbol.parse(self, input),
+            ProductionKind::PathImport => Self::path_import.parse(self, input),
             ProductionKind::PositionalArguments => Self::positional_arguments.parse(self, input),
             ProductionKind::PositionalArgumentsDeclaration => {
                 Self::positional_arguments_declaration.parse(self, input)
@@ -7785,15 +7779,13 @@ impl Language {
                 Self::user_defined_value_type_definition.parse(self, input)
             }
             ProductionKind::UsingAlias => Self::using_alias.parse(self, input),
-            ProductionKind::UsingDeconstructionField => {
-                Self::using_deconstruction_field.parse(self, input)
-            }
-            ProductionKind::UsingDeconstructionFields => {
-                Self::using_deconstruction_fields.parse(self, input)
-            }
             ProductionKind::UsingDirective => Self::using_directive.parse(self, input),
-            ProductionKind::UsingSymbolDeconstruction => {
-                Self::using_symbol_deconstruction.parse(self, input)
+            ProductionKind::UsingDirectiveDeconstruction => {
+                Self::using_directive_deconstruction.parse(self, input)
+            }
+            ProductionKind::UsingDirectiveSymbol => Self::using_directive_symbol.parse(self, input),
+            ProductionKind::UsingDirectiveSymbols => {
+                Self::using_directive_symbols.parse(self, input)
             }
             ProductionKind::VariableDeclarationStatement => {
                 Self::variable_declaration_statement.parse(self, input)

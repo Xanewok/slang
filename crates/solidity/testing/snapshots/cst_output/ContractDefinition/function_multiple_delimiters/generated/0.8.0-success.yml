@@ -11,15 +11,7 @@ Source: >
   8  │   }                                                                                 │ 346..349
   9  │ }                                                                                   │ 350..351
 
-Errors: # 1 total
-  - >
-    Error: Expected Semicolon.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/function_multiple_delimiters/input.sol:6:38]
-       │
-     6 │     (bool success, ) = recipient.call{ value: amount }("");
-       │                                      ──────────┬──────────  
-       │                                                ╰──────────── Error occurred here.
-    ───╯
+Errors: []
 
 Tree:
   - ContractDefinition (Rule): # 0..352 "// SPDX-License-Identifier: MIT\ncontract ABC {\n  f..."
@@ -98,13 +90,30 @@ Tree:
                               - TupleMemberDeconstruction (Rule): [] # 220..220
                           - CloseParen (Token): ")" # 221..222
                           - Equal (Token): "=" # 223..224
-                          - Expression (Rule): # 224..239 " recipient.call"
-                              - MemberAccessExpression (Rule): # 224..239 " recipient.call"
-                                  - Expression (Rule): # 224..234 " recipient"
-                                      - Identifier (Token): "recipient" # 225..234
-                                  - Period (Token): "." # 234..235
-                                  - Identifier (Token): "call" # 235..239
-                          - SKIPPED (Token): '{ value: amount }("")' # 239..260
+                          - Expression (Rule): # 224..260 ' recipient.call{ value: amount }("")'
+                              - FunctionCallExpression (Rule): # 224..260 ' recipient.call{ value: amount }("")'
+                                  - Expression (Rule): # 224..239 " recipient.call"
+                                      - MemberAccessExpression (Rule): # 224..239 " recipient.call"
+                                          - Expression (Rule): # 224..234 " recipient"
+                                              - Identifier (Token): "recipient" # 225..234
+                                          - Period (Token): "." # 234..235
+                                          - Identifier (Token): "call" # 235..239
+                                  - NamedArgumentGroup (Rule): # 239..256 "{ value: amount }"
+                                      - OpenBrace (Token): "{" # 239..240
+                                      - NamedArguments (Rule): # 240..254 " value: amount"
+                                          - NamedArgument (Rule): # 240..254 " value: amount"
+                                              - Identifier (Token): "value" # 241..246
+                                              - Colon (Token): ":" # 246..247
+                                              - Expression (Rule): # 247..254 " amount"
+                                                  - Identifier (Token): "amount" # 248..254
+                                      - CloseBrace (Token): "}" # 255..256
+                                  - PositionalArgumentsDeclaration (Rule): # 256..260 '("")'
+                                      - OpenParen (Token): "(" # 256..257
+                                      - PositionalArguments (Rule): # 257..259 '""'
+                                          - Expression (Rule): # 257..259 '""'
+                                              - AsciiStringLiterals (Rule): # 257..259 '""'
+                                                  - AsciiStringLiteral (Token): '""' # 257..259
+                                      - CloseParen (Token): ")" # 259..260
                           - Semicolon (Token): ";" # 260..261
                       - ExpressionStatement (Rule): # 262..346 '    require(success, "Address: unable to send valu...'
                           - Expression (Rule): # 262..344 '    require(success, "Address: unable to send valu...'
