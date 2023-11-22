@@ -3,7 +3,7 @@ use codegen_language_internal_macros::{ParseInputTokens, WriteOutputTokens};
 use indexmap::IndexMap;
 use serde::Serialize;
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct PrecedenceItem {
     pub name: Spanned<Identifier>,
 
@@ -13,14 +13,15 @@ pub struct PrecedenceItem {
     pub primary_expressions: Vec<PrimaryExpression>,
 }
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct PrecedenceExpression {
     pub name: Spanned<Identifier>,
+    pub rule_name: Spanned<Identifier>,
 
     pub operators: Vec<PrecedenceOperator>,
 }
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct PrecedenceOperator {
     pub model: Spanned<OperatorModel>,
 
@@ -30,7 +31,7 @@ pub struct PrecedenceOperator {
     pub fields: IndexMap<Spanned<Identifier>, Field>,
 }
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub enum OperatorModel {
     Prefix,
     Postfix,
@@ -38,7 +39,7 @@ pub enum OperatorModel {
     BinaryRightAssociative,
 }
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct PrimaryExpression {
     pub expression: Spanned<Identifier>,
 

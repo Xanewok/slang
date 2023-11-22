@@ -20,7 +20,21 @@ impl<T> Spanned<T> {
     pub fn span(&self) -> Span {
         return self.span;
     }
+
+    pub fn into_value(self) -> T {
+        self.value
+    }
 }
+
+// trait UnwrapValue<T> {
+//     fn map_value(self) -> T;
+// }
+
+// impl<T> UnwrapValue<T> for Option<Spanned<T>> {
+//     fn unwrap_value(self) -> T {
+//         return self.unwrap().value;
+//     }
+// }
 
 impl<T> std::ops::Deref for Spanned<T> {
     type Target = T;

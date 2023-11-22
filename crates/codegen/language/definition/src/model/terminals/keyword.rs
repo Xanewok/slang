@@ -3,7 +3,7 @@ use codegen_language_internal_macros::{ParseInputTokens, WriteOutputTokens};
 use itertools::Itertools;
 use serde::Serialize;
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct KeywordItem {
     pub name: Spanned<Identifier>,
     pub identifier: Spanned<Identifier>,
@@ -11,7 +11,7 @@ pub struct KeywordItem {
     pub definitions: Vec<KeywordDefinition>,
 }
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct KeywordDefinition {
     pub enabled: Option<Spanned<VersionSpecifier>>,
     pub reserved: Option<Spanned<VersionSpecifier>>,
@@ -19,7 +19,7 @@ pub struct KeywordDefinition {
     pub value: KeywordValue,
 }
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub enum KeywordValue {
     Sequence { values: Vec<KeywordValue> },
     Optional { value: Box<KeywordValue> },

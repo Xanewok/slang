@@ -3,7 +3,7 @@ use codegen_language_internal_macros::{ParseInputTokens, WriteOutputTokens};
 use indexmap::IndexMap;
 use serde::Serialize;
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct StructItem {
     pub name: Spanned<Identifier>,
 

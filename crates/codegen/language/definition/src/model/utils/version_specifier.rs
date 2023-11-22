@@ -4,7 +4,7 @@ use semver::Version;
 use serde::Serialize;
 use std::ops::Deref;
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub enum VersionSpecifier {
     Never,
     From {

@@ -2,7 +2,7 @@ use crate::model::{Identifier, Spanned, VersionSpecifier};
 use codegen_language_internal_macros::{ParseInputTokens, WriteOutputTokens};
 use serde::Serialize;
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct EnumItem {
     pub name: Spanned<Identifier>,
 
@@ -11,7 +11,7 @@ pub struct EnumItem {
     pub variants: Vec<EnumVariant>,
 }
 
-#[derive(Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
+#[derive(Clone, Debug, Eq, ParseInputTokens, PartialEq, Serialize, WriteOutputTokens)]
 pub struct EnumVariant {
     pub name: Spanned<Identifier>,
 
