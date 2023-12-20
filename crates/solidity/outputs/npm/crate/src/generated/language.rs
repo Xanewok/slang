@@ -16,7 +16,7 @@ use semver::Version;
 use crate::cst;
 pub use crate::kinds::LexicalContext;
 use crate::kinds::{IsLexicalContext, LexicalContextType, RuleKind, TokenKind};
-use crate::lexer::Lexer;
+use crate::lexer::{Lexer, Scan};
 #[cfg(feature = "slang_napi_interfaces")]
 use crate::napi::napi_parse_output::ParseOutput as NAPIParseOutput;
 use crate::parse_output::ParseOutput;
@@ -5344,7 +5344,7 @@ impl Language {
      ********************************************/
 
     #[allow(unused_assignments, unused_parens)]
-    fn ascii_escape(&self, input: &mut ParserContext<'_>) -> bool {
+    fn ascii_escape(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             scan_chars!(input, 't'),
@@ -5359,7 +5359,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn ascii_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn ascii_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             self.single_quoted_ascii_string_literal(input),
@@ -5368,7 +5368,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn bytes_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn bytes_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, 'b', 'y', 't', 'e', 's'),
             scan_optional!(
@@ -5413,7 +5413,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn decimal_digits(&self, input: &mut ParserContext<'_>) -> bool {
+    fn decimal_digits(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_one_or_more!(input, scan_char_range!(input, '0'..='9')),
             scan_zero_or_more!(
@@ -5427,7 +5427,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn decimal_exponent(&self, input: &mut ParserContext<'_>) -> bool {
+    fn decimal_exponent(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_choice!(input, scan_chars!(input, 'e'), scan_chars!(input, 'E')),
             scan_optional!(input, scan_chars!(input, '-')),
@@ -5436,7 +5436,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn decimal_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn decimal_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             scan_not_followed_by!(
@@ -5465,7 +5465,7 @@ impl Language {
                     self.identifier_start(input)
                 )
             } else {
-                false
+                Scan::None
             },
             scan_not_followed_by!(
                 input,
@@ -5490,7 +5490,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn double_quoted_ascii_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn double_quoted_ascii_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, '"'),
             scan_zero_or_more!(
@@ -5508,7 +5508,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn double_quoted_hex_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn double_quoted_hex_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, 'h', 'e', 'x', '"'),
             scan_optional!(input, self.hex_string_contents(input)),
@@ -5517,7 +5517,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn double_quoted_unicode_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn double_quoted_unicode_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         if self.version_is_at_least_0_7_0 {
             scan_sequence!(
                 scan_chars!(input, 'u', 'n', 'i', 'c', 'o', 'd', 'e', '"'),
@@ -5532,12 +5532,12 @@ impl Language {
                 scan_chars!(input, '"')
             )
         } else {
-            false
+            Scan::None
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn end_of_line(&self, input: &mut ParserContext<'_>) -> bool {
+    fn end_of_line(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_optional!(input, scan_chars!(input, '\r')),
             scan_chars!(input, '\n')
@@ -5545,7 +5545,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn escape_sequence(&self, input: &mut ParserContext<'_>) -> bool {
+    fn escape_sequence(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, '\\'),
             scan_choice!(
@@ -5558,7 +5558,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn fixed_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn fixed_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             scan_chars!(input, 'f', 'i', 'x', 'e', 'd'),
@@ -5718,7 +5718,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if self.version_is_at_least_0_4_14 {
                 scan_sequence!(
@@ -5835,13 +5835,13 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             }
         )
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn hex_byte_escape(&self, input: &mut ParserContext<'_>) -> bool {
+    fn hex_byte_escape(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, 'x'),
             self.hex_character(input),
@@ -5850,7 +5850,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn hex_character(&self, input: &mut ParserContext<'_>) -> bool {
+    fn hex_character(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             scan_char_range!(input, '0'..='9'),
@@ -5860,7 +5860,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn hex_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn hex_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             scan_not_followed_by!(
@@ -5895,13 +5895,13 @@ impl Language {
                     self.identifier_start(input)
                 )
             } else {
-                false
+                Scan::None
             }
         )
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn hex_string_contents(&self, input: &mut ParserContext<'_>) -> bool {
+    fn hex_string_contents(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             self.hex_character(input),
             self.hex_character(input),
@@ -5917,7 +5917,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn hex_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn hex_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             self.single_quoted_hex_string_literal(input),
@@ -5926,12 +5926,12 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn identifier(&self, input: &mut ParserContext<'_>) -> bool {
+    fn identifier(&self, input: &mut ParserContext<'_>) -> Scan {
         self.raw_identifier(input)
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn identifier_part(&self, input: &mut ParserContext<'_>) -> bool {
+    fn identifier_part(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             self.identifier_start(input),
@@ -5940,7 +5940,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn identifier_start(&self, input: &mut ParserContext<'_>) -> bool {
+    fn identifier_start(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             scan_chars!(input, '_'),
@@ -5951,7 +5951,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn int_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn int_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, 'i', 'n', 't'),
             scan_optional!(
@@ -5996,7 +5996,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn multiline_comment(&self, input: &mut ParserContext<'_>) -> bool {
+    fn multiline_comment(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, '/'),
             scan_chars!(input, '*'),
@@ -6014,7 +6014,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn raw_identifier(&self, input: &mut ParserContext<'_>) -> bool {
+    fn raw_identifier(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             self.identifier_start(input),
             scan_zero_or_more!(input, self.identifier_part(input))
@@ -6022,7 +6022,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn single_line_comment(&self, input: &mut ParserContext<'_>) -> bool {
+    fn single_line_comment(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, '/', '/'),
             scan_zero_or_more!(input, scan_none_of!(input, '\r', '\n'))
@@ -6030,7 +6030,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn single_quoted_ascii_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn single_quoted_ascii_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, '\''),
             scan_zero_or_more!(
@@ -6048,7 +6048,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn single_quoted_hex_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn single_quoted_hex_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, 'h', 'e', 'x', '\''),
             scan_optional!(input, self.hex_string_contents(input)),
@@ -6057,7 +6057,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn single_quoted_unicode_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn single_quoted_unicode_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         if self.version_is_at_least_0_7_0 {
             scan_sequence!(
                 scan_chars!(input, 'u', 'n', 'i', 'c', 'o', 'd', 'e', '\''),
@@ -6072,12 +6072,12 @@ impl Language {
                 scan_chars!(input, '\'')
             )
         } else {
-            false
+            Scan::None
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn ufixed_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn ufixed_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             scan_chars!(input, 'u', 'f', 'i', 'x', 'e', 'd'),
@@ -6237,7 +6237,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if self.version_is_at_least_0_4_14 {
                 scan_sequence!(
@@ -6354,13 +6354,13 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             }
         )
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn uint_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn uint_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, 'u', 'i', 'n', 't'),
             scan_optional!(
@@ -6405,7 +6405,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn unicode_escape(&self, input: &mut ParserContext<'_>) -> bool {
+    fn unicode_escape(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_sequence!(
             scan_chars!(input, 'u'),
             self.hex_character(input),
@@ -6416,24 +6416,24 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn unicode_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn unicode_string_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             if self.version_is_at_least_0_7_0 {
                 self.single_quoted_unicode_string_literal(input)
             } else {
-                false
+                Scan::None
             },
             if self.version_is_at_least_0_7_0 {
                 self.double_quoted_unicode_string_literal(input)
             } else {
-                false
+                Scan::None
             }
         )
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn version_pragma_value(&self, input: &mut ParserContext<'_>) -> bool {
+    fn version_pragma_value(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_one_or_more!(
             input,
             scan_choice!(
@@ -6447,7 +6447,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn whitespace(&self, input: &mut ParserContext<'_>) -> bool {
+    fn whitespace(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_one_or_more!(
             input,
             scan_choice!(input, scan_chars!(input, ' '), scan_chars!(input, '\t'))
@@ -6455,7 +6455,7 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_bytes_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_bytes_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         if !self.version_is_at_least_0_7_1 {
             scan_sequence!(
                 scan_chars!(input, 'b', 'y', 't', 'e', 's'),
@@ -6499,12 +6499,12 @@ impl Language {
                 )
             )
         } else {
-            false
+            Scan::None
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_decimal_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_decimal_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_not_followed_by!(
             input,
             scan_choice!(
@@ -6520,13 +6520,13 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_fixed_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_fixed_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             if !self.version_is_at_least_0_7_1 {
                 scan_chars!(input, 'f', 'i', 'x', 'e', 'd')
             } else {
-                false
+                Scan::None
             },
             if !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -6572,7 +6572,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -6627,7 +6627,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if self.version_is_at_least_0_4_14 && !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -6692,7 +6692,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if self.version_is_at_least_0_4_14 && !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -6809,13 +6809,13 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             }
         )
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_hex_literal(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_hex_literal(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_not_followed_by!(
             input,
             scan_sequence!(
@@ -6827,12 +6827,12 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_identifier(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_identifier(&self, input: &mut ParserContext<'_>) -> Scan {
         self.raw_identifier(input)
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_int_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_int_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         if !self.version_is_at_least_0_7_1 {
             scan_sequence!(
                 scan_chars!(input, 'i', 'n', 't'),
@@ -6876,18 +6876,18 @@ impl Language {
                 )
             )
         } else {
-            false
+            Scan::None
         }
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_ufixed_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_ufixed_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         scan_choice!(
             input,
             if !self.version_is_at_least_0_7_1 {
                 scan_chars!(input, 'u', 'f', 'i', 'x', 'e', 'd')
             } else {
-                false
+                Scan::None
             },
             if !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -6933,7 +6933,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -6988,7 +6988,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if self.version_is_at_least_0_4_14 && !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -7053,7 +7053,7 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             },
             if self.version_is_at_least_0_4_14 && !self.version_is_at_least_0_7_1 {
                 scan_sequence!(
@@ -7170,13 +7170,13 @@ impl Language {
                     )
                 )
             } else {
-                false
+                Scan::None
             }
         )
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn yul_uint_keyword(&self, input: &mut ParserContext<'_>) -> bool {
+    fn yul_uint_keyword(&self, input: &mut ParserContext<'_>) -> Scan {
         if !self.version_is_at_least_0_7_1 {
             scan_sequence!(
                 scan_chars!(input, 'u', 'i', 'n', 't'),
@@ -7220,7 +7220,7 @@ impl Language {
                 )
             )
         } else {
-            false
+            Scan::None
         }
     }
 
@@ -7564,7 +7564,7 @@ impl Lexer for Language {
                 macro_rules! longest_match {
                         ($( { $kind:ident = $function:ident } )*) => {
                             $(
-                                if self.$function(input) && input.position() > furthest_position {
+                                if self.$function(input).matched() && input.position() > furthest_position {
                                     furthest_position = input.position();
                                     longest_token = Some(TokenKind::$kind);
                                 }
@@ -7656,7 +7656,7 @@ impl Lexer for Language {
                         Some('o') => match input.next() {
                             Some('n') => match input.next() {
                                 Some('s') => {
-                                    if scan_chars!(input, 't') {
+                                    if scan_chars!(input, 't').matched() {
                                         match input.next() {
                                             Some('a') => scan_chars!(input, 'n', 't')
                                                 .then_some(TokenKind::ConstantKeyword),
@@ -7783,7 +7783,7 @@ impl Lexer for Language {
                     },
                     Some('f') => match input.next() {
                         Some('a') => {
-                            if scan_chars!(input, 'l') {
+                            if scan_chars!(input, 'l').matched() {
                                 match input.next() {
                                     Some('l') => {
                                         if self.version_is_at_least_0_6_0 {
@@ -7807,7 +7807,7 @@ impl Lexer for Language {
                             }
                         }
                         Some('i') => {
-                            if scan_chars!(input, 'n') {
+                            if scan_chars!(input, 'n').matched() {
                                 match input.next() {
                                     Some('a') => {
                                         scan_chars!(input, 'l').then_some(TokenKind::FinalKeyword)
@@ -7914,7 +7914,7 @@ impl Lexer for Language {
                             Some('l') => scan_chars!(input, 'i', 'n', 'e')
                                 .then_some(TokenKind::InlineKeyword),
                             Some('t') => {
-                                if scan_chars!(input, 'e', 'r') {
+                                if scan_chars!(input, 'e', 'r').matched() {
                                     match input.next() {
                                         Some('f') => scan_chars!(input, 'a', 'c', 'e')
                                             .then_some(TokenKind::InterfaceKeyword),
@@ -8072,7 +8072,7 @@ impl Lexer for Language {
                         None => None,
                     },
                     Some('r') => {
-                        if scan_chars!(input, 'e') {
+                        if scan_chars!(input, 'e').matched() {
                             match input.next() {
                                 Some('c') => {
                                     if self.version_is_at_least_0_6_0 {
@@ -8095,7 +8095,7 @@ impl Lexer for Language {
                                         .then_some(TokenKind::RelocatableKeyword)
                                 }
                                 Some('t') => {
-                                    if scan_chars!(input, 'u', 'r', 'n') {
+                                    if scan_chars!(input, 'u', 'r', 'n').matched() {
                                         match input.next() {
                                             Some('s') => Some(TokenKind::ReturnsKeyword),
                                             Some(_) => {
@@ -8213,7 +8213,7 @@ impl Lexer for Language {
                             None => None,
                         },
                         Some('y') => {
-                            if scan_chars!(input, 'p', 'e') {
+                            if scan_chars!(input, 'p', 'e').matched() {
                                 match input.next() {
                                     Some('d') => {
                                         if self.version_is_at_least_0_5_0 {
@@ -8315,7 +8315,7 @@ impl Lexer for Language {
                     None => None,
                 } {
                     // Make sure that this is not the start of an identifier
-                    if !self.identifier_part(input) {
+                    if !self.identifier_part(input).matched() {
                         furthest_position = input.position();
                         longest_token = Some(kind);
                     }
@@ -8497,7 +8497,7 @@ impl Lexer for Language {
                 macro_rules! longest_match {
                         ($( { $kind:ident = $function:ident } )*) => {
                             $(
-                                if self.$function(input) && input.position() > furthest_position {
+                                if self.$function(input).matched() && input.position() > furthest_position {
                                     furthest_position = input.position();
                                     longest_token = Some(TokenKind::$kind);
                                 }
@@ -8525,7 +8525,7 @@ impl Lexer for Language {
                     None => None,
                 } {
                     // Make sure that this is not the start of an identifier
-                    if !self.identifier_part(input) {
+                    if !self.identifier_part(input).matched() {
                         furthest_position = input.position();
                         longest_token = Some(kind);
                     }
@@ -8578,7 +8578,7 @@ impl Lexer for Language {
                 macro_rules! longest_match {
                         ($( { $kind:ident = $function:ident } )*) => {
                             $(
-                                if self.$function(input) && input.position() > furthest_position {
+                                if self.$function(input).matched() && input.position() > furthest_position {
                                     furthest_position = input.position();
                                     longest_token = Some(TokenKind::$kind);
                                 }
@@ -8721,7 +8721,7 @@ impl Lexer for Language {
                         Some('o') => match input.next() {
                             Some('n') => match input.next() {
                                 Some('s') => {
-                                    if scan_chars!(input, 't') {
+                                    if scan_chars!(input, 't').matched() {
                                         match input.next() {
                                             Some('a') => {
                                                 if !self.version_is_at_least_0_7_1 {
@@ -8904,7 +8904,7 @@ impl Lexer for Language {
                     },
                     Some('f') => match input.next() {
                         Some('a') => {
-                            if scan_chars!(input, 'l') {
+                            if scan_chars!(input, 'l').matched() {
                                 match input.next() {
                                     Some('l') => {
                                         if self.version_is_at_least_0_6_0
@@ -8929,7 +8929,7 @@ impl Lexer for Language {
                             }
                         }
                         Some('i') => {
-                            if scan_chars!(input, 'n') {
+                            if scan_chars!(input, 'n').matched() {
                                 match input.next() {
                                     Some('a') => {
                                         if !self.version_is_at_least_0_7_1 {
@@ -9050,7 +9050,7 @@ impl Lexer for Language {
                                 }
                             }
                             Some('t') => {
-                                if scan_chars!(input, 'e', 'r') {
+                                if scan_chars!(input, 'e', 'r').matched() {
                                     match input.next() {
                                         Some('f') => {
                                             if !self.version_is_at_least_0_7_1 {
@@ -9338,7 +9338,7 @@ impl Lexer for Language {
                         None => None,
                     },
                     Some('r') => {
-                        if scan_chars!(input, 'e') {
+                        if scan_chars!(input, 'e').matched() {
                             match input.next() {
                                 Some('c') => {
                                     if self.version_is_at_least_0_6_0
@@ -9369,7 +9369,7 @@ impl Lexer for Language {
                                     }
                                 }
                                 Some('t') => {
-                                    if scan_chars!(input, 'u', 'r', 'n') {
+                                    if scan_chars!(input, 'u', 'r', 'n').matched() {
                                         match input.next() {
                                             Some('s') => {
                                                 if !self.version_is_at_least_0_7_1 {
@@ -9530,7 +9530,7 @@ impl Lexer for Language {
                             None => None,
                         },
                         Some('y') => {
-                            if scan_chars!(input, 'p', 'e') {
+                            if scan_chars!(input, 'p', 'e').matched() {
                                 match input.next() {
                                     Some('d') => {
                                         if self.version_is_at_least_0_5_0
@@ -9688,7 +9688,7 @@ impl Lexer for Language {
                     None => None,
                 } {
                     // Make sure that this is not the start of an identifier
-                    if !self.identifier_part(input) {
+                    if !self.identifier_part(input).matched() {
                         furthest_position = input.position();
                         longest_token = Some(kind);
                     }

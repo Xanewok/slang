@@ -2,10 +2,10 @@
 macro_rules! scan_chars {
     ($stream:ident, $($char:literal),+) => {
         if $( $stream.next() == Some($char) )&&+ {
-            true
+            Scan::Strict
         } else {
             $stream.undo();
-            false
+            Scan::None
         }
     };
 }
@@ -15,14 +15,14 @@ macro_rules! scan_none_of {
     ($stream:ident, $($char:literal),+) => {
         if let Some(c) = $stream.next() {
             if $(c != $char)&&+ {
-                true
+                Scan::Strict
             } else {
                 $stream.undo();
-                false
+                Scan::None
             }
         } else {
             $stream.undo();
-            false
+            Scan::None
         }
     };
 }
@@ -33,14 +33,14 @@ macro_rules! scan_char_range {
         if let Some(c) = $stream.next() {
             #[allow(clippy::manual_is_ascii_check)]
             if ($from..=$to).contains(&c) {
-                true
+                Scan::Strict
             } else {
                 $stream.undo();
-                false
+                Scan::None
             }
         } else {
             $stream.undo();
-            false
+            Scan::None
         }
     };
 }
@@ -48,7 +48,12 @@ macro_rules! scan_char_range {
 #[allow(unused_macros)]
 macro_rules! scan_sequence {
     ($($scanner:expr),*) => {
-        $(($scanner))&&*
+        if $(($scanner).matched())&&* {
+            // TODO: Handle the Ambiguous/Strict
+            Scan::Strict
+        } else {
+            Scan::None
+        }
     };
 }
 
@@ -58,10 +63,10 @@ macro_rules! scan_choice {
         loop {
             let save = $stream.position();
             $(
-                if ($scanner) { break true }
+                if ($scanner).matched() { break Scan::Strict }
                 $stream.set_position(save);
             )*
-            break false
+            break Scan::None
         }
     };
 }
@@ -71,9 +76,9 @@ macro_rules! scan_zero_or_more {
     ($stream:ident, $scanner:expr) => {
         loop {
             let save = $stream.position();
-            if !($scanner) {
+            if !($scanner).matched() {
                 $stream.set_position(save);
-                break true;
+                break Scan::Strict;
             }
         }
     };
@@ -86,12 +91,12 @@ macro_rules! scan_one_or_more {
         #[allow(clippy::redundant_else)]
         loop {
             let save = $stream.position();
-            if !($scanner) {
+            if !($scanner).matched() {
                 if count < 1 {
-                    break false;
+                    break Scan::None;
                 } else {
                     $stream.set_position(save);
-                    break true;
+                    break Scan::Strict;
                 }
             }
             count += 1;
@@ -103,22 +108,28 @@ macro_rules! scan_one_or_more {
 macro_rules! scan_optional {
     ($stream:ident, $scanner:expr) => {{
         let save = $stream.position();
-        if !($scanner) {
+        if !($scanner).matched() {
             $stream.set_position(save)
         }
-        true
+        Scan::Strict
     }};
 }
 
 #[allow(unused_macros)]
 macro_rules! scan_not_followed_by {
     ($stream:ident, $scanner:expr, $not_followed_by:expr) => {
-        ($scanner)
+        // TODO: Handle ambiguous/strict matches
+        if ($scanner).matched()
             && ({
                 let end = $stream.position();
                 let following = $not_followed_by;
                 $stream.set_position(end);
-                !following
+                !following.matched()
             })
+        {
+            Scan::Strict
+        } else {
+            Scan::None
+        }
     };
 }

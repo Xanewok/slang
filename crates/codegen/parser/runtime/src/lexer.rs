@@ -16,6 +16,13 @@ impl Scan {
     pub fn matched(&self) -> bool {
         matches!(self, Self::Ambiguous | Self::Strict)
     }
+
+    pub fn then_some<T>(self, value: T) -> Option<T> {
+        match self {
+            Self::None => None,
+            Self::Ambiguous | Self::Strict => Some(value),
+        }
+    }
 }
 
 pub trait Lexer {

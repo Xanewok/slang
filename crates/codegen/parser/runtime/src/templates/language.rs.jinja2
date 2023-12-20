@@ -14,7 +14,7 @@ use napi_derive::napi;
 use crate::cst;
 pub use crate::kinds::LexicalContext;
 use crate::kinds::{IsLexicalContext, LexicalContextType, RuleKind, TokenKind};
-use crate::lexer::Lexer;
+use crate::lexer::{Lexer, Scan};
 #[cfg(feature = "slang_napi_interfaces")]
 use crate::napi::napi_parse_output::ParseOutput as NAPIParseOutput;
 use crate::parse_output::ParseOutput;
@@ -88,7 +88,7 @@ impl Language {
 
     {% for scanner_name, scanner_code in code.scanner_functions %}
         #[allow(unused_assignments, unused_parens)]
-        fn {{ scanner_name | snake_case }}(&self, input: &mut ParserContext<'_>) -> bool { {{ scanner_code }} }
+        fn {{ scanner_name | snake_case }}(&self, input: &mut ParserContext<'_>) -> Scan { {{ scanner_code }} }
     {% endfor %}
 
     pub fn scan(&self, lexical_context: LexicalContext, input: &str) -> Option<TokenKind> {
@@ -142,7 +142,7 @@ impl Lexer for Language {
                     macro_rules! longest_match {
                         ($( { $kind:ident = $function:ident } )*) => {
                             $(
-                                if self.$function(input) && input.position() > furthest_position {
+                                if self.$function(input).matched() && input.position() > furthest_position {
                                     furthest_position = input.position();
                                     longest_token = Some(TokenKind::$kind);
                                 }
@@ -154,7 +154,7 @@ impl Lexer for Language {
                     // Alpha literal scanner; handle separately, since it can clash with identifiers
                     if let Some(kind) = {{ context.alpha_literal_scanner }} {
                         // Make sure that this is not the start of an identifier
-                        if !self.identifier_part(input) {
+                        if !self.identifier_part(input).matched() {
                             furthest_position = input.position();
                             longest_token = Some(kind);
                         }

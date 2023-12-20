@@ -98,7 +98,7 @@ impl Trie {
             trie_code
         } else {
             quote! {
-                if scan_chars!(input, #(#path),*) {
+                if scan_chars!(input, #(#path),*).matched() {
                     #trie_code
                 } else {
                     None
