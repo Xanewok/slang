@@ -151,6 +151,7 @@ impl Lexer for Language {
                         };
                     }
 
+                    // Alpha literal scanner; handle separately, since it can clash with identifiers
                     if let Some(kind) = {{ context.alpha_literal_scanner }} {
                         // Make sure that this is not the start of an identifier
                         if !self.identifier_part(input) {
@@ -160,6 +161,7 @@ impl Lexer for Language {
                     }
                     input.set_position(save);
 
+                    // Non-alpha literal scanner
                     if let Some(kind) = {{ context.non_alpha_literal_scanner }} {
                         furthest_position = input.position();
                         longest_token = Some(kind);

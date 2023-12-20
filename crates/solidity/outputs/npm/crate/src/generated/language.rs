@@ -7573,6 +7573,7 @@ impl Lexer for Language {
                         };
                     }
 
+                // Alpha literal scanner; handle separately, since it can clash with identifiers
                 if let Some(kind) = match input.next() {
                     Some('a') => match input.next() {
                         Some('b') => scan_chars!(input, 's', 't', 'r', 'a', 'c', 't')
@@ -8321,6 +8322,7 @@ impl Lexer for Language {
                 }
                 input.set_position(save);
 
+                // Non-alpha literal scanner
                 if let Some(kind) = match input.next() {
                     Some('!') => match input.next() {
                         Some('=') => Some(TokenKind::BangEqual),
@@ -8504,6 +8506,7 @@ impl Lexer for Language {
                         };
                     }
 
+                // Alpha literal scanner; handle separately, since it can clash with identifiers
                 if let Some(kind) = match input.next() {
                     Some('a') => scan_chars!(input, 'b', 'i', 'c', 'o', 'd', 'e', 'r')
                         .then_some(TokenKind::AbicoderKeyword),
@@ -8529,6 +8532,7 @@ impl Lexer for Language {
                 }
                 input.set_position(save);
 
+                // Non-alpha literal scanner
                 if let Some(kind) = match input.next() {
                     Some('-') => Some(TokenKind::Minus),
                     Some('.') => Some(TokenKind::Period),
@@ -8583,6 +8587,7 @@ impl Lexer for Language {
                         };
                     }
 
+                // Alpha literal scanner; handle separately, since it can clash with identifiers
                 if let Some(kind) = match input.next() {
                     Some('a') => match input.next() {
                         Some('b') => {
@@ -9690,6 +9695,7 @@ impl Lexer for Language {
                 }
                 input.set_position(save);
 
+                // Non-alpha literal scanner
                 if let Some(kind) = match input.next() {
                     Some('(') => Some(TokenKind::OpenParen),
                     Some(')') => Some(TokenKind::CloseParen),
