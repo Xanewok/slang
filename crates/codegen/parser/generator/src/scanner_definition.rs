@@ -18,7 +18,7 @@ impl ScannerDefinitionExtensions for ScannerDefinitionRef {
     }
     fn literals(&self) -> Vec<String> {
         let mut result = BTreeSet::new();
-        if self.node().literals(&mut result) {
+        if self.node().literals(&mut result, String::new()) {
             result.into_iter().collect()
         } else {
             vec![]
@@ -28,21 +28,36 @@ impl ScannerDefinitionExtensions for ScannerDefinitionRef {
 
 pub trait ScannerDefinitionNodeExtensions {
     fn to_scanner_code(&self) -> TokenStream;
-    fn literals(&self, accum: &mut BTreeSet<String>) -> bool;
+    fn literals(&self, accum: &mut BTreeSet<String>, prefix: String) -> bool;
 }
 
 impl ScannerDefinitionNodeExtensions for ScannerDefinitionNode {
     // Returns true if this is nothing but a set of literals
-    fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
+    fn literals(&self, accum: &mut BTreeSet<String>, mut prefix: String) -> bool {
         match self {
             ScannerDefinitionNode::Versioned(body, _) => body.literals(accum),
             ScannerDefinitionNode::Literal(string) => {
-                accum.insert(string.clone());
+                accum.insert(prefix + string);
                 true
             }
-            ScannerDefinitionNode::Choice(nodes) => nodes
-                .iter()
-                .fold(true, |result, node| node.literals(accum) && result),
+            ScannerDefinitionNode::Choice(nodes) => nodes.iter().fold(true, |result, node| {
+                node.literals(accum, prefix.clone()) && result
+            }),
+            ScannerDefinitionNode::Sequence(nodes) => {
+                for node in nodes {
+                    // Attempt to accumulate and early-return if we can't be just literals
+                    if !node.literals(accum, prefix.clone()) {
+                        return false;
+                    }
+
+                    // Keep accumulating the prefix
+                    if let ScannerDefinitionNode::Literal(atom) = node {
+                        prefix.push_str(atom);
+                    }
+                }
+
+                true
+            }
             _ => false,
         }
     }
