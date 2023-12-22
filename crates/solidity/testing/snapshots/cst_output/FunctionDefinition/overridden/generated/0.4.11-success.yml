@@ -23,9 +23,8 @@ Tree:
                   - IdentifierPath: # 22..30 " virtual"
                       - Identifier: "virtual" # 23..30
           - FunctionAttribute: # 30..39 " override"
-              - ModifierInvocation: # 30..39 " override"
-                  - IdentifierPath: # 30..39 " override"
-                      - Identifier: "override" # 31..39
+              - OverrideSpecifier: # 30..39 " override"
+                  - OverrideKeyword: "override" # 31..39
       - ReturnsDeclaration: # 39..57 " returns (uint256)"
           - ReturnsKeyword: "returns" # 40..47
           - ParametersDeclaration: # 47..57 " (uint256)"

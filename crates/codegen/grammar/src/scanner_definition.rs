@@ -19,7 +19,13 @@ impl Visitable for ScannerDefinitionRef {
 
 #[derive(Clone, Debug)]
 pub enum ScannerDefinitionNode {
-    Versioned(Box<Self>, Vec<VersionQualityRange>),
+    Versioned(
+        Box<Self>,
+        // Enabled but can be ambiguously scanned
+        Vec<VersionQualityRange>,
+        // Reserved, i.e. strict scan
+        Vec<VersionQualityRange>,
+    ),
     Optional(Box<Self>),
     ZeroOrMore(Box<Self>),
     OneOrMore(Box<Self>),
@@ -42,7 +48,7 @@ impl Visitable for ScannerDefinitionNode {
     fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
         visitor.scanner_definition_node_enter(self);
         match self {
-            Self::Versioned(node, _)
+            Self::Versioned(node, _, _)
             | Self::Optional(node)
             | Self::ZeroOrMore(node)
             | Self::OneOrMore(node) => node.accept_visitor(visitor),

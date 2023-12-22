@@ -14,7 +14,7 @@ Source: >
   11 │ function nested_lists() override(some.ident, next.do.that, other.while, next.one, final, ultimate); │ 389..488
   12 │ function nested_lists() override(some., next.arg, next.one, ultimate);                              │ 489..559
 
-Errors: # 12 total
+Errors: # 11 total
   - >
     Error: Expected CloseParen or Comma.
        ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembers/separated_recovery/input.sol:1:36]
@@ -94,14 +94,6 @@ Errors: # 12 total
      11 │ function nested_lists() override(some.ident, next.do.that, other.while, next.one, final, ultimate);
         │                                                                  ──┬──  
         │                                                                    ╰──── Error occurred here.
-    ────╯
-  - >
-    Error: Expected Identifier.
-        ╭─[crates/solidity/testing/snapshots/cst_output/ContractMembers/separated_recovery/input.sol:11:83]
-        │
-     11 │ function nested_lists() override(some.ident, next.do.that, other.while, next.one, final, ultimate);
-        │                                                                                   ───────┬───────  
-        │                                                                                          ╰───────── Error occurred here.
     ────╯
   - >
     Error: Expected Identifier.
@@ -314,7 +306,7 @@ Tree:
                           - OverrideKeyword: "override" # 413..421
                           - OverridePathsDeclaration: # 421..487 "(some.ident, next.do.that, other.while, next.one, ..."
                               - OpenParen: "(" # 421..422
-                              - OverridePaths: # 422..470 "some.ident, next.do.that, other.while, next.one,"
+                              - OverridePaths: # 422..486 "some.ident, next.do.that, other.while, next.one, f..."
                                   - IdentifierPath: # 422..432 "some.ident"
                                       - Identifier: "some" # 422..426
                                       - Period: "." # 426..427
@@ -335,7 +327,11 @@ Tree:
                                       - Period: "." # 465..466
                                       - Identifier: "one" # 466..469
                                   - Comma: "," # 469..470
-                              - SKIPPED: "final, ultimate" # 471..486
+                                  - IdentifierPath: # 470..476 " final"
+                                      - Identifier: "final" # 471..476
+                                  - Comma: "," # 476..477
+                                  - IdentifierPath: # 477..486 " ultimate"
+                                      - Identifier: "ultimate" # 478..486
                               - CloseParen: ")" # 486..487
               - FunctionBody: # 487..489 ";\n"
                   - Semicolon: ";" # 487..488

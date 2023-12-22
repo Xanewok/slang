@@ -35,7 +35,7 @@ impl ScannerDefinitionNodeExtensions for ScannerDefinitionNode {
     // Returns true if this is nothing but a set of literals
     fn literals(&self, accum: &mut BTreeSet<String>, mut prefix: String) -> bool {
         match self {
-            ScannerDefinitionNode::Versioned(body, _) => body.literals(accum),
+            ScannerDefinitionNode::Versioned(body, _, _) => body.literals(accum, prefix),
             ScannerDefinitionNode::Literal(string) => {
                 accum.insert(prefix + string);
                 true
@@ -64,7 +64,8 @@ impl ScannerDefinitionNodeExtensions for ScannerDefinitionNode {
 
     fn to_scanner_code(&self) -> TokenStream {
         match self {
-            ScannerDefinitionNode::Versioned(body, version_quality_ranges) => {
+            ScannerDefinitionNode::Versioned(body, version_quality_ranges, reserved) => {
+                // TODO: Handle reserved
                 let body = body.to_scanner_code();
                 version_quality_ranges.wrap_code(body, Some(quote! { Scan::None }))
             }

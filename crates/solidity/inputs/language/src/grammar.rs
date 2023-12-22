@@ -260,7 +260,12 @@ impl ParserThunk {
     }
 }
 
-fn enabled_to_range(spec: model::VersionSpecifier) -> Vec<VersionQualityRange> {
+fn enabled_to_range(spec: impl Into<Option<model::VersionSpecifier>>) -> Vec<VersionQualityRange> {
+    // No specifiers implies "Always" enabled
+    let Some(spec) = spec.into() else {
+        return vec![];
+    };
+
     match spec {
         model::VersionSpecifier::Never => vec![VersionQualityRange {
             from: semver::Version::new(0, 0, 0),
@@ -496,29 +501,54 @@ fn resolve_keyword(keyword: model::KeywordItem) -> ScannerDefinitionNode {
         .definitions
         .into_iter()
         .map(|def| {
-            let value = resolve_keyword_value(def.value);
+            // HACK: We piggy-back on scanner trie generation to generate the literal trie for keywords.
+            // It seems unreasonable for keywords to be over a regular expression, so we just collect all finite variations.
+            let variations = def.value.collect_variations();
+            let value = ScannerDefinitionNode::Choice(
+                variations
+                    .into_iter()
+                    .map(ScannerDefinitionNode::Literal)
+                    .collect(),
+            );
+
+            let enabled = enabled_to_range(def.enabled);
+            let reserved = enabled_to_range(def.reserved);
+
+            // TODO: see if we can not always specify the versioned specifier
+            ScannerDefinitionNode::Versioned(Box::new(value), enabled, reserved)
+
+            // HACK: We piggy-back on scanner trie generation to generate the literal trie for keywords.
+            // As such, we collect each keyword
+
             // If missing, the default is "Always"
-            match (def.enabled, def.reserved) {
-                // Contextual keywords (never reserved)
-                // TODO(#568): Properly support contextual keywords.
-                // Currently, to minimize the diff and ease the transition to the DSL v2, we treat them as normal keywords.
-                // Moreover, since the DSL v1 only treats "enablement" as being reserved, we try to preserve that for now.
-                (enabled, Some(model::VersionSpecifier::Never)) => value.versioned(enabled),
-                // TODO(#568): If a contextual keyword was enabled at some point and then reserved, for now we treat it
-                // as a reserved keyword starting from when it was being used, to preserve the DSL v1 behaviour.
-                (
-                    Some(model::VersionSpecifier::From { from: enabled }),
-                    Some(model::VersionSpecifier::From { from: reserved }),
-                ) if enabled < reserved => ScannerDefinitionNode::Versioned(
-                    Box::new(value),
-                    enabled_to_range(model::VersionSpecifier::From { from: enabled }),
-                ),
-                (_, Some(reserved)) => {
-                    ScannerDefinitionNode::Versioned(Box::new(value), enabled_to_range(reserved))
-                }
-                // The keyword is always reserved
-                (_, None) => value,
-            }
+            // match (def.enabled, def.reserved) {
+            //     // Contextual keywords (never reserved)
+            //     // TODO(#568): Properly support contextual keywords.
+            //     // Currently, to minimize the diff and ease the transition to the DSL v2, we treat them as normal keywords.
+            //     // Moreover, since the DSL v1 only treats "enablement" as being reserved, we try to preserve that for now.
+            //     (enabled, Some(model::VersionSpecifier::Never)) => value.versioned(enabled),
+            //     // TODO(#568): If a contextual keyword was enabled at some point and then reserved, for now we treat it
+            //     // as a reserved keyword starting from when it was being used, to preserve the DSL v1 behaviour.
+            //     (
+            //         Some(model::VersionSpecifier::From { from: enabled }),
+            //         Some(model::VersionSpecifier::From { from: reserved }),
+            //     ) if enabled < reserved => ScannerDefinitionNode::Versioned(
+            //         Box::new(value),
+            //         enabled_to_range(model::VersionSpecifier::From { from: enabled }),
+            //         // TODO: Handle reserved
+            //         vec![],
+            //     ),
+            //     (_, Some(reserved)) => {
+            //         ScannerDefinitionNode::Versioned(
+            //             Box::new(value),
+            //             enabled_to_range(reserved),
+            //             // TODO: Handle reserved
+            //             vec![],
+            //         )
+            //     }
+            //     // The keyword is always reserved
+            //     (_, None) => value,
+            // }
         })
         .collect();
 
@@ -526,21 +556,6 @@ fn resolve_keyword(keyword: model::KeywordItem) -> ScannerDefinitionNode {
         0 => panic!("Keyword {} has no definitions", keyword.name),
         1 => defs.into_iter().next().unwrap(),
         _ => ScannerDefinitionNode::Choice(defs),
-    }
-}
-
-fn resolve_keyword_value(value: model::KeywordValue) -> ScannerDefinitionNode {
-    match value {
-        model::KeywordValue::Sequence { values } => {
-            ScannerDefinitionNode::Sequence(values.into_iter().map(resolve_keyword_value).collect())
-        }
-        model::KeywordValue::Choice { values } => {
-            ScannerDefinitionNode::Choice(values.into_iter().map(resolve_keyword_value).collect())
-        }
-        model::KeywordValue::Optional { value } => {
-            ScannerDefinitionNode::Optional(Box::new(resolve_keyword_value(*value)))
-        }
-        model::KeywordValue::Atom { atom } => ScannerDefinitionNode::Literal(atom),
     }
 }
 
@@ -842,7 +857,12 @@ impl VersionWrapped for ParserDefinitionNode {
 impl VersionWrapped for ScannerDefinitionNode {
     fn versioned(self, enabled: Option<model::VersionSpecifier>) -> Self {
         if let Some(enabled) = enabled {
-            Self::Versioned(Box::new(self), enabled_to_range(enabled))
+            Self::Versioned(
+                Box::new(self),
+                enabled_to_range(enabled),
+                // TODO: Handle reserved
+                vec![],
+            )
         } else {
             self
         }

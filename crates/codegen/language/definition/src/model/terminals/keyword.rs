@@ -48,16 +48,17 @@ impl KeywordValue {
             KeywordValue::Sequence { values } => {
                 let matrix = values.iter().map(Self::collect_variations).collect_vec();
 
+                // M x N x O...
                 let results_len = matrix.iter().map(Vec::len).product();
-                let mut results = (0..results_len).map(|_| String::new()).collect_vec();
+                let mut results = vec![String::new(); results_len];
 
                 let mut span = results_len;
-
+                // Process M x (N x O...)
                 for variations in matrix {
                     span /= variations.len();
 
-                    for j in 0..results_len {
-                        results[j].push_str(&variations[j / span % variations.len()]);
+                    for (i, result) in results.iter_mut().enumerate() {
+                        result.push_str(&variations[i / span % variations.len()]);
                     }
                 }
 
@@ -85,6 +86,17 @@ mod tests {
         };
 
         assert_eq!(value.collect_variations(), vec!["", "foo"]);
+
+        let value = KeywordValue::Sequence {
+            values: vec![
+                KeywordValue::Atom { atom: "foo".into() },
+                KeywordValue::Optional {
+                    value: KeywordValue::Atom { atom: "bar".into() }.into(),
+                },
+            ],
+        };
+
+        assert_eq!(value.collect_variations(), vec!["foo", "foobar"]);
     }
 
     #[test]
@@ -139,6 +151,46 @@ mod tests {
         assert_eq!(
             value.collect_variations(),
             vec!["foo", "foo_1", "foo_2", "foo_3", "foo_4", "foo_5",]
+        );
+    }
+
+    #[test]
+    fn test_product() {
+        let value = KeywordValue::Sequence {
+            values: vec![
+                KeywordValue::Choice {
+                    values: vec![
+                        KeywordValue::Atom { atom: "1".into() },
+                        KeywordValue::Atom { atom: "2".into() },
+                        KeywordValue::Atom { atom: "3".into() },
+                    ],
+                },
+                KeywordValue::Atom { atom: "x".into() },
+                KeywordValue::Choice {
+                    values: vec![
+                        KeywordValue::Atom { atom: "1".into() },
+                        KeywordValue::Atom { atom: "2".into() },
+                        KeywordValue::Atom { atom: "3".into() },
+                    ],
+                },
+                KeywordValue::Atom { atom: "x".into() },
+                KeywordValue::Choice {
+                    values: vec![
+                        KeywordValue::Atom { atom: "1".into() },
+                        KeywordValue::Atom { atom: "2".into() },
+                        KeywordValue::Atom { atom: "3".into() },
+                    ],
+                },
+            ],
+        };
+
+        assert_eq!(
+            value.collect_variations(),
+            vec![
+                "1x1x1", "1x1x2", "1x1x3", "1x2x1", "1x2x2", "1x2x3", "1x3x1", "1x3x2", "1x3x3",
+                "2x1x1", "2x1x2", "2x1x3", "2x2x1", "2x2x2", "2x2x3", "2x3x1", "2x3x2", "2x3x3",
+                "3x1x1", "3x1x2", "3x1x3", "3x2x1", "3x2x2", "3x2x3", "3x3x1", "3x3x2", "3x3x3",
+            ]
         );
     }
 }

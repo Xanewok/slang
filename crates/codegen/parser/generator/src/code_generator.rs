@@ -16,7 +16,7 @@ use serde::Serialize;
 use crate::parser_definition::ParserDefinitionExtensions;
 use crate::precedence_parser_definition::PrecedenceParserDefinitionExtensions;
 use crate::scanner_definition::ScannerDefinitionExtensions;
-use crate::trie::Trie;
+use crate::trie::{Trie, VersionWrapped};
 
 #[derive(Default, Serialize)]
 pub struct CodeGenerator {
@@ -171,9 +171,21 @@ impl GrammarVisitor for CodeGenerator {
                     for literal in literals {
                         // This is good enough until we switch to a DFA
                         if literal.chars().next().unwrap().is_alphabetic() {
-                            alpha_literal_trie.insert(literal.as_str(), scanner.clone());
+                            // alpha_literal_trie.insert(literal, scanner.clone());
+                            alpha_literal_trie.insert(
+                                literal,
+                                scanner.name().to_string(),
+                                scanner.node().enabled_version_ranges(),
+                                scanner.node().strict_version_ranges(),
+                            );
                         } else {
-                            non_alpha_literal_trie.insert(literal.as_str(), scanner.clone());
+                            // non_alpha_literal_trie.insert(literal, scanner.clone());
+                            non_alpha_literal_trie.insert(
+                                literal,
+                                scanner.name().to_string(),
+                                scanner.node().enabled_version_ranges(),
+                                scanner.node().strict_version_ranges(),
+                            );
                         }
                     }
                 }
@@ -254,8 +266,8 @@ impl GrammarVisitor for CodeGenerator {
     }
 
     fn scanner_definition_node_enter(&mut self, node: &ScannerDefinitionNode) {
-        if let ScannerDefinitionNode::Versioned(_, version_quality_ranges) = node {
-            for vqr in version_quality_ranges {
+        if let ScannerDefinitionNode::Versioned(_, version_quality_ranges, reserved) = node {
+            for vqr in version_quality_ranges.iter().chain(reserved) {
                 self.referenced_versions.insert(vqr.from.clone());
             }
         }

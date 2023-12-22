@@ -8,8 +8,8 @@ Source: >
 
 Errors: # 1 total
   - >
-    Error: Expected ConstantKeyword or Identifier or InternalKeyword or OverrideKeyword or PrivateKeyword or PublicKeyword.
-       ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_receive_function_definition/input.sol:2:10]
+    Error: Expected AddressKeyword or BoolKeyword or ByteKeyword or BytesKeyword or CloseBrace or EnumKeyword or EventKeyword or FixedKeyword or FunctionKeyword or Identifier or IntKeyword or MappingKeyword or ModifierKeyword or PayableKeyword or StringKeyword or StructKeyword or UfixedKeyword or UintKeyword or UsingKeyword.
+       ╭─[crates/solidity/testing/snapshots/cst_output/ContractDefinition/member_receive_function_definition/input.sol:2:3]
        │
      2 │ ╭─▶   receive() {
      3 │ ├─▶   }
@@ -22,11 +22,5 @@ Tree:
       - ContractKeyword: "contract" # 0..8
       - Identifier: "Sample" # 9..15
       - OpenBrace: "{" # 16..17
-      - ContractMembers: # 18..27 "  receive"
-          - ContractMember: # 18..27 "  receive"
-              - StateVariableDefinition: # 18..27 "  receive"
-                  - TypeName: # 18..27 "  receive"
-                      - IdentifierPath: # 18..27 "  receive"
-                          - Identifier: "receive" # 20..27
-      - SKIPPED: "() {\n  }\n" # 27..36
+      - SKIPPED: "receive() {\n  }\n" # 20..36
       - CloseBrace: "}" # 36..37
