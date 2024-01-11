@@ -66,11 +66,8 @@ where
                     ParserResult::PrattOperatorMatch(..) | ParserResult::NoMatch(..) => {
                         unreachable!("Handled above")
                     }
-                    ParserResult::Match(Match {
-                        nodes,
-                        expected_tokens,
-                    })
-                    | ParserResult::IncompleteMatch(IncompleteMatch {
+                    ParserResult::Match(Match { nodes, .. }) => (nodes, vec![]),
+                    ParserResult::IncompleteMatch(IncompleteMatch {
                         nodes,
                         expected_tokens,
                     }) => (nodes, expected_tokens),
