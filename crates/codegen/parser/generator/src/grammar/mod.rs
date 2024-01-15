@@ -24,21 +24,12 @@ pub struct Grammar {
 }
 
 impl Grammar {
-    pub fn elements(&self) -> &HashMap<&'static str, GrammarElement> {
-        &self.elements
-    }
-
     pub fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
         visitor.grammar_enter(self);
         for element in self.elements.values() {
             element.accept_visitor(visitor);
         }
         visitor.grammar_leave(self);
-    }
-
-    pub fn register<E: Into<GrammarElement>>(&mut self, instance: E) {
-        let element: GrammarElement = instance.into();
-        self.elements.insert(element.name(), element);
     }
 }
 
