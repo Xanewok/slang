@@ -2,11 +2,6 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use anyhow::Result;
-use codegen_grammar::{
-    Grammar, GrammarVisitor, KeywordScannerAtomic, KeywordScannerDefinitionRef,
-    ParserDefinitionNode, ParserDefinitionRef, PrecedenceParserDefinitionRef,
-    ScannerDefinitionNode, ScannerDefinitionRef, TriviaParserDefinitionRef,
-};
 use infra_utils::cargo::CargoWorkspace;
 use infra_utils::codegen::Codegen;
 use quote::{format_ident, quote};
@@ -14,6 +9,11 @@ use semver::Version;
 use serde::Serialize;
 
 use crate::ast_model::AstModel;
+use crate::grammar::{
+    Grammar, GrammarVisitor, KeywordScannerAtomic, KeywordScannerDefinitionRef,
+    ParserDefinitionNode, ParserDefinitionRef, PrecedenceParserDefinitionRef,
+    ScannerDefinitionNode, ScannerDefinitionRef, TriviaParserDefinitionRef,
+};
 use crate::keyword_scanner_definition::KeywordScannerDefinitionExtensions;
 use crate::parser_definition::ParserDefinitionExtensions;
 use crate::precedence_parser_definition::PrecedenceParserDefinitionExtensions;

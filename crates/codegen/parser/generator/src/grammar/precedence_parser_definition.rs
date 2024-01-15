@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use crate::{GrammarVisitor, ParserDefinitionNode, Visitable};
+use crate::grammar::{GrammarVisitor, ParserDefinitionNode, Visitable};
 
 pub trait PrecedenceParserDefinition: Debug {
     fn name(&self) -> &'static str;

@@ -1,10 +1,10 @@
 use std::collections::BTreeSet;
 
-use codegen_grammar::{ScannerDefinitionNode, ScannerDefinitionRef};
 use inflector::Inflector;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
+use crate::grammar::{ScannerDefinitionNode, ScannerDefinitionRef};
 use crate::parser_definition::VersionQualityRangeVecExtensions;
 
 pub trait ScannerDefinitionExtensions {

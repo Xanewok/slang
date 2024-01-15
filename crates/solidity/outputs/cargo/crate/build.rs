@@ -2,8 +2,7 @@
 //! It is removed when publishing to crates.io.
 
 use anyhow::Result;
-use codegen_grammar::{Grammar, GrammarConstructorDslV2};
-use codegen_parser_generator::{AstModel, RustGenerator};
+use codegen_parser_generator::{AstModel, Grammar, GrammarConstructorDslV2, RustGenerator};
 use infra_utils::cargo::CargoWorkspace;
 use solidity_language::SolidityDefinition;
 

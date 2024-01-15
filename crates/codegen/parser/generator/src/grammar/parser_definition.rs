@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use crate::visitor::{GrammarVisitor, Visitable};
-use crate::{
+use crate::grammar::visitor::{GrammarVisitor, Visitable};
+use crate::grammar::{
     KeywordScannerDefinitionRef, PrecedenceParserDefinitionRef, ScannerDefinitionRef,
     VersionQualityRange,
 };
