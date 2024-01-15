@@ -12,9 +12,8 @@ use indexmap::IndexMap;
 use crate::grammar::{
     Grammar, GrammarElement, KeywordScannerDefinition, KeywordScannerDefinitionNode,
     KeywordScannerDefinitionVersionedNode, Named, ParserDefinition, ParserDefinitionNode,
-    PrecedenceOperatorModel, PrecedenceParserDefinition, PrecedenceParserDefinitionNode,
-    ScannerDefinition, ScannerDefinitionNode, TriviaParserDefinition, VersionQuality,
-    VersionQualityRange,
+    PrecedenceParserDefinition, PrecedenceParserDefinitionNode, ScannerDefinition,
+    ScannerDefinitionNode, TriviaParserDefinition, VersionQuality, VersionQualityRange,
 };
 
 /// Materializes the DSL v2 model ([`model::Language`]) into [`Grammar`].
@@ -695,20 +694,6 @@ fn resolve_precedence(
         )),
     });
 
-    #[allow(clippy::items_after_statements)] // simple and specific to this site
-    fn model_to_enum(model: model::OperatorModel) -> PrecedenceOperatorModel {
-        match model {
-            model::OperatorModel::BinaryLeftAssociative => {
-                PrecedenceOperatorModel::BinaryLeftAssociative
-            }
-            model::OperatorModel::BinaryRightAssociative => {
-                PrecedenceOperatorModel::BinaryRightAssociative
-            }
-            model::OperatorModel::Prefix => PrecedenceOperatorModel::Prefix,
-            model::OperatorModel::Postfix => PrecedenceOperatorModel::Postfix,
-        }
-    }
-
     let mut operators = vec![];
     let mut precedence_expression_names = Vec::with_capacity(item.precedence_expressions.len());
     for expr in item.precedence_expressions {
@@ -755,7 +740,7 @@ fn resolve_precedence(
             };
 
             all_operators.push(def.clone());
-            operators.push((model_to_enum(model), leaked_name, def));
+            operators.push((model, leaked_name, def));
         }
 
         // Register the combined parser definition to appease the codegen and to mark terminals

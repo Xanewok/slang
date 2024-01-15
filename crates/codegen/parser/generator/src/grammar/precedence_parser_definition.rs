@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 use std::rc::Rc;
 
+pub use codegen_language_definition::model::OperatorModel as PrecedenceOperatorModel;
+
 use crate::grammar::{GrammarVisitor, ParserDefinitionNode, Visitable};
 
 pub trait PrecedenceParserDefinition: Debug {
@@ -34,12 +36,4 @@ impl Visitable for PrecedenceParserDefinitionNode {
         visitor.precedence_parser_definition_node_enter(self);
         self.primary_expression.accept_visitor(visitor);
     }
-}
-
-#[derive(Clone, Debug)]
-pub enum PrecedenceOperatorModel {
-    BinaryLeftAssociative,
-    BinaryRightAssociative,
-    Prefix,
-    Postfix,
 }
