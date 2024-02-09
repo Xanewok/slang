@@ -361,6 +361,10 @@ impl VersionQualityRangeVecExtensions for Vec<VersionQualityRange> {
     }
 }
 
+impl VersionQualityRangeVecExtensions for Option<VersionSpecifier> {
+    // TODO:
+}
+
 pub fn make_sequence(parsers: impl IntoIterator<Item = TokenStream>) -> TokenStream {
     make_sequence_versioned(
         parsers

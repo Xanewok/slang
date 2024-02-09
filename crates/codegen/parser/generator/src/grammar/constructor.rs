@@ -9,11 +9,12 @@ use std::rc::Rc;
 use codegen_language_definition::model::{self, FieldsErrorRecovery, Identifier, Item};
 use indexmap::IndexMap;
 
+// use crate::grammar::model::KeywordDefinition;
 use crate::grammar::{
-    Grammar, GrammarElement, KeywordScannerDefinition, KeywordScannerDefinitionVersionedNode,
-    Named, ParserDefinition, ParserDefinitionNode, PrecedenceParserDefinition,
-    PrecedenceParserDefinitionNode, ScannerDefinition, ScannerDefinitionNode,
-    TriviaParserDefinition, VersionQuality, VersionQualityRange,
+    Grammar, GrammarElement, KeywordScannerDefinition, Named, ParserDefinition,
+    ParserDefinitionNode, PrecedenceParserDefinition, PrecedenceParserDefinitionNode,
+    ScannerDefinition, ScannerDefinitionNode, TriviaParserDefinition, VersionQuality,
+    VersionQualityRange,
 };
 
 /// Materializes the DSL v2 model ([`model::Language`]) into [`Grammar`].
@@ -135,7 +136,7 @@ impl ScannerDefinition for NamedScanner {
 struct NamedKeywordScanner {
     name: &'static str,
     identifier_scanner_name: &'static str,
-    defs: Vec<KeywordScannerDefinitionVersionedNode>,
+    defs: Vec<model::KeywordDefinition>,
 }
 
 impl KeywordScannerDefinition for NamedKeywordScanner {
@@ -143,7 +144,7 @@ impl KeywordScannerDefinition for NamedKeywordScanner {
         self.name
     }
 
-    fn definitions(&self) -> &[KeywordScannerDefinitionVersionedNode] {
+    fn definitions(&self) -> &[model::KeywordDefinition] {
         &self.defs
     }
 
@@ -391,11 +392,11 @@ fn resolve_grammar_element(ident: &Identifier, ctx: &mut ResolveCtx<'_>) -> Gram
                         .definitions
                         .iter()
                         .cloned()
-                        .map(|def| KeywordScannerDefinitionVersionedNode {
-                            value: def.value,
-                            enabled: enabled_to_range(def.enabled),
-                            reserved: enabled_to_range(def.reserved),
-                        })
+                        // .map(|def| model::KeywordDefinition {
+                        //     value: def.value,
+                        //     enabled: enabled_to_range(def.enabled),
+                        //     reserved: enabled_to_range(def.reserved),
+                        // })
                         .collect();
 
                     let kw_scanner = NamedKeywordScanner {

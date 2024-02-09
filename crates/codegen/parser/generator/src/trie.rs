@@ -1,12 +1,13 @@
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
+// use crate::grammar::model::KeywordDefinition;
+use codegen_language_definition::model;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::grammar::{
-    KeywordScannerAtomic, KeywordScannerDefinitionVersionedNode, ScannerDefinitionNode,
-    ScannerDefinitionRef, VersionQualityRange,
+    KeywordScannerAtomic, ScannerDefinitionNode, ScannerDefinitionRef, VersionQualityRange,
 };
 use crate::parser_definition::VersionQualityRangeVecExtensions;
 
@@ -141,7 +142,7 @@ impl Payload for KeywordScannerAtomic {
     fn to_leaf_code(&self) -> TokenStream {
         let kind = format_ident!("{}", self.name());
 
-        let KeywordScannerDefinitionVersionedNode {
+        let model::KeywordDefinition {
             enabled, reserved, ..
         } = self.definition();
 
