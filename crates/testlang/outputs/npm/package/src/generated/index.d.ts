@@ -81,6 +81,7 @@ export namespace cst {
     Rule = 0,
     Token = 1,
   }
+  export function crashAndBurn(): void;
   export class RuleNode {
     get type(): NodeType.Rule;
     get kind(): kinds.RuleKind;

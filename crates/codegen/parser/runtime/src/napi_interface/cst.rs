@@ -23,6 +23,11 @@ pub struct RuleNode(pub(crate) Rc<RustRuleNode>);
 pub struct TokenNode(pub(crate) Rc<RustTokenNode>);
 
 #[napi(namespace = "cst")]
+pub fn crash_and_burn() {
+    panic!("Crash and burn!");
+}
+
+#[napi(namespace = "cst")]
 impl RuleNode {
     #[napi(
         getter,
