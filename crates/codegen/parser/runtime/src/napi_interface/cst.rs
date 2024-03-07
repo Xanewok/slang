@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use napi::bindgen_prelude::{Env, ToNapiValue};
+use napi::bindgen_prelude::{Env, FromNapiMutRef as _, ToNapiValue};
 use napi::{JsObject, NapiValue};
 use napi_derive::napi;
 
@@ -16,6 +16,7 @@ pub enum NodeType {
     Token,
 }
 
+#[derive(Debug, serde::Serialize)]
 #[napi(namespace = "cst")]
 pub struct RuleNode(pub(crate) Rc<RustRuleNode>);
 
@@ -125,8 +126,31 @@ pub trait ToJS {
 impl ToJS for Rc<RustRuleNode> {
     fn to_js(&self, env: &Env) -> JsObject {
         let obj =
-            unsafe { <RuleNode as ToNapiValue>::to_napi_value(env.raw(), RuleNode(self.clone())) };
-        unsafe { JsObject::from_raw_unchecked(env.raw(), obj.unwrap()) }
+            unsafe { <RuleNode as ToNapiValue>::to_napi_value(env.raw(), RuleNode(self.clone())) }
+                .unwrap();
+        let obj = unsafe { JsObject::from_raw_unchecked(env.raw(), obj) };
+        let mut prototype: JsObject = obj.get_prototype().unwrap();
+
+        let custom_inspect = env.symbol_for("nodejs.util.inspect.custom").unwrap();
+        prototype
+            .set_property(
+                custom_inspect,
+                env.create_function_from_closure("inspect", move |ctx| {
+                    // https://github.com/nodejs/node/pull/41019
+                    // TODO: Support more:
+                    // args: (depth, inspectOptions, inspect)
+                    let this: JsObject = ctx.this()?;
+
+                    // Convert back to the Rust type
+                    let napi_value = unsafe { ToNapiValue::to_napi_value(ctx.env.raw(), this)? };
+                    let rule = unsafe { RuleNode::from_napi_mut_ref(ctx.env.raw(), napi_value)? };
+
+                    ctx.env.create_string(&format!("{rule:?}"))
+                })
+                .unwrap(),
+            )
+            .unwrap();
+        obj
     }
 }
 
