@@ -1818,6 +1818,7 @@ impl Selector {
                 TokenKind::ExternalKeyword,
                 TokenKind::PrivateKeyword,
                 TokenKind::PublicKeyword,
+                TokenKind::ConstantKeyword,
                 TokenKind::PureKeyword,
                 TokenKind::ViewKeyword,
                 TokenKind::PayableKeyword,
