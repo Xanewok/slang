@@ -2508,8 +2508,10 @@ impl Language {
         ChoiceHelper::run(input, |mut choice, input| {
             let result = self.modifier_invocation(input);
             choice.consider(input, result)?;
-            let result = self.override_specifier(input);
-            choice.consider(input, result)?;
+            if self.version_is_at_least_0_6_0 {
+                let result = self.override_specifier(input);
+                choice.consider(input, result)?;
+            }
             if !self.version_is_at_least_0_5_0 {
                 let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                     input,
@@ -3367,8 +3369,10 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn modifier_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
         ChoiceHelper::run(input, |mut choice, input| {
-            let result = self.override_specifier(input);
-            choice.consider(input, result)?;
+            if self.version_is_at_least_0_6_0 {
+                let result = self.override_specifier(input);
+                choice.consider(input, result)?;
+            }
             if self.version_is_at_least_0_6_0 {
                 let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                     input,
@@ -3694,66 +3698,78 @@ impl Language {
 
     #[allow(unused_assignments, unused_parens)]
     fn override_paths(&self, input: &mut ParserContext<'_>) -> ParserResult {
-        SeparatedHelper::run::<_, LexicalContextType::Default>(
-            input,
-            self,
-            |input| self.identifier_path(input).with_label(NodeLabel::Item),
-            TokenKind::Comma,
-            NodeLabel::Separator,
-        )
+        if self.version_is_at_least_0_6_0 {
+            SeparatedHelper::run::<_, LexicalContextType::Default>(
+                input,
+                self,
+                |input| self.identifier_path(input).with_label(NodeLabel::Item),
+                TokenKind::Comma,
+                NodeLabel::Separator,
+            )
+        } else {
+            ParserResult::disabled()
+        }
         .with_kind(RuleKind::OverridePaths)
     }
 
     #[allow(unused_assignments, unused_parens)]
     fn override_paths_declaration(&self, input: &mut ParserContext<'_>) -> ParserResult {
-        SequenceHelper::run(|mut seq| {
-            let mut delim_guard = input.open_delim(TokenKind::CloseParen);
-            let input = delim_guard.ctx();
-            seq.elem_labeled(
-                NodeLabel::OpenParen,
-                self.parse_token_with_trivia::<LexicalContextType::Default>(
-                    input,
-                    TokenKind::OpenParen,
-                ),
-            )?;
-            seq.elem(
-                self.override_paths(input)
-                    .with_label(NodeLabel::Paths)
-                    .recover_until_with_nested_delims::<_, LexicalContextType::Default>(
+        if self.version_is_at_least_0_6_0 {
+            SequenceHelper::run(|mut seq| {
+                let mut delim_guard = input.open_delim(TokenKind::CloseParen);
+                let input = delim_guard.ctx();
+                seq.elem_labeled(
+                    NodeLabel::OpenParen,
+                    self.parse_token_with_trivia::<LexicalContextType::Default>(
+                        input,
+                        TokenKind::OpenParen,
+                    ),
+                )?;
+                seq.elem(
+                    self.override_paths(input)
+                        .with_label(NodeLabel::Paths)
+                        .recover_until_with_nested_delims::<_, LexicalContextType::Default>(
                         input,
                         self,
                         TokenKind::CloseParen,
                         TokenAcceptanceThreshold(0u8),
                     ),
-            )?;
-            seq.elem_labeled(
-                NodeLabel::CloseParen,
-                self.parse_token_with_trivia::<LexicalContextType::Default>(
-                    input,
-                    TokenKind::CloseParen,
-                ),
-            )?;
-            seq.finish()
-        })
+                )?;
+                seq.elem_labeled(
+                    NodeLabel::CloseParen,
+                    self.parse_token_with_trivia::<LexicalContextType::Default>(
+                        input,
+                        TokenKind::CloseParen,
+                    ),
+                )?;
+                seq.finish()
+            })
+        } else {
+            ParserResult::disabled()
+        }
         .with_kind(RuleKind::OverridePathsDeclaration)
     }
 
     #[allow(unused_assignments, unused_parens)]
     fn override_specifier(&self, input: &mut ParserContext<'_>) -> ParserResult {
-        SequenceHelper::run(|mut seq| {
-            seq.elem_labeled(
-                NodeLabel::OverrideKeyword,
-                self.parse_token_with_trivia::<LexicalContextType::Default>(
-                    input,
-                    TokenKind::OverrideKeyword,
-                ),
-            )?;
-            seq.elem_labeled(
-                NodeLabel::Overridden,
-                OptionalHelper::transform(self.override_paths_declaration(input)),
-            )?;
-            seq.finish()
-        })
+        if self.version_is_at_least_0_6_0 {
+            SequenceHelper::run(|mut seq| {
+                seq.elem_labeled(
+                    NodeLabel::OverrideKeyword,
+                    self.parse_token_with_trivia::<LexicalContextType::Default>(
+                        input,
+                        TokenKind::OverrideKeyword,
+                    ),
+                )?;
+                seq.elem_labeled(
+                    NodeLabel::Overridden,
+                    OptionalHelper::transform(self.override_paths_declaration(input)),
+                )?;
+                seq.finish()
+            })
+        } else {
+            ParserResult::disabled()
+        }
         .with_kind(RuleKind::OverrideSpecifier)
     }
 
@@ -4236,8 +4252,10 @@ impl Language {
     #[allow(unused_assignments, unused_parens)]
     fn state_variable_attribute(&self, input: &mut ParserContext<'_>) -> ParserResult {
         ChoiceHelper::run(input, |mut choice, input| {
-            let result = self.override_specifier(input);
-            choice.consider(input, result)?;
+            if self.version_is_at_least_0_6_0 {
+                let result = self.override_specifier(input);
+                choice.consider(input, result)?;
+            }
             let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
                 input,
                 TokenKind::ConstantKeyword,
@@ -4996,8 +5014,6 @@ impl Language {
         if !self.version_is_at_least_0_6_0 {
             ChoiceHelper::run(input, |mut choice, input| {
                 let result = self.modifier_invocation(input);
-                choice.consider(input, result)?;
-                let result = self.override_specifier(input);
                 choice.consider(input, result)?;
                 if !self.version_is_at_least_0_5_0 {
                     let result = self.parse_token_with_trivia::<LexicalContextType::Default>(
@@ -10174,8 +10190,10 @@ impl Lexer for Language {
                                 if scan_chars!(input, 'e', 'r', 'r', 'i', 'd', 'e') {
                                     if self.version_is_at_least_0_5_0 {
                                         KeywordScan::Reserved(TokenKind::OverrideKeyword)
-                                    } else {
+                                    } else if self.version_is_at_least_0_6_0 {
                                         KeywordScan::Present(TokenKind::OverrideKeyword)
+                                    } else {
+                                        KeywordScan::Absent
                                     }
                                 } else {
                                     KeywordScan::Absent
