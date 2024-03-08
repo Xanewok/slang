@@ -3794,7 +3794,7 @@ codegen_language_macros::compile!(Language(
                             definitions = [
                                 // Allows unicode characters:
                                 TokenDefinition(
-                                    enabled = Range(from = "0.4.12", till = "0.7.0"),
+                                    enabled = Till("0.7.0"),
                                     scanner = Sequence([
                                         Atom("'"),
                                         ZeroOrMore(Choice([
@@ -3824,7 +3824,7 @@ codegen_language_macros::compile!(Language(
                             definitions = [
                                 // Allows unicode characters:
                                 TokenDefinition(
-                                    enabled = Range(from = "0.4.12", till = "0.7.0"),
+                                    enabled = Till("0.7.0"),
                                     scanner = Sequence([
                                         Atom("\""),
                                         ZeroOrMore(Choice([

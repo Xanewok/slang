@@ -6995,7 +6995,7 @@ impl Language {
     fn double_quoted_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
         scan_choice!(
             input,
-            if self.version_is_at_least_0_4_12 && !self.version_is_at_least_0_7_0 {
+            if !self.version_is_at_least_0_7_0 {
                 scan_sequence!(
                     scan_chars!(input, '"'),
                     scan_zero_or_more!(
@@ -7246,7 +7246,7 @@ impl Language {
     fn single_quoted_string_literal(&self, input: &mut ParserContext<'_>) -> bool {
         scan_choice!(
             input,
-            if self.version_is_at_least_0_4_12 && !self.version_is_at_least_0_7_0 {
+            if !self.version_is_at_least_0_7_0 {
                 scan_sequence!(
                     scan_chars!(input, '\''),
                     scan_zero_or_more!(
