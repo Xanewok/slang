@@ -1224,6 +1224,7 @@ codegen_language_macros::compile!(Language(
                             name = OverrideKeyword,
                             identifier = Identifier,
                             definitions = [KeywordDefinition(
+                                enabled = From("0.6.0"),
                                 reserved = From("0.5.0"),
                                 value = Atom("override")
                             )]
@@ -2252,7 +2253,7 @@ codegen_language_macros::compile!(Language(
                         Enum(
                             name = StateVariableAttribute,
                             variants = [
-                                EnumVariant(reference = OverrideSpecifier),
+                                EnumVariant(reference = OverrideSpecifier, enabled = From("0.6.0")),
                                 EnumVariant(reference = ConstantKeyword),
                                 EnumVariant(reference = InternalKeyword),
                                 EnumVariant(reference = PrivateKeyword),
@@ -2319,7 +2320,7 @@ codegen_language_macros::compile!(Language(
                             name = FunctionAttribute,
                             variants = [
                                 EnumVariant(reference = ModifierInvocation),
-                                EnumVariant(reference = OverrideSpecifier),
+                                EnumVariant(reference = OverrideSpecifier, enabled = From("0.6.0")),
                                 EnumVariant(reference = ConstantKeyword, enabled = Till("0.5.0")),
                                 EnumVariant(reference = ExternalKeyword),
                                 EnumVariant(reference = InternalKeyword),
@@ -2333,6 +2334,7 @@ codegen_language_macros::compile!(Language(
                         ),
                         Struct(
                             name = OverrideSpecifier,
+                            enabled = From("0.6.0"),
                             fields = (
                                 override_keyword = Required(OverrideKeyword),
                                 overridden = Optional(reference = OverridePathsDeclaration)
@@ -2340,6 +2342,7 @@ codegen_language_macros::compile!(Language(
                         ),
                         Struct(
                             name = OverridePathsDeclaration,
+                            enabled = From("0.6.0"),
                             error_recovery = FieldsErrorRecovery(
                                 delimiters =
                                     FieldDelimiters(open = open_paren, close = close_paren)
@@ -2353,7 +2356,8 @@ codegen_language_macros::compile!(Language(
                         Separated(
                             name = OverridePaths,
                             reference = IdentifierPath,
-                            separator = Comma
+                            separator = Comma,
+                            enabled = From("0.6.0")
                         ),
                         Struct(
                             name = ReturnsDeclaration,
@@ -2424,7 +2428,7 @@ codegen_language_macros::compile!(Language(
                             enabled = Till("0.6.0"),
                             variants = [
                                 EnumVariant(reference = ModifierInvocation),
-                                EnumVariant(reference = OverrideSpecifier),
+                                EnumVariant(reference = ConstantKeyword, enabled = Till("0.5.0")),
                                 EnumVariant(reference = ExternalKeyword),
                                 EnumVariant(reference = InternalKeyword, enabled = Till("0.5.0")),
                                 EnumVariant(reference = PayableKeyword),
@@ -2514,7 +2518,7 @@ codegen_language_macros::compile!(Language(
                         Enum(
                             name = ModifierAttribute,
                             variants = [
-                                EnumVariant(reference = OverrideSpecifier),
+                                EnumVariant(reference = OverrideSpecifier, enabled = From("0.6.0")),
                                 EnumVariant(reference = VirtualKeyword, enabled = From("0.6.0"))
                             ]
                         ),
