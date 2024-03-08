@@ -1049,40 +1049,6 @@ impl Language {
     }
 
     #[allow(unused_assignments, unused_parens)]
-    fn delete_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
-        SequenceHelper::run(|mut seq| {
-            seq.elem(
-                SequenceHelper::run(|mut seq| {
-                    seq.elem_labeled(
-                        NodeLabel::DeleteKeyword,
-                        self.parse_token_with_trivia::<LexicalContextType::Default>(
-                            input,
-                            TokenKind::DeleteKeyword,
-                        ),
-                    )?;
-                    seq.elem_labeled(NodeLabel::Expression, self.expression(input))?;
-                    seq.finish()
-                })
-                .recover_until_with_nested_delims::<_, LexicalContextType::Default>(
-                    input,
-                    self,
-                    TokenKind::Semicolon,
-                    TokenAcceptanceThreshold(1u8),
-                ),
-            )?;
-            seq.elem_labeled(
-                NodeLabel::Semicolon,
-                self.parse_token_with_trivia::<LexicalContextType::Default>(
-                    input,
-                    TokenKind::Semicolon,
-                ),
-            )?;
-            seq.finish()
-        })
-        .with_kind(RuleKind::DeleteStatement)
-    }
-
-    #[allow(unused_assignments, unused_parens)]
     fn do_while_statement(&self, input: &mut ParserContext<'_>) -> ParserResult {
         SequenceHelper::run(|mut seq| {
             seq.elem(
@@ -2093,6 +2059,13 @@ impl Language {
                             .with_label(NodeLabel::Operator);
                         choice.consider(input, result)?;
                     }
+                    let result = self
+                        .parse_token_with_trivia::<LexicalContextType::Default>(
+                            input,
+                            TokenKind::DeleteKeyword,
+                        )
+                        .with_label(NodeLabel::Operator);
+                    choice.consider(input, result)?;
                     choice.finish(input)
                 }),
             )
@@ -4382,8 +4355,6 @@ impl Language {
             let result = self.continue_statement(input);
             choice.consider(input, result)?;
             let result = self.break_statement(input);
-            choice.consider(input, result)?;
-            let result = self.delete_statement(input);
             choice.consider(input, result)?;
             let result = self.return_statement(input);
             choice.consider(input, result)?;
@@ -8999,7 +8970,6 @@ impl Language {
             RuleKind::ContractMember => Self::contract_member.parse(self, input),
             RuleKind::ContractMembers => Self::contract_members.parse(self, input),
             RuleKind::DecimalNumberExpression => Self::decimal_number_expression.parse(self, input),
-            RuleKind::DeleteStatement => Self::delete_statement.parse(self, input),
             RuleKind::DoWhileStatement => Self::do_while_statement.parse(self, input),
             RuleKind::ElementaryType => Self::elementary_type.parse(self, input),
             RuleKind::ElseBranch => Self::else_branch.parse(self, input),

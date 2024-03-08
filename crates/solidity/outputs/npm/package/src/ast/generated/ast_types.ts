@@ -2265,34 +2265,6 @@ export class EmitStatement {
   }
 }
 
-export class DeleteStatement {
-  private readonly fetch = once(() => {
-    const [$deleteKeyword, $expression, $semicolon] = ast_internal.selectSequence(this.cst);
-
-    return {
-      deleteKeyword: $deleteKeyword as TokenNode,
-      expression: new Expression($expression as RuleNode),
-      semicolon: $semicolon as TokenNode,
-    };
-  });
-
-  public constructor(public readonly cst: RuleNode) {
-    assertKind(this.cst.kind, RuleKind.DeleteStatement);
-  }
-
-  public get deleteKeyword(): TokenNode {
-    return this.fetch().deleteKeyword;
-  }
-
-  public get expression(): Expression {
-    return this.fetch().expression;
-  }
-
-  public get semicolon(): TokenNode {
-    return this.fetch().semicolon;
-  }
-}
-
 export class TryStatement {
   private readonly fetch = once(() => {
     const [$tryKeyword, $expression, $returns, $body, $catchClauses] = ast_internal.selectSequence(this.cst);
@@ -4499,7 +4471,6 @@ export class Statement {
     | DoWhileStatement
     | ContinueStatement
     | BreakStatement
-    | DeleteStatement
     | ReturnStatement
     | ThrowStatement
     | EmitStatement
@@ -4529,8 +4500,6 @@ export class Statement {
         return new ContinueStatement(variant as RuleNode);
       case RuleKind.BreakStatement:
         return new BreakStatement(variant as RuleNode);
-      case RuleKind.DeleteStatement:
-        return new DeleteStatement(variant as RuleNode);
       case RuleKind.ReturnStatement:
         return new ReturnStatement(variant as RuleNode);
       case RuleKind.ThrowStatement:
@@ -4567,7 +4536,6 @@ export class Statement {
     | DoWhileStatement
     | ContinueStatement
     | BreakStatement
-    | DeleteStatement
     | ReturnStatement
     | ThrowStatement
     | EmitStatement
