@@ -80,10 +80,6 @@ pub fn run_test(file: &SourceFile, events: &Events) -> Result<()> {
     let source = file.path.read_to_string()?;
     // Heuristic: ignore wrongly scraped sanctuary files that
     // contain HTML with a Cloudflare email obfuscation attribute:
-    if source.contains("data-cfemail=") {
-        events.test(TestOutcome::Incompatible);
-        return Ok(());
-    }
 
     let source = source
         // Some files are null terminated. Remove the null character:
@@ -91,9 +87,7 @@ pub fn run_test(file: &SourceFile, events: &Events) -> Result<()> {
         .trim_end_matches('\0')
         // Remove unicode character inserted by sanctuary (illegal in Solidity):
         // https://github.com/tintinweb/smart-contract-sanctuary/issues/31
-        .replace("[email protected]", "[email-protected]")
-        // Select contracts from Sanctuary were probably incorrectly web-scraped:
-        .replace("&#39;", "\"");
+        .replace("[email protected]", "[email-protected]");
 
     let language = Language::new(version.clone())?;
     let output = language.parse(RuleKind::SourceUnit, &source);
