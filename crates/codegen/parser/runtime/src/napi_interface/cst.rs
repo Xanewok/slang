@@ -1,7 +1,8 @@
+use std::ops::Range;
 use std::rc::Rc;
 
-use napi::bindgen_prelude::{Env, ToNapiValue};
-use napi::{JsObject, NapiValue};
+use napi::bindgen_prelude::{Env, FromNapiValue, Reference, ToNapiValue};
+use napi::{JsFunction, JsObject, JsUnknown, NapiValue};
 use napi_derive::napi;
 
 use crate::napi_interface::cursor::Cursor;
@@ -169,7 +170,37 @@ impl ToJS for Rc<RustRuleNode> {
     fn to_js(&self, env: &Env) -> JsObject {
         let obj =
             unsafe { <RuleNode as ToNapiValue>::to_napi_value(env.raw(), RuleNode(self.clone())) };
-        unsafe { JsObject::from_raw_unchecked(env.raw(), obj.unwrap()) }
+        let mut obj = unsafe { JsObject::from_raw_unchecked(env.raw(), obj.unwrap()) };
+
+        // TODO: Replace with `env.symbol_for` available under `napi9` feature flag;
+        // This feature is available from Node v16.15.0, which is shipped starting from VSCode 1.78 (April 2023).
+        let global = env.get_global().unwrap();
+        let symbol = global.get_named_property::<JsFunction>("Symbol").unwrap();
+        let symbol = symbol.coerce_to_object().unwrap();
+        let symbol_for_fn = symbol.get_named_property::<JsFunction>("for").unwrap();
+        let symbol_desc = env.create_string("nodejs.util.inspect.custom").unwrap();
+        let inspect_symbol = symbol_for_fn.call(Some(&symbol), &[symbol_desc]).unwrap();
+
+        obj.set_property(
+            inspect_symbol,
+            env.create_function_from_closure("inspect", move |ctx| {
+                // https://github.com/nodejs/node/pull/41019
+                // TODO: Support more:
+                // args: (depth, inspectOptions, inspect)
+                let this: JsUnknown = ctx.this()?;
+                let rule = Reference::<RuleNode>::from_unknown(this)?;
+
+                let contents = rule.unparse();
+                let preview = render_debug_preview(&contents, 0..rule.0.text_len.utf8);
+
+                ctx.env
+                    .create_string(&format!("{kind} (Rule): {preview}", kind = rule.0.kind))
+            })
+            .unwrap(),
+        )
+        .unwrap();
+
+        obj
     }
 }
 
@@ -178,7 +209,37 @@ impl ToJS for Rc<RustTokenNode> {
         let obj = unsafe {
             <TokenNode as ToNapiValue>::to_napi_value(env.raw(), TokenNode(self.clone()))
         };
-        unsafe { JsObject::from_raw_unchecked(env.raw(), obj.unwrap()) }
+        let mut obj = unsafe { JsObject::from_raw_unchecked(env.raw(), obj.unwrap()) };
+
+        // TODO: Replace with `env.symbol_for` available under `napi9` feature flag;
+        // This feature is available from Node v16.15.0, which is shipped starting from VSCode 1.78 (April 2023).
+        let global = env.get_global().unwrap();
+        let symbol = global.get_named_property::<JsFunction>("Symbol").unwrap();
+        let symbol = symbol.coerce_to_object().unwrap();
+        let symbol_for_fn = symbol.get_named_property::<JsFunction>("for").unwrap();
+        let symbol_desc = env.create_string("nodejs.util.inspect.custom").unwrap();
+        let inspect_symbol = symbol_for_fn.call(Some(&symbol), &[symbol_desc]).unwrap();
+
+        obj.set_property(
+            inspect_symbol,
+            env.create_function_from_closure("inspect", move |ctx| {
+                // https://github.com/nodejs/node/pull/41019
+                // TODO: Support more:
+                // args: (depth, inspectOptions, inspect)
+                let this: JsUnknown = ctx.this()?;
+                let token = Reference::<TokenNode>::from_unknown(this)?;
+
+                let contents = token.text();
+                let preview = render_debug_preview(&contents, 0..contents.len());
+
+                ctx.env
+                    .create_string(&format!("{kind} (Token): {preview}", kind = token.0.kind))
+            })
+            .unwrap(),
+        )
+        .unwrap();
+
+        obj
     }
 }
 
@@ -188,5 +249,37 @@ impl ToJS for RustNode {
             RustNode::Rule(rust_rule_node) => rust_rule_node.to_js(env),
             RustNode::Token(rust_token_node) => rust_token_node.to_js(env),
         }
+    }
+}
+
+fn render_debug_preview(source: &str, char_range: Range<usize>) -> String {
+    let length = char_range.len();
+
+    // Trim long values:
+    let max_length = 50;
+    let mut contents: String = source
+        .chars()
+        .skip(char_range.start)
+        .take(std::cmp::min(length, max_length))
+        .collect();
+
+    // Add terminator if trimmed:
+    if length > max_length {
+        contents.push_str("...");
+    }
+
+    // Escape line breaks:
+    let contents = contents
+        .replace('\t', "\\t")
+        .replace('\r', "\\r")
+        .replace('\n', "\\n");
+
+    // Surround by quotes for use in yaml:
+    if contents.contains('"') {
+        let contents = contents.replace('\'', "''");
+        format!("'{contents}'")
+    } else {
+        let contents = contents.replace('"', "\\\"");
+        format!("\"{contents}\"")
     }
 }
