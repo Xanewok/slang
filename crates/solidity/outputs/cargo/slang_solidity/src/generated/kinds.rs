@@ -233,6 +233,8 @@ pub enum RuleKind {
     YulVariableDeclarationValue,
 }
 
+impl metaslang_cst::NonTerminalKind for RuleKind {}
+
 #[derive(
     Debug,
     Eq,
@@ -383,6 +385,8 @@ pub enum NodeLabel {
     Version,
     WhileKeyword,
 }
+
+impl metaslang_cst::EdgeKind for NodeLabel {}
 
 #[derive(
     Debug,
@@ -762,8 +766,8 @@ pub enum TokenKind {
     YulYearsKeyword,
 }
 
-impl TokenKind {
-    pub fn is_trivia(&self) -> bool {
+impl metaslang_cst::TerminalKind for TokenKind {
+    fn is_trivia(&self) -> bool {
         #[allow(clippy::match_like_matches_macro)]
         match self {
             Self::EndOfLine => true,

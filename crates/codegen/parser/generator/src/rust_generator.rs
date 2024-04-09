@@ -105,26 +105,19 @@ impl RustGenerator {
         {
             #[derive(Serialize)]
             struct Context {
-                queries: IndexMap<String, Vec<&'static str>>,
+                queries: IndexMap<String, String>,
             }
 
             let queries = language
                 .queries
-                .keys()
-                .enumerate()
-                .map(|(index, key)| {
-                    // TODO(#554): parse the query and extract the real captures:
-                    (
-                        key.to_string(),
-                        ["foo", "bar", "baz"].into_iter().take(index + 1).collect(),
-                    )
-                })
+                .iter()
+                .map(|(key, value)| (key.to_string(), value.clone()))
                 .collect();
 
             codegen.render(
                 Context { queries },
-                runtime_dir.join("templates/user_defined_queries.rs.jinja2"),
-                output_dir.join("query/user_defined_queries.rs"),
+                runtime_dir.join("templates/queries.rs.jinja2"),
+                output_dir.join("queries.rs"),
             )?;
         }
 
@@ -156,8 +149,6 @@ impl RustGenerator {
         }
 
         for file in &[
-            "cst.rs",
-            "cursor.rs",
             "lexer.rs",
             "napi_interface/cst.rs",
             "napi_interface/cursor.rs",
@@ -180,11 +171,6 @@ impl RustGenerator {
             "parser_support/scanner_macros.rs",
             "parser_support/separated_helper.rs",
             "parser_support/sequence_helper.rs",
-            "query/engine.rs",
-            "query/mod.rs",
-            "query/model.rs",
-            "query/parser.rs",
-            "text_index.rs",
         ] {
             codegen.copy_file(runtime_dir.join(file), output_dir.join(file))?;
         }
