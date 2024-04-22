@@ -1,10 +1,13 @@
 use std::fmt;
 use std::rc::Rc;
 
+use derivative::Derivative;
+
 // This crate is copied to another crate, so all imports should be relative
 use crate::KindTypes;
 
-#[derive(Clone)]
+#[derive(Derivative)]
+#[derivative(Clone(bound = ""))]
 pub struct Query<T: KindTypes>(pub(super) Matcher<T>);
 
 impl<T: KindTypes> Query<T> {
@@ -19,7 +22,8 @@ impl<T: KindTypes> fmt::Display for Query<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Derivative)]
+#[derivative(Clone(bound = ""))]
 pub(super) enum Matcher<T: KindTypes> {
     Binding(Rc<BindingMatcher<T>>),
     Node(Rc<NodeMatcher<T>>),
@@ -86,7 +90,8 @@ impl<T: KindTypes> fmt::Display for Matcher<T> {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Derivative)]
+#[derivative(PartialEq(bound = ""), Eq(bound = ""))]
 pub(super) enum Kind<T: KindTypes> {
     Rule(T::NonTerminalKind),
     Token(T::TerminalKind),

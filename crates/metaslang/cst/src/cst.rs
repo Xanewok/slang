@@ -1,18 +1,21 @@
 use std::rc::Rc;
 
+use derivative::Derivative;
 use serde::Serialize;
 
 use crate::cursor::Cursor;
 use crate::text_index::TextIndex;
 use crate::{KindTypes, TerminalKind as _};
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Serialize, Derivative)]
+#[derivative(Debug(bound = ""), PartialEq(bound = ""), Eq(bound = ""))]
 pub struct TerminalNode<T: KindTypes> {
     pub kind: T::TerminalKind,
     pub text: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Serialize, Derivative)]
+#[derivative(PartialEq(bound = ""), Eq(bound = ""), Debug(bound = ""))]
 pub struct NonTerminalNode<T: KindTypes> {
     pub kind: T::NonTerminalKind,
     pub text_len: TextIndex,
@@ -20,13 +23,25 @@ pub struct NonTerminalNode<T: KindTypes> {
     pub children: Vec<LabeledNode<T>>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Derivative, Serialize)]
+#[derivative(
+    Debug(bound = ""),
+    Clone(bound = ""),
+    PartialEq(bound = ""),
+    Eq(bound = "")
+)]
 pub enum Node<T: KindTypes> {
     Rule(Rc<NonTerminalNode<T>>),
     Token(Rc<TerminalNode<T>>),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Serialize, Derivative)]
+#[derivative(
+    Debug(bound = ""),
+    Clone(bound = ""),
+    PartialEq(bound = ""),
+    Eq(bound = "")
+)]
 pub struct LabeledNode<T: KindTypes> {
     pub label: Option<T::EdgeKind>,
     pub node: Node<T>,

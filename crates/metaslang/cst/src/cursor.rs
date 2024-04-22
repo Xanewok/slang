@@ -2,6 +2,8 @@
 
 use std::rc::Rc;
 
+use derivative::Derivative;
+
 use crate::cst::{LabeledNode, Node, NonTerminalNode};
 use crate::text_index::{TextIndex, TextRange};
 use crate::KindTypes;
@@ -18,7 +20,8 @@ struct PathAncestor<T: KindTypes> {
 /// A cursor that can traverse a CST.
 ///
 /// Nodes are visited in a DFS pre-order traversal.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Derivative, Debug, PartialEq, Eq)]
+#[derivative(Clone(bound = ""))]
 pub struct Cursor<T: KindTypes> {
     /// The parent path of this cursor
     parent: Option<Rc<PathAncestor<T>>>,

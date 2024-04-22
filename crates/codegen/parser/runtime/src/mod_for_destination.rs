@@ -12,8 +12,7 @@ pub mod queries;
 pub mod napi_interface;
 
 mod metaslang_cst {
-    #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize)] // But why?
-    pub struct KindTypes;
+    pub enum KindTypes {}
     impl metaslang_cst::KindTypes for KindTypes {
         type NonTerminalKind = crate::kinds::RuleKind;
         type TerminalKind = crate::kinds::TokenKind;

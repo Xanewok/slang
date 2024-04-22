@@ -9,6 +9,7 @@ description = "Trees, cursors, queries"
 
 [dependencies]
 enum_dispatch = { workspace = true }
+derivative = { workspace = true }
 nom = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }

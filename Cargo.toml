@@ -90,6 +90,7 @@ clap = { version = "4.5.4", features = ["derive", "wrap_help"] }
 clap_complete = { version = "4.5.1" }
 console = { version = "0.15.8" }
 derive-new = { version = "0.6.0" }
+derivative = { version = "2.2.0" }
 ignore = { version = "0.4.22" }
 enum_dispatch = { version = "0.3.12" }
 indexmap = { version = "2.2.3", features = ["serde"] }
