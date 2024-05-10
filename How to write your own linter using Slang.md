@@ -3,7 +3,7 @@
 
 [Slang](https://blog.nomic.foundation/slang-alpha-release-6d322cf986a3) is our new API-first Solidity compiler designed to power your developer experience, whether that's by providing semantic information in your editor, enabling you to write custom linters, static analyzers, and other tools that operate on Solidity code.
 
-In this guide we will show how you might use Slang to write a simple linter for Solidity in just 20 lines of code. To pick a simple, yet real-life example, we will attempt to write our own version of the [solhint](https://protofire.github.io/solhint/) [`avoid-tx-origin`](https://solhint-community.github.io/solhint-community/docs/rules/security/avoid-tx-origin.html) rule, which warns whenever `tx.origin` is used in the code.
+In this guide we will show how you might use Slang to write a simple linter for Solidity in just 25 lines of code. To pick a simple, yet real-life example, we will attempt to write our own version of the [solhint](https://protofire.github.io/solhint/) [`avoid-tx-origin`](https://solhint-community.github.io/solhint-community/docs/rules/security/avoid-tx-origin.html) rule, which warns whenever `tx.origin` is used in the code.
 
 ## Installation
 Slang is written in Rust and distributed both as a Rust package and an NPM package with TypeScript definitions.
