@@ -1,7 +1,7 @@
 # How to write your own Solidity linter using Slang
 ### ... in 25 lines of code!
 
-[Slang](https://blog.nomic.foundation/slang-alpha-release-6d322cf986a3) is our new API-first Solidity compiler designed to power your developer experience, whether that's by providing semantic information in your editor, enabling you to write custom linters, static analyzers, and other tools that operate on Solidity code.
+[Slang](https://blog.nomic.foundation/slang-alpha-release-6d322cf986a3) is our new API-first Solidity compiler designed to power your developer experience, whether that's by providing semantic information in your editor or enabling you to write custom linters, static analyzers, and other tools that operate on Solidity code.
 
 In this guide we will show how you might use Slang to write a simple linter for Solidity in just 25 lines of code. To pick a simple, yet real-life example, we will attempt to write our own version of the [solhint](https://protofire.github.io/solhint/) [`avoid-tx-origin`](https://solhint-community.github.io/solhint-community/docs/rules/security/avoid-tx-origin.html) rule, which warns whenever `tx.origin` is used in the code.
 
@@ -41,7 +41,7 @@ npx tsx index.ts
 ```
 
 ## Parsing the Solidity code
-Before we can analyze the code, we need to parse the source code it into a concrete syntax tree (CST). It can represent incomplete or invalid code, and is a good starting point for writing a linter.
+Before we can analyze the code, we need to parse the source code into a concrete syntax tree (CST). It can represent incomplete or invalid code, and is a good starting point for writing a linter.
 
 Let's start by writing a simple `index.ts` that reads file contents specified as the first command line argument:
 
@@ -56,7 +56,7 @@ const contents = fs.readFileSync(filePath, 'utf8');
 #### Supporting multiple versions of Solidity
 The Solidity language has changed quite a lot over the time, however Slang is designed to be able to parse all versions of Solidity that are in use today, which we consider to be 0.4.11 and later.
 
-Because of this and because pragma directives are not required, we need to be explicit about the version of Solidity we are parsing.
+Because of this and because pragma directives are not required, we need to be explicit about the version of Solidity we aim to parse.
 
 Let's say that we want to be source-compatible with code that's expected to work with Solidity 0.8.22. Let's contruct an instance of the `Language` class, which is the main entry point for parsing Solidity code:
 
@@ -77,9 +77,9 @@ const output = language.parse(RuleKind.SourceUnit, contents);
 
 #### Inspecting the parse output
 
-The `parse` function returns a `ParseOutput` object, which contains the root of the CST (`tree()`) and a list of parse errors (`errors()`), if there were any.
+The `parse` function returns a `ParseOutput` object, which contains the root of the CST (`tree()`) and a list of parse errors (`errors()`), if there are any.
 
-For now, let's just print the CST to the console, to see what it looks like:
+For now, let's just print the CST to the console to see what it looks like:
 
 ```ts
 const tree = results.tree();
@@ -95,7 +95,7 @@ We have just parsed the Solidity code into a structural representation that we c
 
 There are many ways to analyze the CST, but we will use our tree query language for brevity and its declarative nature.
 
-The queries are instances of the `Query` class, which are creating by parsing our query string, that match specific CST patterns and optionally
+The queries are instances of the `Query` class, which are created by parsing our query string, that match specific CST patterns and optionally
 bind variables to them. The syntax is described in the [Tree Query Language](https://nomicfoundation.github.io/slang/user-guide/tree-query-language/) reference.
 
 Without going too much into details, we want to match the `tx.origin` expression, which is a `MemberAccessExpression` with `tx` identifier as the left-hand side and `origin` identifier as the right-hand side:
@@ -115,10 +115,10 @@ let query = Query.parse(
 
 That's a lot to unpack here! Let's break it down:
 - tree nodes are enclosed in square brackets `[]`.
-- the first name in the square brackets match the node's `RuleKind`.
-- `@`-prefixed names before nodes are _bindings_, which are used to refer to specific nodes of the matched pattern.
+- the first name in the square brackets match the given node's `RuleKind`.
+- after it, there is a list of children nodes we expect to match.
 - `...` is a wildcard that matches any number of children.
-
+- `@`-prefixed names before nodes are _bindings_, which are used to refer to specific nodes of the matched pattern.
 
 #### Running the queries
 The queries are executed using `Cursor` class, which is another way to traverse the syntax tree, so we need to instantiate one that starts at its root:
@@ -135,7 +135,7 @@ While it's possible to run multiple different queries concurrently using the sam
 const matches = cursor.query([query]);
 ```
 
-To access the matched `QueryResult`s so we need to call `next()` ourselves repeatedly:
+To access the matched `QueryResult`s, we need to call `next()` repeatedly until it returns `null`:
 
 ```ts
 let match = null;
@@ -186,9 +186,9 @@ const [line, col] = getLineAndColumn(contents, byteOffset);
 console.warn(`${filePath}:${line}:${col}: warning: avoid using \`tx.origin\``);
 ```
 
-To access the full span of the node, we could use the `textRange` property on the cursor, which returns the start and end offsets of the node in the source code.
+To access the full span of the node, we could use the `textRange` property on the cursor, which returns the start and the end offsets of the node in the source code.
 
-We could get even more creative and plug this information into a custom formatter of our choice, but for now, this will suffice.
+We could get even more creative and plug this information into a custom formatter of our choice, but for now this will suffice.
 
 ## Putting it all together
 Here's the complete code for our linter:
@@ -270,7 +270,7 @@ $ npx tsx index.ts example.sol
 example.sol:13:17: warning: avoid using `tx.origin`
 # ...which points here:
 #         require(tx.origin == owner);
-# 			      ^
+#                 ^
 ```
 
 We can see that it works as expected!
