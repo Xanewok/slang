@@ -1,5 +1,8 @@
 use std::collections::BTreeSet;
+use std::error::Error;
+use std::fmt;
 
+use crate::diagnostic::{self, Diagnostic};
 use crate::kinds::TokenKind;
 use crate::text_index::{TextRange, TextRangeExtensions};
 
@@ -12,18 +15,6 @@ pub struct ParseError {
 impl ParseError {
     pub fn text_range(&self) -> &TextRange {
         &self.text_range
-    }
-
-    pub fn tokens_that_would_have_allowed_more_progress(&self) -> Vec<String> {
-        let tokens_that_would_have_allowed_more_progress = self
-            .tokens_that_would_have_allowed_more_progress
-            .iter()
-            .collect::<BTreeSet<_>>();
-
-        tokens_that_would_have_allowed_more_progress
-            .into_iter()
-            .map(TokenKind::to_string)
-            .collect()
     }
 
     pub fn to_error_report(&self, source_id: &str, source: &str, with_color: bool) -> String {
@@ -43,33 +34,72 @@ impl ParseError {
     }
 }
 
-pub(crate) fn render_error_report(
-    error: &ParseError,
+impl Error for ParseError {}
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.tokens_that_would_have_allowed_more_progress.is_empty() {
+            write!(f, "Expected end of file.")
+        } else {
+            let deduped = self
+                .tokens_that_would_have_allowed_more_progress
+                .iter()
+                .collect::<BTreeSet<_>>();
+
+            write!(f, "Expected ")?;
+
+            for kind in deduped.iter().take(deduped.len() - 1) {
+                write!(f, "{kind} or ")?;
+            }
+            let last = deduped.last().expect("we just checked that it's not empty");
+            write!(f, "{last}.")?;
+
+            Ok(())
+        }
+    }
+}
+
+impl Diagnostic for ParseError {
+    fn range(&self) -> TextRange {
+        self.text_range.clone()
+    }
+
+    fn code(&self) -> impl std::fmt::Display {
+        "ParseError"
+    }
+
+    fn severity(&self) -> diagnostic::Severity {
+        diagnostic::Severity::Error
+    }
+
+    fn message(&self) -> String {
+        ToString::to_string(&self)
+    }
+}
+
+pub(crate) fn render_error_report<D: Diagnostic>(
+    error: &D,
     source_id: &str,
     source: &str,
     with_color: bool,
 ) -> String {
     use ariadne::{Color, Config, Label, Report, ReportKind, Source};
 
-    let kind = ReportKind::Error;
+    let kind = match error.severity() {
+        diagnostic::Severity::Error => ReportKind::Error,
+        diagnostic::Severity::Warning => ReportKind::Warning,
+        diagnostic::Severity::Information => ReportKind::Advice,
+        diagnostic::Severity::Hint => ReportKind::Advice,
+    };
+
     let color = if with_color { Color::Red } else { Color::Unset };
 
-    let tokens_that_would_have_allowed_more_progress =
-        error.tokens_that_would_have_allowed_more_progress();
-    let message = if tokens_that_would_have_allowed_more_progress.is_empty() {
-        "Expected end of file.".to_string()
-    } else {
-        format!(
-            "Expected {expectations}.",
-            expectations = tokens_that_would_have_allowed_more_progress.join(" or ")
-        )
-    };
+    let message = error.message();
 
     if source.is_empty() {
         return format!("{kind}: {message}\n   ─[{source_id}:0:0]");
     }
 
-    let range = error.text_range.char();
+    let range = error.range().char();
 
     let mut builder = Report::build(kind, source_id, range.start)
         .with_config(Config::default().with_color(with_color))

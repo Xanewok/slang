@@ -5,6 +5,7 @@ mod parser_support;
 
 pub mod cst;
 pub mod cursor;
+pub mod diagnostic;
 pub mod kinds;
 pub(crate) mod lexer;
 pub mod parse_error;

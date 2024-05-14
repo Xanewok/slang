@@ -158,6 +158,7 @@ impl RustGenerator {
         for file in &[
             "cst.rs",
             "cursor.rs",
+            "diagnostic.rs",
             "lexer.rs",
             "napi_interface/cst.rs",
             "napi_interface/cursor.rs",
