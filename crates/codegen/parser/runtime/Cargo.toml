@@ -8,7 +8,7 @@ publish = false
 description = "Language-agnostic parser runtime copied over by codegen"
 
 [dependencies]
-ariadne = { workspace = true }
+ariadne = { workspace = true, optional = true }
 napi = { workspace = true, optional = true }
 napi-derive = { workspace = true, optional = true }
 nom = { workspace = true }
@@ -22,7 +22,7 @@ strum_macros = { workspace = true }
 [features]
 default = ["slang_napi_interfaces"]
 slang_napi_interfaces = ["dep:napi", "dep:napi-derive", "dep:serde_json"]
+ariadne = ["dep:ariadne"]
 
 [lints]
 workspace = true
-

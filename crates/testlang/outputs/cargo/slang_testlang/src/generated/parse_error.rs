@@ -6,7 +6,7 @@ use std::fmt;
 
 use crate::diagnostic::{self, Diagnostic};
 use crate::kinds::TokenKind;
-use crate::text_index::{TextRange, TextRangeExtensions};
+use crate::text_index::TextRange;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ParseError {
@@ -17,10 +17,6 @@ pub struct ParseError {
 impl ParseError {
     pub fn text_range(&self) -> &TextRange {
         &self.text_range
-    }
-
-    pub fn to_error_report(&self, source_id: &str, source: &str, with_color: bool) -> String {
-        render_error_report(self, source_id, source, with_color)
     }
 }
 
@@ -76,51 +72,4 @@ impl Diagnostic for ParseError {
     fn message(&self) -> String {
         ToString::to_string(&self)
     }
-}
-
-pub(crate) fn render_error_report<D: Diagnostic>(
-    error: &D,
-    source_id: &str,
-    source: &str,
-    with_color: bool,
-) -> String {
-    use ariadne::{Color, Config, Label, Report, ReportKind, Source};
-
-    let kind = match error.severity() {
-        diagnostic::Severity::Error => ReportKind::Error,
-        diagnostic::Severity::Warning => ReportKind::Warning,
-        diagnostic::Severity::Information => ReportKind::Advice,
-        diagnostic::Severity::Hint => ReportKind::Advice,
-    };
-
-    let color = if with_color { Color::Red } else { Color::Unset };
-
-    let message = error.message();
-
-    if source.is_empty() {
-        return format!("{kind}: {message}\n   ─[{source_id}:0:0]");
-    }
-
-    let range = error.range().char();
-
-    let mut builder = Report::build(kind, source_id, range.start)
-        .with_config(Config::default().with_color(with_color))
-        .with_message(message);
-
-    builder.add_label(
-        Label::new((source_id, range))
-            .with_color(color)
-            .with_message("Error occurred here.".to_string()),
-    );
-
-    let mut result = vec![];
-    builder
-        .finish()
-        .write((source_id, Source::from(&source)), &mut result)
-        .expect("Failed to write report");
-
-    return String::from_utf8(result)
-        .expect("Failed to convert report to utf8")
-        .trim()
-        .to_string();
 }

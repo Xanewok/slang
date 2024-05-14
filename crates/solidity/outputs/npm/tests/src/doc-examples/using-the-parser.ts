@@ -21,7 +21,7 @@ test("using the parser", async () => {
   // --8<-- [start:print-errors]
   for (const error of parseOutput.errors()) {
     let diagnostic = error.toDiagnostic();
-    console.error(`Encountered an error: ${diagnostic.message}`);
+    console.error(`Encountered an error: ${diagnostic.message()}`);
   }
   // --8<-- [end:print-errors]
 
