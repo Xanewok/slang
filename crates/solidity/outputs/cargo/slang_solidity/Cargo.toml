@@ -33,9 +33,9 @@ required-features = ["cli"]
 
 [features]
 default = ["cli"]
-cli = ["dep:anyhow", "dep:clap", "dep:serde_json", "ariadne"]
+cli = ["dep:anyhow", "dep:clap", "dep:serde_json", "__private_ariadne"]
 # This is meant to be used by the CLI or internally only.
-ariadne = ["dep:ariadne"]
+__private_ariadne = ["dep:ariadne"]
 
 [build-dependencies] # __REMOVE_THIS_LINE_DURING_CARGO_PUBLISH__
 anyhow = { workspace = true }                   # __REMOVE_THIS_LINE_DURING_CARGO_PUBLISH__

@@ -18,7 +18,7 @@ pub trait Diagnostic: Error {
     fn message(&self) -> String;
 }
 
-#[cfg(feature = "ariadne")]
+#[cfg(feature = "__private_ariadne")]
 pub fn render<D: Diagnostic>(error: &D, source_id: &str, source: &str, with_color: bool) -> String {
     use ariadne::{Color, Config, Label, Report, ReportKind, Source};
 
