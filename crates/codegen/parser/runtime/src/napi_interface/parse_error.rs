@@ -26,13 +26,8 @@ impl ParseError {
 
     #[napi(ts_return_type = "diagnostic.Diagnostic", catch_unwind)]
     pub fn to_diagnostic(&self) -> Diagnostic {
-        use crate::diagnostic::Diagnostic as _;
-
-        Diagnostic {
-            code: self.0.code().to_string(),
-            message: self.0.message(),
-            severity: self.0.severity().into(),
-            range: self.0.range().into(),
-        }
+        // TODO: Figure out if we can auto-gen Diagnostics methods
+        // in TS for this implementor rather than having to clone here
+        Diagnostic(Box::new(self.0.clone()))
     }
 }

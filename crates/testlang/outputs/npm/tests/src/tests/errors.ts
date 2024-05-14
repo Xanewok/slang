@@ -11,10 +11,10 @@ test("render error reports", () => {
   expect(errors).toHaveLength(1);
 
   const diag = errors[0]!.toDiagnostic();
-  expect(diag.severity).toBe(diagnostic.Severity.Error);
-  expect(diag.message).toBe("Expected Identifier or StringLiteral or TreeKeyword.");
-  expect(diag.range.start).toEqual({ utf8: 5, utf16: 5, char: 5 } satisfies TextIndex);
-  expect(diag.range.end).toEqual({ utf8: 9, utf16: 9, char: 9 } satisfies TextIndex);
+  expect(diag.severity()).toBe(diagnostic.Severity.Error);
+  expect(diag.message()).toBe("Expected Identifier or StringLiteral or TreeKeyword.");
+  expect(diag.textRange().start).toEqual({ utf8: 5, utf16: 5, char: 5 } satisfies TextIndex);
+  expect(diag.textRange().end).toEqual({ utf8: 9, utf16: 9, char: 9 } satisfies TextIndex);
 });
 
 test("invalid semantic version", () => {

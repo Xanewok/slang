@@ -815,11 +815,11 @@ export namespace diagnostic {
     Information = 3,
     Hint = 4,
   }
-  export interface Diagnostic {
-    severity: Severity;
-    range: text_index.TextRange;
-    message: string;
-    code: string;
+  export class Diagnostic {
+    severity(): Severity;
+    textRange(): text_index.TextRange;
+    message(): string;
+    code(): string;
   }
 }
 export namespace parse_error {

@@ -13,7 +13,7 @@ pub enum Severity {
 
 pub trait Diagnostic: Error {
     fn range(&self) -> TextRange;
-    fn code(&self) -> impl Display;
+    fn code(&self) -> Box<dyn Display>;
     fn severity(&self) -> Severity;
     fn message(&self) -> String;
 }

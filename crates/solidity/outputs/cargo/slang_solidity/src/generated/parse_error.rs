@@ -65,8 +65,8 @@ impl Diagnostic for ParseError {
         self.text_range.clone()
     }
 
-    fn code(&self) -> impl std::fmt::Display {
-        "ParseError"
+    fn code(&self) -> Box<dyn std::fmt::Display> {
+        Box::new("ParseError")
     }
 
     fn severity(&self) -> diagnostic::Severity {

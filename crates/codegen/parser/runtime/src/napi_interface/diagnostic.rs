@@ -24,11 +24,28 @@ impl From<crate::diagnostic::Severity> for Severity {
     }
 }
 
-#[napi(object, namespace = "diagnostic")]
-pub struct Diagnostic {
-    pub severity: Severity,
-    #[napi(ts_type = "text_index.TextRange")]
-    pub range: TextRange,
-    pub message: String,
-    pub code: String,
+#[napi(namespace = "diagnostic")]
+pub struct Diagnostic(pub(crate) Box<dyn crate::diagnostic::Diagnostic>);
+
+#[napi(namespace = "diagnostic")]
+impl Diagnostic {
+    #[napi]
+    pub fn severity(&self) -> Severity {
+        self.0.severity().into()
+    }
+
+    #[napi(ts_return_type = "text_index.TextRange")]
+    pub fn text_range(&self) -> TextRange {
+        self.0.range().into()
+    }
+
+    #[napi]
+    pub fn message(&self) -> String {
+        self.0.message()
+    }
+
+    #[napi]
+    pub fn code(&self) -> String {
+        self.0.code().to_string()
+    }
 }
