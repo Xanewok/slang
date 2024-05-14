@@ -6,6 +6,7 @@
 use napi_derive::napi;
 use text_index::TextRange;
 
+use crate::napi_interface::diagnostic::Diagnostic;
 use crate::napi_interface::{text_index, RustParseError};
 
 #[napi(namespace = "parse_error")]
@@ -25,8 +26,15 @@ impl ParseError {
         self.0.text_range().clone().into()
     }
 
-    #[napi(catch_unwind)]
-    pub fn to_error_report(&self, source_id: String, source: String, with_color: bool) -> String {
-        self.0.to_error_report(&source_id, &source, with_color)
+    #[napi(ts_return_type = "diagnostic.Diagnostic", catch_unwind)]
+    pub fn to_diagnostic(&self) -> Diagnostic {
+        use crate::diagnostic::Diagnostic as _;
+
+        Diagnostic {
+            code: self.0.code().to_string(),
+            message: self.0.message(),
+            severity: self.0.severity().into(),
+            range: self.0.range().into(),
+        }
     }
 }

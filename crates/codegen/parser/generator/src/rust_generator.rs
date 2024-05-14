@@ -162,6 +162,7 @@ impl RustGenerator {
             "lexer.rs",
             "napi_interface/cst.rs",
             "napi_interface/cursor.rs",
+            "napi_interface/diagnostic.rs",
             "napi_interface/mod.rs",
             "napi_interface/parse_error.rs",
             "napi_interface/parse_output.rs",
