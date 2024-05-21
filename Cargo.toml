@@ -15,7 +15,6 @@ members = [
     "crates/codegen/language/tests",
     "crates/codegen/runtime/cargo",
     "crates/codegen/runtime/generator",
-    "crates/codegen/runtime/node_addon",
     "crates/codegen/runtime/npm",
     "crates/codegen/spec",
     "crates/codegen/testing",
@@ -54,7 +53,6 @@ codegen_language_macros = { path = "crates/codegen/language/macros" }
 codegen_language_tests = { path = "crates/codegen/language/tests" }
 codegen_runtime_cargo = { path = "crates/codegen/runtime/cargo" }
 codegen_runtime_generator = { path = "crates/codegen/runtime/generator" }
-codegen_runtime_node_addon = { path = "crates/codegen/runtime/node_addon" }
 codegen_runtime_npm = { path = "crates/codegen/runtime/npm" }
 codegen_spec = { path = "crates/codegen/spec" }
 codegen_testing = { path = "crates/codegen/testing" }

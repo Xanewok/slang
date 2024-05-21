@@ -12,7 +12,6 @@ pub enum NapiPackageKind {
 
 #[derive(Clone, Copy, EnumIter)]
 pub enum NapiResolver {
-    Codegen,
     Solidity,
     Testlang,
 }
@@ -20,7 +19,6 @@ pub enum NapiResolver {
 impl NapiResolver {
     pub fn rust_crate_name(self) -> &'static str {
         match self {
-            Self::Codegen => "codegen_runtime_node_addon",
             Self::Solidity => "slang_solidity_node_addon",
             Self::Testlang => "slang_testlang_node_addon",
         }
@@ -28,7 +26,6 @@ impl NapiResolver {
 
     pub fn main_package_name(self) -> &'static str {
         match self {
-            Self::Codegen => "codegen_runtime_npm",
             Self::Solidity => "solidity_npm_package",
             Self::Testlang => "testlang_npm_package",
         }
@@ -48,8 +45,6 @@ impl NapiResolver {
 
     pub fn bindings_dir(self) -> PathBuf {
         self.main_package_dir().join(match self {
-            // Source templates:
-            Self::Codegen => "src/runtime/napi-bindings/generated",
             // Generated Languages:
             Self::Solidity | Self::Testlang => "src/generated/napi-bindings/generated",
         })
