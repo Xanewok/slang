@@ -34,15 +34,3 @@ set -euo pipefail
 # See the comments here for more information:
 # $REPO_ROOT/crates/infra/cli/src/commands/setup/cargo/mod.rs
 #
-
-if ! output=$(
-  rustup install --no-self-update --profile "minimal" "${RUST_STABLE_VERSION:?}" \
-    && rustup default "${RUST_STABLE_VERSION:?}" \
-      2>&1
-); then
-  # Only print the output if the command failed:
-  echo "Running 'rustup' failed:"
-  echo >&2 "${output}"
-
-  exit 1
-fi
