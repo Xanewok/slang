@@ -9,8 +9,6 @@ use crate::parser::grammar::{GrammarVisitor, Visitable};
 
 pub trait ScannerDefinition: Debug {
     fn name(&self) -> &Identifier;
-    // fn node(&self) -> &ScannerDefinitionNode;
-
     // ----
     // Instead of def
     fn to_scanner_code(&self) -> TokenStream;
@@ -23,31 +21,6 @@ pub type ScannerDefinitionRef = Rc<dyn ScannerDefinition>;
 impl Visitable for ScannerDefinitionRef {
     fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
         visitor.scanner_definition_enter(self);
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum ScannerDefinitionNode {
-    Versioned(Box<Self>, model::VersionSpecifier),
-    Optional(Box<Self>),
-    Sequence(Vec<Self>),
-    Choice(Vec<Self>),
-    Literal(String),
-}
-
-impl Visitable for ScannerDefinitionNode {
-    fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
-        match self {
-            Self::Versioned(node, _) | Self::Optional(node) => node.accept_visitor(visitor),
-
-            Self::Sequence(nodes) | Self::Choice(nodes) => {
-                for node in nodes {
-                    node.accept_visitor(visitor);
-                }
-            }
-
-            Self::Literal(_) => {}
-        }
     }
 }
 

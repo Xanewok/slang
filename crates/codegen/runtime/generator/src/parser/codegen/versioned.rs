@@ -4,7 +4,7 @@ use quote::{format_ident, quote};
 use semver::Version;
 
 use crate::parser::codegen::scanner_definition::VersionedScanner;
-use crate::parser::grammar::{Labeled, ParserDefinitionNode, ScannerDefinitionNode};
+use crate::parser::grammar::{Labeled, ParserDefinitionNode};
 
 pub(super) trait Versioned {
     fn version_specifier(&self) -> Option<&VersionSpecifier>;
@@ -18,20 +18,6 @@ impl Versioned for ParserDefinitionNode {
             ParserDefinitionNode::Optional(value)
             | ParserDefinitionNode::ZeroOrMore(Labeled { value, .. })
             | ParserDefinitionNode::OneOrMore(Labeled { value, .. }) => value.version_specifier(),
-
-            _ => None,
-        }
-    }
-}
-
-impl Versioned for ScannerDefinitionNode {
-    fn version_specifier(&self) -> Option<&VersionSpecifier> {
-        match self {
-            ScannerDefinitionNode::Versioned(_, version_quality_ranges) => {
-                Some(version_quality_ranges)
-            }
-
-            ScannerDefinitionNode::Optional(node) => node.version_specifier(),
 
             _ => None,
         }

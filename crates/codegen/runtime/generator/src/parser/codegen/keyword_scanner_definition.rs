@@ -83,7 +83,6 @@ impl KeywordScannerDefinitionCodegen for model::KeywordValue {
     fn to_scanner_code(&self) -> TokenStream {
         // This is a subset; let's reuse that
         self.clone().into_scanner().to_scanner_code()
-        // ScannerDefinitionNode::from(self.clone()).to_scanner_code()
     }
 }
 

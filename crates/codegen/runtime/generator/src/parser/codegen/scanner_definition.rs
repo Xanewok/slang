@@ -6,7 +6,7 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::parser::codegen::versioned::VersionedQuote;
-use crate::parser::grammar::{ScannerDefinitionNode, ScannerDefinitionRef};
+use crate::parser::grammar::ScannerDefinitionRef;
 
 pub trait ScannerDefinitionCodegen {
     fn to_scanner_code(&self) -> TokenStream;
@@ -34,81 +34,6 @@ pub trait ScannerDefinitionNodeCodegen {
     fn to_scanner_code(&self) -> TokenStream;
     fn as_atom(&self) -> Option<&str>;
     fn literals(&self, accum: &mut BTreeSet<String>) -> bool;
-}
-
-impl ScannerDefinitionNodeCodegen for ScannerDefinitionNode {
-    // Returns true if this is nothing but a set of literals
-    fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
-        match self {
-            ScannerDefinitionNode::Versioned(body, _) => body.literals(accum),
-            ScannerDefinitionNode::Literal(string) => {
-                accum.insert(string.clone());
-                true
-            }
-            ScannerDefinitionNode::Choice(nodes) => nodes
-                .iter()
-                .fold(true, |result, node| node.literals(accum) && result),
-            _ => false,
-        }
-    }
-
-    fn as_atom(&self) -> Option<&str> {
-        match self {
-            ScannerDefinitionNode::Literal(string) => Some(string),
-            _ => None,
-        }
-    }
-
-    fn to_scanner_code(&self) -> TokenStream {
-        match self {
-            ScannerDefinitionNode::Versioned(body, version_quality_ranges) => {
-                let body = body.to_scanner_code();
-                Some(version_quality_ranges).to_conditional_code(body, Some(quote! { false }))
-            }
-
-            ScannerDefinitionNode::Optional(node) => {
-                let scanner = node.to_scanner_code();
-                quote! { scan_optional!(input, #scanner) }
-            }
-
-            ScannerDefinitionNode::Sequence(nodes) => {
-                let scanners = nodes
-                    .iter()
-                    .map(|e| e.to_scanner_code())
-                    .collect::<Vec<_>>();
-                quote! { scan_sequence!(#(#scanners),*) }
-            }
-
-            ScannerDefinitionNode::Choice(nodes) => {
-                let mut scanners = vec![];
-                let mut non_literal_scanners = vec![];
-                for node in nodes {
-                    if let ScannerDefinitionNode::Literal(string) = node {
-                        scanners.push(string);
-                    } else {
-                        non_literal_scanners.push(node.to_scanner_code());
-                    }
-                }
-                scanners.sort();
-                let mut scanners = scanners
-                    .iter()
-                    // We want the longest literals first, so we prefer the longest match
-                    .rev()
-                    .map(|string| {
-                        let chars = string.chars();
-                        quote! { scan_chars!(input, #(#chars),*) }
-                    })
-                    .collect::<Vec<_>>();
-                scanners.extend(non_literal_scanners);
-                quote! { scan_choice!(input, #(#scanners),*) }
-            }
-
-            ScannerDefinitionNode::Literal(string) => {
-                let chars = string.chars();
-                quote! { scan_chars!(input, #(#chars),*) }
-            }
-        }
-    }
 }
 
 impl ScannerDefinitionCodegen for model::TriviaItem {
@@ -346,21 +271,3 @@ impl ScannerDefinitionNodeCodegen for model::Scanner {
         }
     }
 }
-
-//---------
-
-// pub enum ScannerDslV2Definition<'a> {
-//     Trivia(VersionedScanner<'a>),
-// }
-
-// impl ScannerDefinition for ScannerDslV2Definition<'_> {
-//     fn name(&self) -> &model::Identifier {
-//         match self {
-//             ScannerDslV2Definition::Trivia(trivia) => trivia.scanner.name(),
-//         }
-//     }
-
-//     fn node(&self) -> &ScannerDefinitionNode {
-//         todo!()
-//     }
-// }
