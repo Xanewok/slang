@@ -9,6 +9,7 @@ use codegen_language_definition::model::{self, FieldsErrorRecovery, Identifier, 
 use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 
+use crate::parser::codegen::{ScannerDefinitionCodegen, ScannerDefinitionNodeCodegen};
 use crate::parser::grammar::{
     DelimitedRecoveryTerminalThreshold, Grammar, GrammarElement, KeywordScannerDefinition, Labeled,
     ParserDefinition, ParserDefinitionNode, PrecedenceParserDefinition,
@@ -117,7 +118,49 @@ impl Grammar {
 #[derive(Debug)]
 struct NamedScanner {
     name: Identifier,
-    def: ScannerDefinitionNode,
+    // def: ScannerDefinitionNode,
+    def: TerminalItem,
+}
+
+#[derive(Debug)]
+enum TerminalItem {
+    Trivia(model::TriviaItem),
+    Token(model::TokenItem),
+    Fragment(model::FragmentItem),
+}
+
+impl ScannerDefinition for TerminalItem {
+    fn name(&self) -> &Identifier {
+        match self {
+            TerminalItem::Trivia(item) => &item.name,
+            TerminalItem::Token(item) => &item.name,
+            TerminalItem::Fragment(item) => &item.name,
+        }
+    }
+
+    fn to_scanner_code(&self) -> proc_macro2::TokenStream {
+        match self {
+            Self::Trivia(item) => ScannerDefinitionCodegen::to_scanner_code(item),
+            Self::Token(item) => ScannerDefinitionCodegen::to_scanner_code(item),
+            Self::Fragment(item) => ScannerDefinitionCodegen::to_scanner_code(item),
+        }
+    }
+
+    fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
+        match self {
+            Self::Trivia(item) => ScannerDefinitionNodeCodegen::literals(item, accum),
+            Self::Token(item) => ScannerDefinitionNodeCodegen::literals(item, accum),
+            Self::Fragment(item) => ScannerDefinitionNodeCodegen::literals(item, accum),
+        }
+    }
+
+    fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
+        match self {
+            Self::Trivia(item) => None,
+            Self::Token(item) => None,
+            Self::Fragment(item) => item.enabled.as_ref(),
+        }
+    }
 }
 
 impl ScannerDefinition for NamedScanner {
@@ -139,10 +182,7 @@ impl ScannerDefinition for NamedScanner {
     }
 
     fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
-        match self.def {
-            ScannerDefinitionNode::Versioned(_, ref spec) => Some(spec),
-            _ => None,
-        }
+        self.def.version_specifier()
     }
 }
 
@@ -338,15 +378,16 @@ fn resolve_grammar_element(ident: &Identifier, ctx: &mut ResolveCtx<'_>) -> Gram
             let named_scanner = match elem {
                 Item::Trivia { item } => NamedScanner {
                     name: ident.clone(),
-                    def: resolve_scanner(item.scanner.clone(), ctx),
+                    // def: resolve_scanner(item.scanner.clone(), ctx),
+                    def: TerminalItem::Trivia(item.deref().clone()),
                 },
                 Item::Fragment { item } => NamedScanner {
                     name: ident.clone(),
-                    def: resolve_fragment(item.deref().clone(), ctx),
+                    def: TerminalItem::Fragment(item.deref().clone()),
                 },
                 Item::Token { item } => NamedScanner {
                     name: ident.clone(),
-                    def: resolve_token(item.deref().clone(), ctx),
+                    def: TerminalItem::Token(item.deref().clone()),
                 },
                 Item::Keyword { item } => {
                     // Keywords are special scanners and are handled separately

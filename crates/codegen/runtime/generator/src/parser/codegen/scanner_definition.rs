@@ -173,6 +173,35 @@ impl ScannerDefinitionCodegen for model::FragmentItem {
     }
 }
 
+impl ScannerDefinitionCodegen for model::TokenItem {
+    fn to_scanner_code(&self) -> TokenStream {
+        ScannerDefinitionNodeCodegen::to_scanner_code(self)
+    }
+
+    fn literals(&self) -> Vec<String> {
+        let mut result = BTreeSet::new();
+        if ScannerDefinitionNodeCodegen::literals(self, &mut result) {
+            result.into_iter().collect()
+        } else {
+            vec![]
+        }
+    }
+}
+
+impl ScannerDefinitionNodeCodegen for model::FragmentItem {
+    fn to_scanner_code(&self) -> TokenStream {
+        VersionedScanner::new(&self.scanner, self.enabled.as_ref()).to_scanner_code()
+    }
+
+    fn as_atom(&self) -> Option<&str> {
+        None
+    }
+
+    fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
+        self.scanner.literals(accum)
+    }
+}
+
 pub(crate) struct VersionedScanner<'a> {
     scanner: &'a model::Scanner,
     pub(crate) enabled: Option<&'a model::VersionSpecifier>,
@@ -197,6 +226,20 @@ impl ScannerDefinitionNodeCodegen for VersionedScanner<'_> {
 impl<'a> VersionedScanner<'a> {
     fn new(scanner: &'a model::Scanner, enabled: Option<&'a model::VersionSpecifier>) -> Self {
         Self { scanner, enabled }
+    }
+}
+
+impl ScannerDefinitionNodeCodegen for model::TriviaItem {
+    fn to_scanner_code(&self) -> TokenStream {
+        ScannerDefinitionCodegen::to_scanner_code(self)
+    }
+
+    fn as_atom(&self) -> Option<&str> {
+        None
+    }
+
+    fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
+        self.scanner.literals(accum)
     }
 }
 
