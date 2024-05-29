@@ -5,7 +5,7 @@ use codegen_language_definition::model::KeywordDefinition;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::parser::codegen::versioned::{Versioned as _, VersionedQuote as _};
+use crate::parser::codegen::versioned::VersionedQuote as _;
 use crate::parser::grammar::{KeywordScannerAtomic, ScannerDefinitionRef};
 
 #[derive(Clone, Debug, Default)]
@@ -104,7 +104,7 @@ impl Payload for ScannerDefinitionRef {
     fn to_leaf_code(&self) -> TokenStream {
         let kind = format_ident!("{}", self.name());
 
-        self.node().version_specifier().to_conditional_code(
+        self.version_specifier().to_conditional_code(
             quote! { Some(TerminalKind::#kind) },
             Some(Self::default_case()),
         )

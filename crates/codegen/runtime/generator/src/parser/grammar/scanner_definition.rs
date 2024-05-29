@@ -1,13 +1,21 @@
+use std::collections::BTreeSet;
 use std::fmt::Debug;
 use std::rc::Rc;
 
 use codegen_language_definition::model::{self, Identifier};
+use proc_macro2::TokenStream;
 
 use crate::parser::grammar::{GrammarVisitor, Visitable};
 
 pub trait ScannerDefinition: Debug {
     fn name(&self) -> &Identifier;
-    fn node(&self) -> &ScannerDefinitionNode;
+    // fn node(&self) -> &ScannerDefinitionNode;
+
+    // ----
+    // Instead of def
+    fn to_scanner_code(&self) -> TokenStream;
+    fn literals(&self, accum: &mut BTreeSet<String>) -> bool;
+    fn version_specifier(&self) -> Option<&model::VersionSpecifier>;
 }
 
 pub type ScannerDefinitionRef = Rc<dyn ScannerDefinition>;
@@ -15,7 +23,6 @@ pub type ScannerDefinitionRef = Rc<dyn ScannerDefinition>;
 impl Visitable for ScannerDefinitionRef {
     fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
         visitor.scanner_definition_enter(self);
-        self.node().accept_visitor(visitor);
     }
 }
 
@@ -36,7 +43,6 @@ pub enum ScannerDefinitionNode {
 
 impl Visitable for ScannerDefinitionNode {
     fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
-        visitor.scanner_definition_node_enter(self);
         match self {
             Self::Versioned(node, _)
             | Self::Optional(node)
@@ -69,12 +75,6 @@ pub trait KeywordScannerDefinition: Debug {
 }
 
 pub type KeywordScannerDefinitionRef = Rc<dyn KeywordScannerDefinition>;
-
-impl Visitable for KeywordScannerDefinitionRef {
-    fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
-        visitor.keyword_scanner_definition_enter(self);
-    }
-}
 
 impl From<model::KeywordValue> for ScannerDefinitionNode {
     fn from(val: model::KeywordValue) -> Self {

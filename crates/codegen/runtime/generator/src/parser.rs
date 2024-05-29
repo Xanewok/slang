@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 
-use codegen_language_definition::model::{Identifier, Language, VersionSpecifier};
+use codegen_language_definition::model::{Identifier, Language};
 use semver::Version;
 use serde::Serialize;
 
@@ -16,8 +16,8 @@ use codegen::{
 };
 use grammar::{
     Grammar, GrammarVisitor, KeywordScannerAtomic, KeywordScannerDefinitionRef,
-    ParserDefinitionNode, ParserDefinitionRef, PrecedenceParserDefinitionRef,
-    ScannerDefinitionNode, ScannerDefinitionRef, TriviaParserDefinitionRef,
+    ParserDefinitionNode, ParserDefinitionRef, PrecedenceParserDefinitionRef, ScannerDefinitionRef,
+    TriviaParserDefinitionRef,
 };
 
 /// Newtype for the already generated Rust code, not to be confused with regular strings.
@@ -61,9 +61,6 @@ struct ScannerContextModel {
 
 #[derive(Default)]
 struct ParserAccumulatorState {
-    /// Constructs inner `Language` the state to evaluate the version-dependent branches.
-    referenced_versions: BTreeSet<Version>,
-
     // Defines the `Lexer::next_terminal` method.
     scanner_contexts: BTreeMap<Identifier, ScannerContextAccumulatorState>,
 
@@ -96,7 +93,7 @@ impl ParserModel {
         let mut acc = ParserAccumulatorState::default();
         grammar.accept_visitor(&mut acc);
 
-        acc.into_model()
+        acc.into_model(language)
     }
 }
 
@@ -112,7 +109,7 @@ impl ParserAccumulatorState {
             .expect("context must be set with `set_current_context`")
     }
 
-    fn into_model(self) -> ParserModel {
+    fn into_model(self, language: &Language) -> ParserModel {
         let contexts = self
             .scanner_contexts
             .into_iter()
@@ -192,7 +189,7 @@ impl ParserAccumulatorState {
             .collect();
 
         ParserModel {
-            referenced_versions: self.referenced_versions,
+            referenced_versions: language.collect_breaking_versions(),
             parser_functions: self.parser_functions,
             trivia_parser_functions: self.trivia_parser_functions,
             // These are derived from the accumulated state
@@ -207,15 +204,6 @@ impl GrammarVisitor for ParserAccumulatorState {
     fn scanner_definition_enter(&mut self, scanner: &ScannerDefinitionRef) {
         self.all_scanners
             .insert(scanner.name().clone(), Rc::clone(scanner));
-    }
-
-    fn keyword_scanner_definition_enter(&mut self, scanner: &KeywordScannerDefinitionRef) {
-        for def in scanner.definitions() {
-            let specifiers = def.enabled.iter().chain(def.reserved.iter());
-
-            self.referenced_versions
-                .extend(specifiers.flat_map(VersionSpecifier::versions).cloned());
-        }
     }
 
     fn trivia_parser_definition_enter(&mut self, parser: &TriviaParserDefinitionRef) {
@@ -254,19 +242,8 @@ impl GrammarVisitor for ParserAccumulatorState {
         );
     }
 
-    fn scanner_definition_node_enter(&mut self, node: &ScannerDefinitionNode) {
-        if let ScannerDefinitionNode::Versioned(_, version_specifier) = node {
-            self.referenced_versions
-                .extend(version_specifier.versions().cloned());
-        }
-    }
-
     fn parser_definition_node_enter(&mut self, node: &ParserDefinitionNode) {
         match node {
-            ParserDefinitionNode::Versioned(_, version_specifier) => {
-                self.referenced_versions
-                    .extend(version_specifier.versions().cloned());
-            }
             ParserDefinitionNode::ScannerDefinition(scanner) => {
                 self.top_level_scanner_names.insert(scanner.name().clone());
 

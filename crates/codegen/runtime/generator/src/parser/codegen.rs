@@ -8,5 +8,5 @@ mod versioned;
 pub use keyword_scanner_definition::KeywordScannerDefinitionCodegen;
 pub use parser_definition::ParserDefinitionCodegen;
 pub use precedence_parser_definition::PrecedenceParserDefinitionCodegen;
-pub use scanner_definition::ScannerDefinitionCodegen;
+pub use scanner_definition::{ScannerDefinitionCodegen, ScannerDefinitionNodeCodegen};
 pub use trie::Trie;

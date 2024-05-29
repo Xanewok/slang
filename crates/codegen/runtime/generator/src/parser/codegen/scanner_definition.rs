@@ -15,12 +15,14 @@ pub trait ScannerDefinitionCodegen {
 
 impl ScannerDefinitionCodegen for ScannerDefinitionRef {
     fn to_scanner_code(&self) -> TokenStream {
-        self.node().to_scanner_code()
+        use std::ops::Deref;
+        self.deref().to_scanner_code()
     }
 
     fn literals(&self) -> Vec<String> {
+        use std::ops::Deref;
         let mut result = BTreeSet::new();
-        if self.node().literals(&mut result) {
+        if self.deref().literals(&mut result) {
             result.into_iter().collect()
         } else {
             vec![]
@@ -28,7 +30,7 @@ impl ScannerDefinitionCodegen for ScannerDefinitionRef {
     }
 }
 
-pub(super) trait ScannerDefinitionNodeCodegen {
+pub trait ScannerDefinitionNodeCodegen {
     fn to_scanner_code(&self) -> TokenStream;
     fn as_atom(&self) -> Option<&str>;
     fn literals(&self, accum: &mut BTreeSet<String>) -> bool;
@@ -171,9 +173,9 @@ impl ScannerDefinitionCodegen for model::FragmentItem {
     }
 }
 
-struct VersionedScanner<'a> {
+pub(crate) struct VersionedScanner<'a> {
     scanner: &'a model::Scanner,
-    enabled: Option<&'a model::VersionSpecifier>,
+    pub(crate) enabled: Option<&'a model::VersionSpecifier>,
 }
 
 impl ScannerDefinitionNodeCodegen for VersionedScanner<'_> {
@@ -333,3 +335,21 @@ impl ScannerDefinitionNodeCodegen for model::Scanner {
         }
     }
 }
+
+//---------
+
+// pub enum ScannerDslV2Definition<'a> {
+//     Trivia(VersionedScanner<'a>),
+// }
+
+// impl ScannerDefinition for ScannerDslV2Definition<'_> {
+//     fn name(&self) -> &model::Identifier {
+//         match self {
+//             ScannerDslV2Definition::Trivia(trivia) => trivia.scanner.name(),
+//         }
+//     }
+
+//     fn node(&self) -> &ScannerDefinitionNode {
+//         todo!()
+//     }
+// }

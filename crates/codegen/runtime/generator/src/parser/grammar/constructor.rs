@@ -124,8 +124,25 @@ impl ScannerDefinition for NamedScanner {
     fn name(&self) -> &Identifier {
         &self.name
     }
-    fn node(&self) -> &ScannerDefinitionNode {
-        &self.def
+    // fn node(&self) -> &ScannerDefinitionNode {
+    //     &self.def
+    // }
+
+    fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
+        use crate::parser::codegen::ScannerDefinitionNodeCodegen;
+        self.def.literals(accum)
+    }
+
+    fn to_scanner_code(&self) -> proc_macro2::TokenStream {
+        use crate::parser::codegen::ScannerDefinitionNodeCodegen;
+        self.def.to_scanner_code()
+    }
+
+    fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
+        match self.def {
+            ScannerDefinitionNode::Versioned(_, ref spec) => Some(spec),
+            _ => None,
+        }
     }
 }
 

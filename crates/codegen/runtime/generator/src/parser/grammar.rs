@@ -76,7 +76,7 @@ impl Visitable for GrammarElement {
     fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
         match self {
             Self::ScannerDefinition(scanner) => scanner.accept_visitor(visitor),
-            Self::KeywordScannerDefinition(scanner) => scanner.accept_visitor(visitor),
+            Self::KeywordScannerDefinition(_) => {}
             Self::TriviaParserDefinition(trivia_parser) => trivia_parser.accept_visitor(visitor),
             Self::ParserDefinition(parser) => parser.accept_visitor(visitor),
             Self::PrecedenceParserDefinition(precedence_parser) => {
