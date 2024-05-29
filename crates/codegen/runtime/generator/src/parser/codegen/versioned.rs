@@ -3,7 +3,6 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use semver::Version;
 
-use crate::parser::codegen::scanner_definition::VersionedScanner;
 use crate::parser::grammar::{Labeled, ParserDefinitionNode};
 
 pub(super) trait Versioned {
@@ -21,12 +20,6 @@ impl Versioned for ParserDefinitionNode {
 
             _ => None,
         }
-    }
-}
-
-impl Versioned for VersionedScanner<'_> {
-    fn version_specifier(&self) -> Option<&VersionSpecifier> {
-        self.enabled
     }
 }
 

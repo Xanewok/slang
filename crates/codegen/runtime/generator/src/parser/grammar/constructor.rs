@@ -9,7 +9,7 @@ use codegen_language_definition::model::{self, FieldsErrorRecovery, Identifier, 
 use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 
-use crate::parser::codegen::{ScannerDefinitionCodegen, ScannerDefinitionNodeCodegen};
+use crate::parser::codegen::ScannerDefinitionNodeCodegen;
 use crate::parser::grammar::{
     DelimitedRecoveryTerminalThreshold, Grammar, GrammarElement, KeywordScannerDefinition, Labeled,
     ParserDefinition, ParserDefinitionNode, PrecedenceParserDefinition,
@@ -120,11 +120,11 @@ impl ScannerDefinition for model::TriviaItem {
     }
 
     fn to_scanner_code(&self) -> proc_macro2::TokenStream {
-        ScannerDefinitionCodegen::to_scanner_code(self)
+        ScannerDefinitionNodeCodegen::to_scanner_code(self)
     }
 
     fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
-        ScannerDefinitionNodeCodegen::literals(self, accum)
+        ScannerDefinitionNodeCodegen::literals_accum(self, accum)
     }
 
     fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
@@ -138,11 +138,11 @@ impl ScannerDefinition for model::TokenItem {
     }
 
     fn to_scanner_code(&self) -> proc_macro2::TokenStream {
-        ScannerDefinitionCodegen::to_scanner_code(self)
+        ScannerDefinitionNodeCodegen::to_scanner_code(self)
     }
 
     fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
-        ScannerDefinitionNodeCodegen::literals(self, accum)
+        ScannerDefinitionNodeCodegen::literals_accum(self, accum)
     }
 
     fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
@@ -156,11 +156,11 @@ impl ScannerDefinition for model::FragmentItem {
     }
 
     fn to_scanner_code(&self) -> proc_macro2::TokenStream {
-        ScannerDefinitionCodegen::to_scanner_code(self)
+        ScannerDefinitionNodeCodegen::to_scanner_code(self)
     }
 
     fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
-        ScannerDefinitionNodeCodegen::literals(self, accum)
+        ScannerDefinitionNodeCodegen::literals_accum(self, accum)
     }
 
     fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
