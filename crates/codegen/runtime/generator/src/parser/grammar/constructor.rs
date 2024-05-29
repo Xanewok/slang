@@ -21,15 +21,8 @@ impl Grammar {
     pub fn from_dsl_v2(lang: &model::Language) -> Grammar {
         // Collect language items into a lookup table to speed up resolution
         let items: HashMap<_, _> = lang
-            .topics()
-            .flat_map(|topic| {
-                topic.items.iter().map(|item| {
-                    (
-                        item.name().clone(),
-                        (topic.lexical_context.clone(), item.clone()),
-                    )
-                })
-            })
+            .items_with_lex_ctxt()
+            .map(|(lex_cxt, item)| (item.name().clone(), (lex_cxt.cloned(), item.clone())))
             .collect();
 
         let mut resolved = HashMap::new();
@@ -130,10 +123,10 @@ impl ScannerDefinition for NamedScanner {
 }
 
 #[derive(Debug)]
-struct NamedKeywordScanner {
-    name: Identifier,
-    identifier_scanner_name: Identifier,
-    defs: Vec<model::KeywordDefinition>,
+pub(crate) struct NamedKeywordScanner {
+    pub(crate) name: Identifier,
+    pub(crate) identifier_scanner_name: Identifier,
+    pub(crate) defs: Vec<model::KeywordDefinition>,
 }
 
 impl KeywordScannerDefinition for NamedKeywordScanner {

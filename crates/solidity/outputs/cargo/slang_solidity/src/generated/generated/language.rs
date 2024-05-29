@@ -9612,6 +9612,7 @@ impl Lexer for Language {
                     Some('-') => match input.next() {
                         Some('-') => Some(TerminalKind::MinusMinus),
                         Some('=') => Some(TerminalKind::MinusEqual),
+                        Some('>') => Some(TerminalKind::MinusGreaterThan),
                         Some(_) => {
                             input.undo();
                             Some(TerminalKind::Minus)
@@ -9626,7 +9627,14 @@ impl Lexer for Language {
                             None
                         }
                     }
-                    Some(':') => Some(TerminalKind::Colon),
+                    Some(':') => match input.next() {
+                        Some('=') => Some(TerminalKind::ColonEqual),
+                        Some(_) => {
+                            input.undo();
+                            Some(TerminalKind::Colon)
+                        }
+                        None => Some(TerminalKind::Colon),
+                    },
                     Some(';') => Some(TerminalKind::Semicolon),
                     Some('<') => match input.next() {
                         Some('<') => match input.next() {
@@ -10968,42 +10976,7 @@ impl Lexer for Language {
                 }
             }
             LexicalContext::Pragma => {
-                if let Some(kind) = match input.next() {
-                    Some('-') => Some(TerminalKind::Minus),
-                    Some('.') => Some(TerminalKind::Period),
-                    Some(';') => Some(TerminalKind::Semicolon),
-                    Some('<') => match input.next() {
-                        Some('=') => Some(TerminalKind::LessThanEqual),
-                        Some(_) => {
-                            input.undo();
-                            Some(TerminalKind::LessThan)
-                        }
-                        None => Some(TerminalKind::LessThan),
-                    },
-                    Some('=') => Some(TerminalKind::Equal),
-                    Some('>') => match input.next() {
-                        Some('=') => Some(TerminalKind::GreaterThanEqual),
-                        Some(_) => {
-                            input.undo();
-                            Some(TerminalKind::GreaterThan)
-                        }
-                        None => Some(TerminalKind::GreaterThan),
-                    },
-                    Some('^') => Some(TerminalKind::Caret),
-                    Some('|') => {
-                        if scan_chars!(input, '|') {
-                            Some(TerminalKind::BarBar)
-                        } else {
-                            None
-                        }
-                    }
-                    Some('~') => Some(TerminalKind::Tilde),
-                    Some(_) => {
-                        input.undo();
-                        None
-                    }
-                    None => None,
-                } {
+                if let Some(kind) = None {
                     furthest_position = input.position();
                     longest_terminal = Some(kind);
                 }
@@ -11040,13 +11013,6 @@ impl Lexer for Language {
                                 KeywordScan::Absent
                             }
                         }
-                        Some('p') => {
-                            if scan_chars!(input, 'r', 'a', 'g', 'm', 'a') {
-                                KeywordScan::Reserved(TerminalKind::PragmaKeyword)
-                            } else {
-                                KeywordScan::Absent
-                            }
-                        }
                         Some('s') => {
                             if scan_chars!(input, 'o', 'l', 'i', 'd', 'i', 't', 'y') {
                                 KeywordScan::Present(TerminalKind::SolidityKeyword)
@@ -11074,35 +11040,7 @@ impl Lexer for Language {
                 }
             }
             LexicalContext::Yul => {
-                if let Some(kind) = match input.next() {
-                    Some('(') => Some(TerminalKind::OpenParen),
-                    Some(')') => Some(TerminalKind::CloseParen),
-                    Some(',') => Some(TerminalKind::Comma),
-                    Some('-') => {
-                        if scan_chars!(input, '>') {
-                            Some(TerminalKind::MinusGreaterThan)
-                        } else {
-                            None
-                        }
-                    }
-                    Some('.') => Some(TerminalKind::Period),
-                    Some(':') => match input.next() {
-                        Some('=') => Some(TerminalKind::ColonEqual),
-                        Some(_) => {
-                            input.undo();
-                            Some(TerminalKind::Colon)
-                        }
-                        None => Some(TerminalKind::Colon),
-                    },
-                    Some('=') => Some(TerminalKind::Equal),
-                    Some('{') => Some(TerminalKind::OpenBrace),
-                    Some('}') => Some(TerminalKind::CloseBrace),
-                    Some(_) => {
-                        input.undo();
-                        None
-                    }
-                    None => None,
-                } {
+                if let Some(kind) = None {
                     furthest_position = input.position();
                     longest_terminal = Some(kind);
                 }

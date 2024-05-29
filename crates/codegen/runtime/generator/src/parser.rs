@@ -20,6 +20,8 @@ use grammar::{
     TriviaParserDefinitionRef,
 };
 
+use crate::parser::grammar::constructor::NamedKeywordScanner;
+
 /// Newtype for the already generated Rust code, not to be confused with regular strings.
 #[derive(Serialize, Default, Clone)]
 struct RustCode(String);
@@ -91,6 +93,15 @@ struct ScannerContextAccumulatorState {
     /// Set of delimiter pairs for this context that are used in delimited error recovery.
     delimiters: BTreeMap<Identifier, Identifier>,
     scanner_definitions: BTreeSet<Identifier>,
+    // TODO: Replace this with simply the values from the
+    // language definition
+    // Item::Keyword { item } => {
+    //     let kw_scanner = NamedKeywordScanner {
+    //         name: ident.clone(),
+    //         identifier_scanner_name: item.identifier.clone(),
+    //         defs: item.definitions.clone(),
+    //     }
+    // The named scanner implements the definition
     keyword_scanner_defs: BTreeMap<Identifier, KeywordScannerDefinitionRef>,
 }
 
@@ -106,9 +117,13 @@ struct DslV2CollectorState {
     trivia_scanner_names: BTreeSet<Identifier>,
     /// Defines `EdgeLabel` enum variants.
     labels: BTreeSet<String>,
+
+    // Defines the `LexicalContext(Type)` enum and type-level variants.
+    scanner_contexts: BTreeMap<Identifier, ScannerContextAccumulatorState>,
 }
 
 impl ParserModel {
+    #[allow(clippy::too_many_lines)]
     pub fn from_language(language: &Rc<Language>) -> Self {
         // First, we construct the DSLv1 model from the DSLv2 definition...
         let grammar = Grammar::from_dsl_v2(language);
@@ -178,12 +193,89 @@ impl ParserModel {
             }
         }
 
+        // TODO: Map an item with lexical context, collect scanners
+        // for a given context
+        // Q: Do we need keep track of recursive/reachable lex context for each scanner?
+        // A: Yes. T_T
+        let mut scanner_contexts: BTreeMap<Identifier, ScannerContextAccumulatorState> =
+            BTreeMap::default();
+        for (lex_ctxt, item) in language.items_with_lex_ctxt() {
+            let ctxt = lex_ctxt
+                .cloned()
+                // TODO: Handle the default lex ctxt better
+                .unwrap_or_else(|| Identifier::from("Default"));
+
+            let entry = scanner_contexts.entry(ctxt).or_default();
+            match item {
+                Item::Struct { item } => {
+                    if let Some(delimiters) = item
+                        .error_recovery
+                        .as_ref()
+                        .and_then(|r| r.delimiters.as_ref())
+                    {
+                        let fields = &item.fields;
+                        let open = fields.get(&delimiters.open).unwrap();
+                        let close = fields.get(&delimiters.close).unwrap();
+                        entry
+                            .delimiters
+                            .insert(open.reference().clone(), close.reference().clone());
+                    }
+                }
+                Item::Precedence { item } => {
+                    let ops = item
+                        .precedence_expressions
+                        .iter()
+                        .flat_map(|e| &e.operators);
+                    for item in ops {
+                        if let Some(delimiters) = item
+                            .error_recovery
+                            .as_ref()
+                            .and_then(|r| r.delimiters.as_ref())
+                        {
+                            let fields = &item.fields;
+                            let open = fields.get(&delimiters.open).unwrap();
+                            let close = fields.get(&delimiters.close).unwrap();
+                            entry
+                                .delimiters
+                                .insert(open.reference().clone(), close.reference().clone());
+                        }
+                    }
+                }
+                Item::Enum { .. } => {}
+                Item::Repeated { .. } => {}
+                Item::Separated { .. } => {}
+                Item::Trivia { item } => {
+                    entry.scanner_definitions.insert(item.name.clone());
+                }
+                Item::Keyword { item } => {
+                    // entry.scanner_definitions.insert(item.name.clone());
+
+                    let kw_scanner = NamedKeywordScanner {
+                        name: item.name.clone(),
+                        identifier_scanner_name: item.identifier.clone(),
+                        defs: item.definitions.clone(),
+                    };
+                    entry
+                        .keyword_scanner_defs
+                        .insert(item.name.clone(), Rc::new(kw_scanner));
+                }
+                Item::Token { item } => {
+                    entry.scanner_definitions.insert(item.name.clone());
+                }
+                Item::Fragment { item } => {
+                    // entry.scanner_definitions.insert(item.name.clone());
+                }
+            }
+            // TODO:
+        }
+
         acc.into_model(DslV2CollectorState {
             referenced_versions: language.collect_breaking_versions(),
             terminal_kinds,
             nonterminal_kinds,
             trivia_scanner_names,
             labels,
+            scanner_contexts,
         })
     }
 }
@@ -200,8 +292,8 @@ impl ParserAccumulatorState {
             .expect("context must be set with `set_current_context`")
     }
 
-    fn into_model(self, collected: DslV2CollectorState) -> ParserModel {
-        let contexts = self
+    fn into_model(self, mut collected: DslV2CollectorState) -> ParserModel {
+        let contexts = collected
             .scanner_contexts
             .into_iter()
             .map(|(name, context)| {
@@ -214,6 +306,7 @@ impl ParserAccumulatorState {
                 let mut literal_trie = Trie::new();
 
                 for scanner_name in &context.scanner_definitions {
+                    eprintln!("{scanner_name}");
                     let scanner = &self.all_scanners[scanner_name];
 
                     let literals = scanner.literals();

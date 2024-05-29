@@ -36,3 +36,12 @@ pub enum Field {
         enabled: Option<VersionSpecifier>,
     },
 }
+
+impl Field {
+    pub fn reference(&self) -> &Identifier {
+        match self {
+            Self::Required { reference } => reference,
+            Self::Optional { reference, .. } => reference,
+        }
+    }
+}

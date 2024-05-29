@@ -720,6 +720,9 @@ impl Lexer for Language {
                     Some('!') => Some(TerminalKind::Bang),
                     Some('+') => Some(TerminalKind::Plus),
                     Some('.') => Some(TerminalKind::Period),
+                    Some(';') => Some(TerminalKind::Semicolon),
+                    Some('[') => Some(TerminalKind::OpenBracket),
+                    Some(']') => Some(TerminalKind::CloseBracket),
                     Some(_) => {
                         input.undo();
                         None
@@ -732,6 +735,7 @@ impl Lexer for Language {
                 input.set_position(save);
 
                 longest_match! {
+                    { DelimitedIdentifier = delimited_identifier }
                     { EndOfLine = end_of_line }
                     { Identifier = identifier }
                     { MultiLineComment = multi_line_comment }
@@ -759,24 +763,13 @@ impl Lexer for Language {
                 }
             }
             LexicalContext::Tree => {
-                if let Some(kind) = match input.next() {
-                    Some(';') => Some(TerminalKind::Semicolon),
-                    Some('[') => Some(TerminalKind::OpenBracket),
-                    Some(']') => Some(TerminalKind::CloseBracket),
-                    Some(_) => {
-                        input.undo();
-                        None
-                    }
-                    None => None,
-                } {
+                if let Some(kind) = None {
                     furthest_position = input.position();
                     longest_terminal = Some(kind);
                 }
                 input.set_position(save);
 
-                longest_match! {
-                    { DelimitedIdentifier = delimited_identifier }
-                }
+                longest_match! {}
                 // Make sure promotable identifiers are last so they don't grab other things
                 longest_match! {
                     { Identifier = identifier }

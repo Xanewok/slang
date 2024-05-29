@@ -35,6 +35,17 @@ impl Language {
         self.topics().flat_map(|topic| &topic.items)
     }
 
+    fn items_with_topic(&self) -> impl Iterator<Item = (&Topic, &Item)> {
+        self.topics()
+            .flat_map(|topic| topic.items.iter().map(move |item| (topic, item)))
+    }
+
+    /// Returns every item in the language definition together with the lexical context it belongs to.
+    pub fn items_with_lex_ctxt(&self) -> impl Iterator<Item = (Option<&Identifier>, &Item)> {
+        self.items_with_topic()
+            .map(|(topic, item)| (topic.lexical_context.as_ref(), item))
+    }
+
     /// Collects all versions that change the language grammar in a breaking way.
     pub fn collect_breaking_versions(&self) -> BTreeSet<Version> {
         let first = self.versions.first().unwrap().clone();
