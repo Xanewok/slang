@@ -34,12 +34,6 @@ pub enum ScannerDefinitionNode {
     ScannerDefinition(ScannerDefinitionRef),
 }
 
-impl From<ScannerDefinitionRef> for ScannerDefinitionNode {
-    fn from(def_ref: ScannerDefinitionRef) -> Self {
-        ScannerDefinitionNode::ScannerDefinition(def_ref)
-    }
-}
-
 impl Visitable for ScannerDefinitionNode {
     fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
         visitor.scanner_definition_node_enter(self);
