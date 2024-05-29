@@ -30,24 +30,15 @@ impl Visitable for ScannerDefinitionRef {
 pub enum ScannerDefinitionNode {
     Versioned(Box<Self>, model::VersionSpecifier),
     Optional(Box<Self>),
-    ZeroOrMore(Box<Self>),
-    OneOrMore(Box<Self>),
     Sequence(Vec<Self>),
     Choice(Vec<Self>),
-    NoneOf(String),
-    NotFollowedBy(Box<Self>, Box<Self>),
-    CharRange(char, char),
     Literal(String),
-    ScannerDefinition(ScannerDefinitionRef),
 }
 
 impl Visitable for ScannerDefinitionNode {
     fn accept_visitor<V: GrammarVisitor>(&self, visitor: &mut V) {
         match self {
-            Self::Versioned(node, _)
-            | Self::Optional(node)
-            | Self::ZeroOrMore(node)
-            | Self::OneOrMore(node) => node.accept_visitor(visitor),
+            Self::Versioned(node, _) | Self::Optional(node) => node.accept_visitor(visitor),
 
             Self::Sequence(nodes) | Self::Choice(nodes) => {
                 for node in nodes {
@@ -55,15 +46,7 @@ impl Visitable for ScannerDefinitionNode {
                 }
             }
 
-            Self::NotFollowedBy(node, lookahead) => {
-                node.accept_visitor(visitor);
-                lookahead.accept_visitor(visitor);
-            }
-
-            Self::NoneOf(_)
-            | Self::CharRange(_, _)
-            | Self::Literal(_)
-            | Self::ScannerDefinition(_) => {}
+            Self::Literal(_) => {}
         }
     }
 }
@@ -75,23 +58,6 @@ pub trait KeywordScannerDefinition: Debug {
 }
 
 pub type KeywordScannerDefinitionRef = Rc<dyn KeywordScannerDefinition>;
-
-impl From<model::KeywordValue> for ScannerDefinitionNode {
-    fn from(val: model::KeywordValue) -> Self {
-        match val {
-            model::KeywordValue::Optional { value } => {
-                ScannerDefinitionNode::Optional(Box::new((*value).into()))
-            }
-            model::KeywordValue::Sequence { values } => {
-                ScannerDefinitionNode::Sequence(values.into_iter().map(Into::into).collect())
-            }
-            model::KeywordValue::Atom { atom } => ScannerDefinitionNode::Literal(atom),
-            model::KeywordValue::Choice { values } => {
-                ScannerDefinitionNode::Choice(values.into_iter().map(Into::into).collect())
-            }
-        }
-    }
-}
 
 /// A [`KeywordScannerDefinitionRef`] that only has a single atom value.
 ///

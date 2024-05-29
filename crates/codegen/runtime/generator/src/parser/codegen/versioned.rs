@@ -31,9 +31,7 @@ impl Versioned for ScannerDefinitionNode {
                 Some(version_quality_ranges)
             }
 
-            ScannerDefinitionNode::Optional(node)
-            | ScannerDefinitionNode::ZeroOrMore(node)
-            | ScannerDefinitionNode::OneOrMore(node) => node.version_specifier(),
+            ScannerDefinitionNode::Optional(node) => node.version_specifier(),
 
             _ => None,
         }

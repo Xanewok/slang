@@ -71,27 +71,6 @@ impl ScannerDefinitionNodeCodegen for ScannerDefinitionNode {
                 quote! { scan_optional!(input, #scanner) }
             }
 
-            ScannerDefinitionNode::ZeroOrMore(node) => {
-                let scanner = node.to_scanner_code();
-                quote! { scan_zero_or_more!(input, #scanner) }
-            }
-
-            ScannerDefinitionNode::OneOrMore(node) => {
-                let scanner = node.to_scanner_code();
-                quote! { scan_one_or_more!(input, #scanner) }
-            }
-
-            ScannerDefinitionNode::NoneOf(string) => {
-                let chars = string.chars();
-                quote! { scan_none_of!(input, #(#chars),*) }
-            }
-
-            ScannerDefinitionNode::NotFollowedBy(node, lookahead) => {
-                let scanner = node.to_scanner_code();
-                let negative_lookahead_scanner = lookahead.to_scanner_code();
-                quote! { scan_not_followed_by!(input, #scanner, #negative_lookahead_scanner) }
-            }
-
             ScannerDefinitionNode::Sequence(nodes) => {
                 let scanners = nodes
                     .iter()
@@ -124,20 +103,9 @@ impl ScannerDefinitionNodeCodegen for ScannerDefinitionNode {
                 quote! { scan_choice!(input, #(#scanners),*) }
             }
 
-            ScannerDefinitionNode::CharRange(from, to) => {
-                quote! { scan_char_range!(input, #from..=#to) }
-            }
-
             ScannerDefinitionNode::Literal(string) => {
                 let chars = string.chars();
                 quote! { scan_chars!(input, #(#chars),*) }
-            }
-
-            ScannerDefinitionNode::ScannerDefinition(scanner_definition) => {
-                let name = scanner_definition.name();
-                let snake_case = name.to_snake_case();
-                let scanner_function_name = format_ident!("{snake_case}");
-                quote! { self.#scanner_function_name(input) }
             }
         }
     }

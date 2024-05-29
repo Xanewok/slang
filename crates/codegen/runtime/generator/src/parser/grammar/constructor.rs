@@ -13,8 +13,7 @@ use crate::parser::codegen::{ScannerDefinitionCodegen, ScannerDefinitionNodeCode
 use crate::parser::grammar::{
     DelimitedRecoveryTerminalThreshold, Grammar, GrammarElement, KeywordScannerDefinition, Labeled,
     ParserDefinition, ParserDefinitionNode, PrecedenceParserDefinition,
-    PrecedenceParserDefinitionNode, ScannerDefinition, ScannerDefinitionNode,
-    TriviaParserDefinition,
+    PrecedenceParserDefinitionNode, ScannerDefinition, TriviaParserDefinition,
 };
 
 impl Grammar {
@@ -156,8 +155,8 @@ impl ScannerDefinition for TerminalItem {
 
     fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
         match self {
-            Self::Trivia(item) => None,
-            Self::Token(item) => None,
+            Self::Trivia(_) => None,
+            Self::Token(_) => None,
             Self::Fragment(item) => item.enabled.as_ref(),
         }
     }
@@ -172,12 +171,10 @@ impl ScannerDefinition for NamedScanner {
     // }
 
     fn literals(&self, accum: &mut BTreeSet<String>) -> bool {
-        use crate::parser::codegen::ScannerDefinitionNodeCodegen;
         self.def.literals(accum)
     }
 
     fn to_scanner_code(&self) -> proc_macro2::TokenStream {
-        use crate::parser::codegen::ScannerDefinitionNodeCodegen;
         self.def.to_scanner_code()
     }
 
@@ -404,72 +401,6 @@ fn resolve_grammar_element(ident: &Identifier, ctx: &mut ResolveCtx<'_>) -> Gram
 
             resolved
         }
-    }
-}
-
-fn resolve_scanner(scanner: model::Scanner, ctx: &mut ResolveCtx<'_>) -> ScannerDefinitionNode {
-    match scanner {
-        model::Scanner::Optional { scanner } => {
-            ScannerDefinitionNode::Optional(Box::new(resolve_scanner(*scanner, ctx)))
-        }
-        model::Scanner::ZeroOrMore { scanner } => {
-            ScannerDefinitionNode::ZeroOrMore(Box::new(resolve_scanner(*scanner, ctx)))
-        }
-        model::Scanner::OneOrMore { scanner } => {
-            ScannerDefinitionNode::OneOrMore(Box::new(resolve_scanner(*scanner, ctx)))
-        }
-        model::Scanner::Sequence { scanners } => ScannerDefinitionNode::Sequence(
-            scanners
-                .into_iter()
-                .map(|scanner| resolve_scanner(scanner, ctx))
-                .collect(),
-        ),
-        model::Scanner::Choice { scanners } => ScannerDefinitionNode::Choice(
-            scanners
-                .into_iter()
-                .map(|scanner| resolve_scanner(scanner, ctx))
-                .collect(),
-        ),
-        model::Scanner::Not { chars } => ScannerDefinitionNode::NoneOf(chars.into_iter().collect()),
-        model::Scanner::TrailingContext {
-            scanner,
-            not_followed_by,
-        } => ScannerDefinitionNode::NotFollowedBy(
-            Box::new(resolve_scanner(*scanner, ctx)),
-            Box::new(resolve_scanner(*not_followed_by, ctx)),
-        ),
-        model::Scanner::Range {
-            inclusive_start,
-            inclusive_end,
-        } => ScannerDefinitionNode::CharRange(inclusive_start, inclusive_end),
-        model::Scanner::Atom { atom } => ScannerDefinitionNode::Literal(atom),
-        model::Scanner::Fragment { reference } => match resolve_grammar_element(&reference, ctx) {
-            GrammarElement::ScannerDefinition(parser) => {
-                ScannerDefinitionNode::ScannerDefinition(parser)
-            }
-            _ => panic!("Expected {reference} to be a ScannerDefinition"),
-        },
-    }
-}
-
-fn resolve_fragment(
-    fragment: model::FragmentItem,
-    ctx: &mut ResolveCtx<'_>,
-) -> ScannerDefinitionNode {
-    resolve_scanner(fragment.scanner, ctx).versioned(fragment.enabled)
-}
-
-fn resolve_token(token: model::TokenItem, ctx: &mut ResolveCtx<'_>) -> ScannerDefinitionNode {
-    let resolved_defs: Vec<_> = token
-        .definitions
-        .into_iter()
-        .map(|def| resolve_scanner(def.scanner, ctx).versioned(def.enabled))
-        .collect();
-
-    match resolved_defs.len() {
-        0 => panic!("Token {} has no definitions", token.name),
-        1 => resolved_defs.into_iter().next().unwrap(),
-        _ => ScannerDefinitionNode::Choice(resolved_defs),
     }
 }
 
@@ -809,15 +740,15 @@ impl VersionWrapped for ParserDefinitionNode {
     }
 }
 
-impl VersionWrapped for ScannerDefinitionNode {
-    fn versioned(self, enabled: Option<model::VersionSpecifier>) -> Self {
-        if let Some(enabled) = enabled {
-            Self::Versioned(Box::new(self), enabled)
-        } else {
-            self
-        }
-    }
-}
+// impl VersionWrapped for ScannerDefinitionNode {
+//     fn versioned(self, enabled: Option<model::VersionSpecifier>) -> Self {
+//         if let Some(enabled) = enabled {
+//             Self::Versioned(Box::new(self), enabled)
+//         } else {
+//             self
+//         }
+//     }
+// }
 
 trait LabeledExt<T> {
     fn anonymous(node: T) -> Self;
