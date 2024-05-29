@@ -130,27 +130,6 @@ impl ScannerDefinition for NamedScanner {
 }
 
 #[derive(Debug)]
-struct NamedKeywordScanner {
-    name: Identifier,
-    identifier_scanner_name: Identifier,
-    defs: Vec<model::KeywordDefinition>,
-}
-
-impl KeywordScannerDefinition for NamedKeywordScanner {
-    fn name(&self) -> &Identifier {
-        &self.name
-    }
-
-    fn definitions(&self) -> &[model::KeywordDefinition] {
-        &self.defs
-    }
-
-    fn identifier_scanner(&self) -> &Identifier {
-        &self.identifier_scanner_name
-    }
-}
-
-#[derive(Debug)]
 struct NamedTriviaParser {
     name: Identifier,
     def: ParserDefinitionNode,
@@ -353,14 +332,9 @@ fn resolve_grammar_element(ident: &Identifier, ctx: &mut ResolveCtx<'_>) -> Gram
                     def: resolve_token(item.deref().clone(), ctx),
                 },
                 Item::Keyword { item } => {
-                    let kw_scanner = NamedKeywordScanner {
-                        name: ident.clone(),
-                        identifier_scanner_name: item.identifier.clone(),
-                        defs: item.definitions.clone(),
-                    };
-
                     // Keywords are special scanners and are handled separately
-                    let resolved = GrammarElement::KeywordScannerDefinition(Rc::new(kw_scanner));
+                    let resolved =
+                        GrammarElement::KeywordScannerDefinition(Rc::clone(item) as Rc<_>);
                     ctx.resolved.insert(ident.clone(), resolved.clone());
                     return resolved;
                 }
@@ -828,5 +802,19 @@ impl<T> LabeledExt<T> for Labeled<T> {
             label: label.as_ref().to_owned(),
             value,
         }
+    }
+}
+
+impl KeywordScannerDefinition for model::KeywordItem {
+    fn name(&self) -> &Identifier {
+        &self.name
+    }
+
+    fn identifier_scanner(&self) -> &Identifier {
+        &self.identifier
+    }
+
+    fn definitions(&self) -> &[model::KeywordDefinition] {
+        &self.definitions
     }
 }
