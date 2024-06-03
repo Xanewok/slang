@@ -12,8 +12,10 @@ pub trait ScannerDefinition: Debug {
     // ----
     // Instead of def
     fn to_scanner_code(&self) -> TokenStream;
-    fn literals(&self, accum: &mut BTreeSet<String>) -> bool;
-    fn version_specifier(&self) -> Option<&model::VersionSpecifier>;
+    fn literals(&self) -> BTreeSet<String>;
+    fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
+        None
+    }
 }
 
 pub type ScannerDefinitionRef = Rc<dyn ScannerDefinition>;

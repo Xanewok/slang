@@ -1,36 +1,89 @@
 use std::collections::BTreeSet;
-use std::ops::Deref;
 
-use codegen_language_definition::model;
+use codegen_language_definition::model::{self, Identifier};
 use inflector::Inflector;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::parser::codegen::versioned::VersionedQuote;
-use crate::parser::grammar::ScannerDefinitionRef;
+use crate::parser::grammar::ScannerDefinition;
 
-pub trait ScannerDefinitionCodegen {
-    fn to_scanner_code(&self) -> TokenStream;
-    /// Returns the literals of the scanner, if the is not compound.
-    fn literals(&self) -> Vec<String>;
-}
-
-impl ScannerDefinitionCodegen for ScannerDefinitionRef {
-    fn to_scanner_code(&self) -> TokenStream {
-        self.deref().to_scanner_code()
+impl ScannerDefinition for model::TriviaItem {
+    fn name(&self) -> &Identifier {
+        &self.name
     }
 
-    fn literals(&self) -> Vec<String> {
-        let mut result = BTreeSet::new();
-        if self.deref().literals(&mut result) {
-            result.into_iter().collect()
+    fn to_scanner_code(&self) -> proc_macro2::TokenStream {
+        self.scanner.to_scanner_code()
+    }
+
+    fn literals(&self) -> BTreeSet<String> {
+        let mut result = BTreeSet::default();
+        if self.scanner.literals_accum(&mut result) {
+            result
         } else {
-            vec![]
+            BTreeSet::default()
         }
     }
 }
 
-pub trait ScannerDefinitionNodeCodegen {
+impl ScannerDefinition for model::FragmentItem {
+    fn name(&self) -> &Identifier {
+        &self.name
+    }
+
+    fn to_scanner_code(&self) -> proc_macro2::TokenStream {
+        VersionedScanner::new(&self.scanner, self.enabled.as_ref()).to_scanner_code()
+    }
+
+    fn literals(&self) -> BTreeSet<String> {
+        let mut result = BTreeSet::default();
+        if self.scanner.literals_accum(&mut result) {
+            result
+        } else {
+            BTreeSet::default()
+        }
+    }
+
+    fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
+        self.enabled.as_ref()
+    }
+}
+
+impl ScannerDefinition for model::TokenItem {
+    fn name(&self) -> &Identifier {
+        &self.name
+    }
+
+    fn to_scanner_code(&self) -> proc_macro2::TokenStream {
+        let defs: Vec<_> = self
+            .definitions
+            .iter()
+            .map(|def| VersionedScanner::new(&def.scanner, def.enabled.as_ref()))
+            .collect();
+
+        match defs.len() {
+            0 => panic!("Token {} has no definitions", self.name),
+            1 => defs.into_iter().next().unwrap().to_scanner_code(),
+            _ => choice_to_scanner_code(&defs),
+        }
+    }
+
+    fn literals(&self) -> BTreeSet<String> {
+        let mut result = BTreeSet::new();
+        if self
+            .definitions
+            .iter()
+            .all(|def| def.scanner.literals_accum(&mut result))
+        {
+            result
+        } else {
+            BTreeSet::default()
+        }
+    }
+}
+
+pub(crate) trait ScannerExt {
     fn to_scanner_code(&self) -> TokenStream;
     /// Whether the scanner is an atom, and if so, returns the atom.
     fn as_atom(&self) -> Option<&str>;
@@ -41,71 +94,13 @@ pub trait ScannerDefinitionNodeCodegen {
     fn literals_accum(&self, accum: &mut BTreeSet<String>) -> bool;
 }
 
-impl ScannerDefinitionCodegen for model::TriviaItem {
-    fn to_scanner_code(&self) -> TokenStream {
-        self.scanner.to_scanner_code()
-    }
-
-    fn literals(&self) -> Vec<String> {
-        let mut result = BTreeSet::new();
-        if self.scanner.literals_accum(&mut result) {
-            result.into_iter().collect()
-        } else {
-            vec![]
-        }
-    }
-}
-
-impl ScannerDefinitionCodegen for model::FragmentItem {
-    fn to_scanner_code(&self) -> TokenStream {
-        VersionedScanner::new(&self.scanner, self.enabled.as_ref()).to_scanner_code()
-    }
-
-    fn literals(&self) -> Vec<String> {
-        let mut result = BTreeSet::new();
-        if self.scanner.literals_accum(&mut result) {
-            result.into_iter().collect()
-        } else {
-            vec![]
-        }
-    }
-}
-
-impl ScannerDefinitionCodegen for model::TokenItem {
-    fn to_scanner_code(&self) -> TokenStream {
-        ScannerDefinitionNodeCodegen::to_scanner_code(self)
-    }
-
-    fn literals(&self) -> Vec<String> {
-        let mut result = BTreeSet::new();
-        if ScannerDefinitionNodeCodegen::literals_accum(self, &mut result) {
-            result.into_iter().collect()
-        } else {
-            vec![]
-        }
-    }
-}
-
-impl ScannerDefinitionNodeCodegen for model::FragmentItem {
-    fn to_scanner_code(&self) -> TokenStream {
-        VersionedScanner::new(&self.scanner, self.enabled.as_ref()).to_scanner_code()
-    }
-
-    fn as_atom(&self) -> Option<&str> {
-        None
-    }
-
-    fn literals_accum(&self, accum: &mut BTreeSet<String>) -> bool {
-        self.scanner.literals_accum(accum)
-    }
-}
-
-pub(crate) struct VersionedScanner<'a> {
+/// Like [`model::Scanner`] but versioned.
+struct VersionedScanner<'a> {
     scanner: &'a model::Scanner,
     enabled: Option<&'a model::VersionSpecifier>,
 }
 
-impl ScannerDefinitionNodeCodegen for VersionedScanner<'_> {
+impl ScannerExt for VersionedScanner<'_> {
     fn to_scanner_code(&self) -> TokenStream {
         let scanner = self.scanner.to_scanner_code();
         self.enabled
@@ -127,56 +122,7 @@ impl<'a> VersionedScanner<'a> {
     }
 }
 
-impl ScannerDefinitionNodeCodegen for model::TriviaItem {
-    fn to_scanner_code(&self) -> TokenStream {
-        self.scanner.to_scanner_code()
-    }
-
-    fn as_atom(&self) -> Option<&str> {
-        None
-    }
-
-    fn literals_accum(&self, accum: &mut BTreeSet<String>) -> bool {
-        self.scanner.literals_accum(accum)
-    }
-}
-
-impl ScannerDefinitionNodeCodegen for model::TokenItem {
-    fn to_scanner_code(&self) -> TokenStream {
-        let defs: Vec<_> = self
-            .definitions
-            .iter()
-            .map(|def| VersionedScanner::new(&def.scanner, def.enabled.as_ref()))
-            .collect();
-
-        match defs.len() {
-            0 => panic!("Token {} has no definitions", self.name),
-            1 => defs.into_iter().next().unwrap().to_scanner_code(),
-            _ => choice_to_scanner_code(&defs),
-        }
-    }
-
-    fn as_atom(&self) -> Option<&str> {
-        None
-    }
-
-    fn literals_accum(&self, accum: &mut BTreeSet<String>) -> bool {
-        // TODO: Make sure this is correct
-        let mut result = BTreeSet::new();
-        if self
-            .definitions
-            .iter()
-            .all(|def| def.scanner.literals_accum(&mut result))
-        {
-            accum.extend(result);
-            true
-        } else {
-            false
-        }
-    }
-}
-
-fn choice_to_scanner_code<T: ScannerDefinitionNodeCodegen>(nodes: &[T]) -> TokenStream {
+fn choice_to_scanner_code<T: ScannerExt>(nodes: &[T]) -> TokenStream {
     let mut scanners = vec![];
     let mut non_literal_scanners = vec![];
     for node in nodes {
@@ -200,7 +146,7 @@ fn choice_to_scanner_code<T: ScannerDefinitionNodeCodegen>(nodes: &[T]) -> Token
     quote! { scan_choice!(input, #(#scanners),*) }
 }
 
-impl ScannerDefinitionNodeCodegen for model::Scanner {
+impl ScannerExt for model::Scanner {
     fn to_scanner_code(&self) -> TokenStream {
         match self {
             model::Scanner::Optional { scanner } => {

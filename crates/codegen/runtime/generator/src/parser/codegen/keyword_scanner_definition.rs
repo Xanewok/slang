@@ -2,7 +2,7 @@ use codegen_language_definition::model;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::parser::codegen::scanner_definition::ScannerDefinitionNodeCodegen as _;
+use crate::parser::codegen::scanner_definition::ScannerExt as _;
 use crate::parser::codegen::versioned::VersionedQuote;
 use crate::parser::grammar::KeywordScannerDefinitionRef;
 

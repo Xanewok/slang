@@ -12,7 +12,7 @@ mod grammar;
 
 use codegen::{
     KeywordScannerDefinitionCodegen as _, ParserDefinitionCodegen as _,
-    PrecedenceParserDefinitionCodegen as _, ScannerDefinitionCodegen as _, Trie,
+    PrecedenceParserDefinitionCodegen as _, Trie,
 };
 use grammar::{
     Grammar, GrammarVisitor, KeywordScannerAtomic, KeywordScannerDefinitionRef,
