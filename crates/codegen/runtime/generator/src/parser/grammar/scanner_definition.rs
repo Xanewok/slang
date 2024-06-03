@@ -8,11 +8,15 @@ use proc_macro2::TokenStream;
 use crate::parser::grammar::{GrammarVisitor, Visitable};
 
 pub trait ScannerDefinition: Debug {
+    /// A unique identifier for this scanner.
     fn name(&self) -> &Identifier;
-    // ----
-    // Instead of def
+    /// Quotes the matching Rust scanner code.
     fn to_scanner_code(&self) -> TokenStream;
-    fn literals(&self) -> BTreeSet<String>;
+    /// A set of literals that this scanner can match.
+    ///
+    /// If the scanner matches more than just (a union of) literals, this method should return `None`.
+    fn literals(&self) -> Option<BTreeSet<String>>;
+    /// For which language version the scanner is defined.
     fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
         None
     }

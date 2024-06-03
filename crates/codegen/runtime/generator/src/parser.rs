@@ -125,7 +125,7 @@ impl ParserAccumulatorState {
                 for scanner_name in &context.scanner_definitions {
                     let scanner = &self.all_scanners[scanner_name];
 
-                    let literals = scanner.literals();
+                    let literals = scanner.literals().unwrap_or_default();
                     if literals.is_empty() {
                         acc.compound_scanner_names.push(scanner_name.clone());
                     } else {
@@ -165,7 +165,7 @@ impl ParserAccumulatorState {
             .iter()
             .filter(|(name, scanner)| {
                 // are compound (do not consist of only literals)
-                scanner.literals().is_empty() ||
+                scanner.literals().is_none() ||
                 // but make sure to also include a scanner that is referenced by other scanners, even if not compound
                 !self.top_level_scanner_names.contains(*name)
             })

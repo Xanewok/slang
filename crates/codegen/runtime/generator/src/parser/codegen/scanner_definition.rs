@@ -17,13 +17,8 @@ impl ScannerDefinition for model::TriviaItem {
         self.scanner.to_scanner_code()
     }
 
-    fn literals(&self) -> BTreeSet<String> {
-        let mut result = BTreeSet::default();
-        if self.scanner.literals_accum(&mut result) {
-            result
-        } else {
-            BTreeSet::default()
-        }
+    fn literals(&self) -> Option<BTreeSet<String>> {
+        self.scanner.literals()
     }
 }
 
@@ -36,13 +31,8 @@ impl ScannerDefinition for model::FragmentItem {
         VersionedScanner::new(&self.scanner, self.enabled.as_ref()).to_scanner_code()
     }
 
-    fn literals(&self) -> BTreeSet<String> {
-        let mut result = BTreeSet::default();
-        if self.scanner.literals_accum(&mut result) {
-            result
-        } else {
-            BTreeSet::default()
-        }
+    fn literals(&self) -> Option<BTreeSet<String>> {
+        self.scanner.literals()
     }
 
     fn version_specifier(&self) -> Option<&model::VersionSpecifier> {
@@ -69,32 +59,29 @@ impl ScannerDefinition for model::TokenItem {
         }
     }
 
-    fn literals(&self) -> BTreeSet<String> {
-        let mut result = BTreeSet::new();
-        if self
-            .definitions
+    fn literals(&self) -> Option<BTreeSet<String>> {
+        self.definitions
             .iter()
-            .all(|def| def.scanner.literals_accum(&mut result))
-        {
-            result
-        } else {
-            BTreeSet::default()
-        }
+            .try_fold(BTreeSet::new(), |mut acc, def| {
+                let literals = def.scanner.literals()?;
+                acc.extend(literals);
+                Some(acc)
+            })
     }
 }
 
 pub(crate) trait ScannerExt {
+    /// Quotes the matching Rust scanner code.
     fn to_scanner_code(&self) -> TokenStream;
     /// Whether the scanner is an atom, and if so, returns the atom.
     fn as_atom(&self) -> Option<&str>;
-    /// Keeps accumulating literals and returns whether the scanner is a literal.
-    ///
-    /// Short-circuits on the first non-literal scanner.
-    #[doc(hidden)]
-    fn literals_accum(&self, accum: &mut BTreeSet<String>) -> bool;
+    /// Returns a set of literals that this scanner can match.
+    fn literals(&self) -> Option<BTreeSet<String>>;
 }
 
-/// Like [`model::Scanner`] but versioned.
+/// Enhances the [`model::Scanner`] with version information.
+///
+/// Used to generate code for scanners that are versioned, i.e. wrapped in conditional blocks.
 struct VersionedScanner<'a> {
     scanner: &'a model::Scanner,
     enabled: Option<&'a model::VersionSpecifier>,
@@ -111,8 +98,8 @@ impl ScannerExt for VersionedScanner<'_> {
         None
     }
 
-    fn literals_accum(&self, accum: &mut BTreeSet<String>) -> bool {
-        self.scanner.literals_accum(accum)
+    fn literals(&self) -> Option<BTreeSet<String>> {
+        self.scanner.literals()
     }
 }
 
@@ -120,30 +107,6 @@ impl<'a> VersionedScanner<'a> {
     fn new(scanner: &'a model::Scanner, enabled: Option<&'a model::VersionSpecifier>) -> Self {
         Self { scanner, enabled }
     }
-}
-
-fn choice_to_scanner_code<T: ScannerExt>(nodes: &[T]) -> TokenStream {
-    let mut scanners = vec![];
-    let mut non_literal_scanners = vec![];
-    for node in nodes {
-        if let Some(atom) = node.as_atom() {
-            scanners.push(atom);
-        } else {
-            non_literal_scanners.push(node.to_scanner_code());
-        }
-    }
-    scanners.sort_unstable();
-    let mut scanners = scanners
-        .iter()
-        // We want the longest literals first, so we prefer the longest match
-        .rev()
-        .map(|string| {
-            let chars = string.chars();
-            quote! { scan_chars!(input, #(#chars),*) }
-        })
-        .collect::<Vec<_>>();
-    scanners.extend(non_literal_scanners);
-    quote! { scan_choice!(input, #(#scanners),*) }
 }
 
 impl ScannerExt for model::Scanner {
@@ -209,16 +172,45 @@ impl ScannerExt for model::Scanner {
         }
     }
 
-    fn literals_accum(&self, accum: &mut BTreeSet<String>) -> bool {
-        match self {
-            Self::Atom { atom } => {
-                accum.insert(atom.clone());
-                true
+    fn literals(&self) -> Option<BTreeSet<String>> {
+        fn accumulate(scanner: &model::Scanner, accum: &mut BTreeSet<String>) -> bool {
+            match scanner {
+                model::Scanner::Atom { atom } => {
+                    accum.insert(atom.clone());
+                    true
+                }
+                model::Scanner::Choice { scanners } => scanners
+                    .iter()
+                    .fold(true, |result, node| accumulate(node, accum) && result),
+                _ => false,
             }
-            Self::Choice { scanners } => scanners
-                .iter()
-                .fold(true, |result, node| node.literals_accum(accum) && result),
-            _ => false,
+        }
+
+        let mut literals = BTreeSet::default();
+        accumulate(self, &mut literals).then_some(literals)
+    }
+}
+
+fn choice_to_scanner_code<T: ScannerExt>(nodes: &[T]) -> TokenStream {
+    let mut scanners = vec![];
+    let mut non_literal_scanners = vec![];
+    for node in nodes {
+        if let Some(atom) = node.as_atom() {
+            scanners.push(atom);
+        } else {
+            non_literal_scanners.push(node.to_scanner_code());
         }
     }
+    scanners.sort_unstable();
+    let mut scanners = scanners
+        .iter()
+        // We want the longest literals first, so we prefer the longest match
+        .rev()
+        .map(|string| {
+            let chars = string.chars();
+            quote! { scan_chars!(input, #(#chars),*) }
+        })
+        .collect::<Vec<_>>();
+    scanners.extend(non_literal_scanners);
+    quote! { scan_choice!(input, #(#scanners),*) }
 }
