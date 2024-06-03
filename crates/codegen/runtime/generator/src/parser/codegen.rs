@@ -5,7 +5,7 @@ mod scanner_definition;
 mod trie;
 mod versioned;
 
-pub use keyword_scanner_definition::KeywordScannerDefinitionCodegen;
+pub use keyword_scanner_definition::{KeywordScannerAtomic, KeywordScannerDefinitionCodegen};
 pub use parser_definition::ParserDefinitionCodegen;
 pub use precedence_parser_definition::PrecedenceParserDefinitionCodegen;
 pub use trie::Trie;

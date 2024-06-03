@@ -15,9 +15,11 @@ use codegen::{
     PrecedenceParserDefinitionCodegen as _, Trie,
 };
 use grammar::{
-    Grammar, GrammarVisitor, KeywordScannerAtomic, ParserDefinitionNode, ParserDefinitionRef,
+    Grammar, GrammarVisitor, ParserDefinitionNode, ParserDefinitionRef,
     PrecedenceParserDefinitionRef, ScannerDefinitionRef, TriviaParserDefinitionRef,
 };
+
+use crate::parser::codegen::KeywordScannerAtomic;
 
 /// Newtype for the already generated Rust code, not to be confused with regular strings.
 #[derive(Serialize, Default, Clone)]

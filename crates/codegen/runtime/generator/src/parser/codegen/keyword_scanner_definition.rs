@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use codegen_language_definition::model;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -82,5 +84,53 @@ impl KeywordScannerDefinitionCodegen for model::KeywordValue {
     fn to_scanner_code(&self) -> TokenStream {
         // This is a subset; let's reuse that
         model::Scanner::from(self.clone()).to_scanner_code()
+    }
+}
+
+/// A newtype wrapper around [`model::KeywordItem`] that only has a single atom value.
+///
+/// The main usage for this type is to construct a keyword trie, as trie will
+/// only work with single atom values and keyword promotion needs to additionally account for
+/// keyword reservation, rather than just literal presence.
+#[derive(Clone)]
+pub struct KeywordScannerAtomic(Rc<model::KeywordItem>);
+
+impl KeywordScannerAtomic {
+    /// Wraps the keyword scanner definition if it is a single atom value.
+    pub fn try_from_def(def: &Rc<model::KeywordItem>) -> Option<Self> {
+        match def.definitions[..] {
+            [model::KeywordDefinition {
+                value: model::KeywordValue::Atom { .. },
+                ..
+            }] => Some(Self(Rc::clone(def))),
+            _ => None,
+        }
+    }
+}
+
+impl std::ops::Deref for KeywordScannerAtomic {
+    type Target = Rc<model::KeywordItem>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl KeywordScannerAtomic {
+    pub fn definition(&self) -> &model::KeywordDefinition {
+        self.0
+            .definitions
+            .first()
+            .expect("KeywordScannerAtomic should have exactly one definition")
+    }
+
+    pub fn value(&self) -> &str {
+        match self.definition() {
+            model::KeywordDefinition {
+                value: model::KeywordValue::Atom { atom },
+                ..
+            } => atom,
+            _ => unreachable!("KeywordScannerAtomic should have a single atom value"),
+        }
     }
 }
