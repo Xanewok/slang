@@ -4,19 +4,18 @@ use quote::{format_ident, quote};
 
 use crate::parser::codegen::scanner_definition::ScannerExt as _;
 use crate::parser::codegen::versioned::VersionedQuote;
-use crate::parser::grammar::KeywordScannerDefinitionRef;
 
 pub trait KeywordScannerDefinitionCodegen {
     fn to_scanner_code(&self) -> TokenStream;
 }
 
-impl KeywordScannerDefinitionCodegen for KeywordScannerDefinitionRef {
+impl KeywordScannerDefinitionCodegen for model::KeywordItem {
     fn to_scanner_code(&self) -> TokenStream {
-        let name_ident = format_ident!("{}", self.name());
+        let name_ident = format_ident!("{}", self.name);
         let terminal_kind = quote! { TerminalKind::#name_ident };
 
         let kw_scanners: Vec<_> = self
-            .definitions()
+            .definitions
             .iter()
             .map(|versioned_kw| {
                 let scanner = versioned_kw.value.to_scanner_code();
@@ -82,27 +81,6 @@ impl KeywordScannerDefinitionCodegen for KeywordScannerDefinitionRef {
 impl KeywordScannerDefinitionCodegen for model::KeywordValue {
     fn to_scanner_code(&self) -> TokenStream {
         // This is a subset; let's reuse that
-        self.clone().into_scanner().to_scanner_code()
-    }
-}
-
-trait IntoScanner {
-    fn into_scanner(self) -> model::Scanner;
-}
-
-impl IntoScanner for model::KeywordValue {
-    fn into_scanner(self: model::KeywordValue) -> model::Scanner {
-        match self {
-            model::KeywordValue::Optional { value } => model::Scanner::Optional {
-                scanner: Box::new(value.into_scanner()),
-            },
-            model::KeywordValue::Sequence { values } => model::Scanner::Sequence {
-                scanners: values.into_iter().map(IntoScanner::into_scanner).collect(),
-            },
-            model::KeywordValue::Atom { atom } => model::Scanner::Atom { atom },
-            model::KeywordValue::Choice { values } => model::Scanner::Choice {
-                scanners: values.into_iter().map(IntoScanner::into_scanner).collect(),
-            },
-        }
+        model::Scanner::from(self.clone()).to_scanner_code()
     }
 }

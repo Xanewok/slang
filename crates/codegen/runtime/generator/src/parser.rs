@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 
-use codegen_language_definition::model::{Identifier, Language};
+use codegen_language_definition::model::{self, Identifier, Language};
 use semver::Version;
 use serde::Serialize;
 
@@ -15,9 +15,8 @@ use codegen::{
     PrecedenceParserDefinitionCodegen as _, Trie,
 };
 use grammar::{
-    Grammar, GrammarVisitor, KeywordScannerAtomic, KeywordScannerDefinitionRef,
-    ParserDefinitionNode, ParserDefinitionRef, PrecedenceParserDefinitionRef, ScannerDefinitionRef,
-    TriviaParserDefinitionRef,
+    Grammar, GrammarVisitor, KeywordScannerAtomic, ParserDefinitionNode, ParserDefinitionRef,
+    PrecedenceParserDefinitionRef, ScannerDefinitionRef, TriviaParserDefinitionRef,
 };
 
 /// Newtype for the already generated Rust code, not to be confused with regular strings.
@@ -82,7 +81,7 @@ struct ScannerContextAccumulatorState {
     /// Set of delimiter pairs for this context that are used in delimited error recovery.
     delimiters: BTreeMap<Identifier, Identifier>,
     scanner_definitions: BTreeSet<Identifier>,
-    keyword_scanner_defs: BTreeMap<Identifier, KeywordScannerDefinitionRef>,
+    keyword_scanner_defs: BTreeMap<Identifier, Rc<model::KeywordItem>>,
 }
 
 impl ParserModel {
@@ -139,7 +138,7 @@ impl ParserAccumulatorState {
                 acc.promotable_identifier_scanners = context
                     .keyword_scanner_defs
                     .values()
-                    .map(|def| def.identifier_scanner().clone())
+                    .map(|def| def.identifier.clone())
                     .collect();
 
                 let mut keyword_trie = Trie::new();
@@ -254,7 +253,7 @@ impl GrammarVisitor for ParserAccumulatorState {
             ParserDefinitionNode::KeywordScannerDefinition(scanner) => {
                 self.current_context()
                     .keyword_scanner_defs
-                    .insert(scanner.name().clone(), Rc::clone(scanner));
+                    .insert(scanner.name.clone(), Rc::clone(scanner));
             }
 
             // Collect delimiters for each context

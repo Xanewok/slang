@@ -117,7 +117,7 @@ impl Payload for ScannerDefinitionRef {
 
 impl Payload for KeywordScannerAtomic {
     fn to_leaf_code(&self) -> TokenStream {
-        let kind = format_ident!("{}", self.name());
+        let kind = format_ident!("{}", self.name);
 
         let KeywordDefinition {
             enabled, reserved, ..

@@ -30,26 +30,18 @@ impl Visitable for ScannerDefinitionRef {
     }
 }
 
-pub trait KeywordScannerDefinition: Debug {
-    fn name(&self) -> &Identifier;
-    fn identifier_scanner(&self) -> &Identifier;
-    fn definitions(&self) -> &[model::KeywordDefinition];
-}
-
-pub type KeywordScannerDefinitionRef = Rc<dyn KeywordScannerDefinition>;
-
-/// A [`KeywordScannerDefinitionRef`] that only has a single atom value.
+/// A newtype wrapper around [`model::KeywordItem`] that only has a single atom value.
 ///
 /// The main usage for this type is to construct a keyword trie in parser generator, as trie will
 /// only work with single atom values and keyword promotion needs to additionally account for
 /// keyword reservation, rather than just literal presence.
 #[derive(Clone)]
-pub struct KeywordScannerAtomic(KeywordScannerDefinitionRef);
+pub struct KeywordScannerAtomic(Rc<model::KeywordItem>);
 
 impl KeywordScannerAtomic {
     /// Wraps the keyword scanner definition if it is a single atom value.
-    pub fn try_from_def(def: &KeywordScannerDefinitionRef) -> Option<Self> {
-        match def.definitions() {
+    pub fn try_from_def(def: &Rc<model::KeywordItem>) -> Option<Self> {
+        match def.definitions[..] {
             [model::KeywordDefinition {
                 value: model::KeywordValue::Atom { .. },
                 ..
@@ -60,7 +52,7 @@ impl KeywordScannerAtomic {
 }
 
 impl std::ops::Deref for KeywordScannerAtomic {
-    type Target = KeywordScannerDefinitionRef;
+    type Target = Rc<model::KeywordItem>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -70,7 +62,7 @@ impl std::ops::Deref for KeywordScannerAtomic {
 impl KeywordScannerAtomic {
     pub fn definition(&self) -> &model::KeywordDefinition {
         self.0
-            .definitions()
+            .definitions
             .first()
             .expect("KeywordScannerAtomic should have exactly one definition")
     }

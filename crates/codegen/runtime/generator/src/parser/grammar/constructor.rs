@@ -10,9 +10,9 @@ use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 
 use crate::parser::grammar::{
-    DelimitedRecoveryTerminalThreshold, Grammar, GrammarElement, KeywordScannerDefinition, Labeled,
-    ParserDefinition, ParserDefinitionNode, PrecedenceParserDefinition,
-    PrecedenceParserDefinitionNode, TriviaParserDefinition,
+    DelimitedRecoveryTerminalThreshold, Grammar, GrammarElement, Labeled, ParserDefinition,
+    ParserDefinitionNode, PrecedenceParserDefinition, PrecedenceParserDefinitionNode,
+    TriviaParserDefinition,
 };
 
 impl Grammar {
@@ -701,19 +701,5 @@ impl<T> LabeledExt<T> for Labeled<T> {
             label: label.as_ref().to_owned(),
             value,
         }
-    }
-}
-
-impl KeywordScannerDefinition for model::KeywordItem {
-    fn name(&self) -> &Identifier {
-        &self.name
-    }
-
-    fn identifier_scanner(&self) -> &Identifier {
-        &self.identifier
-    }
-
-    fn definitions(&self) -> &[model::KeywordDefinition] {
-        &self.definitions
     }
 }
